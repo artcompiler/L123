@@ -1,3 +1,6 @@
+@import url(//fonts.googleapis.com/css?family=Raleway:400,300,600);
+@import url(//fonts.googleapis.com/css?family=Jura:400,500,600);
+
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 
 /**
@@ -607,6 +610,11 @@ th {
   white-space: pre-wrap;
   -webkit-font-variant-ligatures: none;
   font-variant-ligatures: none;
+  font-size: .9375em; /* currently ems cause chrome bug misinterpreting rems on body element */
+  line-height: 1.6;
+  font-weight: 400;
+  font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #222; }
 }
 
 .ProseMirror pre {
