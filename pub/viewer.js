@@ -298,24 +298,49 @@ window.gcexports.viewer = function () {
   function capture(el) {
     return null;
   }
+  function update(proseMirrorState, recompileCode) {
+    var state = {};
+    state[window.gcexports.id] = {
+      data: {
+        proseMirrorState: proseMirrorState
+      },
+      recompileCode: recompileCode
+    };
+    window.gcexports.dispatcher.dispatch(state);
+  }
   var Editor = _react2.default.createClass({
     displayName: "Editor",
 
+    view: undefined,
     componentDidMount: function componentDidMount() {
-      var doc = _prosemirrorSchemaBasic.schema.node("doc", null, [_prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("One.")]), _prosemirrorSchemaBasic.schema.node("horizontal_rule"), _prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("Two!")])]);
-      var state = _prosemirrorState.EditorState.create({
-        schema: _prosemirrorSchemaBasic.schema,
-        doc: doc,
-        plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
-      });
-      var view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
+      var state = void 0;
+      if (this.props.newState && this.props.newState.doc) {
+        state = _prosemirrorState.EditorState.create({
+          schema: _prosemirrorSchemaBasic.schema,
+          doc: this.props.newState.doc,
+          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+        });
+      } else {
+        var doc = _prosemirrorSchemaBasic.schema.node("doc", null, [_prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("One.")]), _prosemirrorSchemaBasic.schema.node("horizontal_rule"), _prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("Two!")])]);
+        state = _prosemirrorState.EditorState.create({
+          schema: _prosemirrorSchemaBasic.schema,
+          doc: doc,
+          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+        });
+      }
+      var view = this.view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
         state: state,
         dispatchTransaction: function dispatchTransaction(transaction) {
           console.log("Document size went from", transaction.before.content.size, "to", transaction.doc.content.size);
           var newState = view.state.apply(transaction);
           view.updateState(newState);
+          update(newState);
         }
       });
+    },
+    componentDidUpdate: function componentDidUpdate() {
+      var props = this.props;
+      this.view.updateState(props.newState);
     },
     render: function render() {
       return _react2.default.createElement(
@@ -341,8 +366,8 @@ window.gcexports.viewer = function () {
   });
   var Viewer = _react2.default.createClass({
     displayName: "Viewer",
-
     render: function render() {
+      var props = this.props;
       return _react2.default.createElement(
         "div",
         null,
@@ -350,7 +375,7 @@ window.gcexports.viewer = function () {
         _react2.default.createElement(
           "div",
           { className: "L123" },
-          _react2.default.createElement(Editor, null)
+          _react2.default.createElement(Editor, { newState: props.data.proseMirrorState })
         )
       );
     }
@@ -21576,7 +21601,7 @@ function splitBlock(state, dispatch) {
     if (state.selection instanceof prosemirrorState.TextSelection) { tr.deleteSelection(); }
     var deflt = $from.depth == 0 ? null : $from.node(-1).contentMatchAt($from.indexAfter(-1)).defaultType;
     var types = atEnd && deflt ? [{type: deflt}] : null;
-    var can = prosemirrorTransform.canSplit(tr.doc, $from.pos, 1, types);
+    var can = prosemirrorTransform.canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
     if (!types && !can && prosemirrorTransform.canSplit(tr.doc, tr.mapping.map($from.pos), 1, deflt && [{type: deflt}])) {
       types = [{type: deflt}];
       can = true;
@@ -22081,7 +22106,7 @@ Branch.prototype.rebased = function rebased (rebasedTransform, rebasedCount) {
     var map = mapping.maps[pos];
     if (item.step) {
       var step = rebasedTransform.steps[pos].invert(rebasedTransform.docs[pos]);
-      var selection = item.selection && item.selection.map(mapping.slice(iRebased, pos));
+      var selection = item.selection && item.selection.map(mapping.slice(iRebased + 1, pos));
       if (selection) { eventCount++; }
       rebasedItems.push(new Item(map, step, selection));
     } else {
@@ -22816,7 +22841,9 @@ Fragment.from = function from (nodes) {
   if (!nodes) { return Fragment.empty }
   if (nodes instanceof Fragment) { return nodes }
   if (Array.isArray(nodes)) { return this.fromArray(nodes) }
-  return new Fragment([nodes], nodes.nodeSize)
+  if (nodes.attrs) { return new Fragment([nodes], nodes.nodeSize) }
+  throw new RangeError("Can not convert " + nodes + " to a Fragment" +
+                       (nodes.nodesBetween ? " (looks like multiple versions of prosemirror-model were loaded)" : ""))
 };
 
 Object.defineProperties( Fragment.prototype, prototypeAccessors$1 );
@@ -24789,6 +24816,10 @@ MarkType.prototype.excludes = function excludes (other) {
 //   group:: ?string
 //   The group or space-separated groups to which this mark belongs.
 //
+//   spanning:: ?bool
+//   Determines whether marks of this type can span multiple adjacent
+//   nodes when serialized to DOM/HTML. Defaults to true.
+//
 //   toDOM:: ?(mark: Mark, inline: bool) → DOMOutputSpec
 //   Defines the default way marks of this type should be serialized
 //   to DOM/HTML. When the resulting spec contains a hole, that is
@@ -25488,7 +25519,7 @@ ParseContext.prototype.applyPendingMarks = function applyPendingMarks (top) {
 
   for (var i = 0; i < this.pendingMarks.length; i++) {
     var mark = this$1.pendingMarks[i];
-    if ((!top.type || top.type.allowsMarkType(mark.type)) && !mark.type.isInSet(top.activeMarks)) {
+    if ((!top.type || top.type.allowsMarkType(mark.type)) && !mark.isInSet(top.activeMarks)) {
       top.activeMarks = mark.addToSet(top.activeMarks);
       this$1.pendingMarks.splice(i--, 1);
     }
@@ -25747,7 +25778,7 @@ DOMSerializer.prototype.serializeFragment = function serializeFragment (fragment
       while (keep < active.length && rendered < node.marks.length) {
         var next = node.marks[rendered];
         if (!this$1.marks[next.type.name]) { rendered++; continue }
-        if (!next.eq(active[keep])) { break }
+        if (!next.eq(active[keep]) || next.type.spec.spanning === false) { break }
         keep += 2; rendered++;
       }
       while (keep < active.length) {
@@ -25912,6 +25943,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var prosemirrorModel = require('prosemirror-model');
 
+var pDOM = ["p", 0];
+var blockquoteDOM = ["blockquote", 0];
+var hrDOM = ["hr"];
+var preDOM = ["pre", ["code", 0]];
+var brDOM = ["br"];
+
 // :: Object
 // [Specs](#model.NodeSpec) for the nodes defined in this schema.
 var nodes = {
@@ -25926,7 +25963,7 @@ var nodes = {
     content: "inline*",
     group: "block",
     parseDOM: [{tag: "p"}],
-    toDOM: function toDOM() { return ["p", 0] }
+    toDOM: function toDOM() { return pDOM }
   },
 
   // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
@@ -25935,14 +25972,14 @@ var nodes = {
     group: "block",
     defining: true,
     parseDOM: [{tag: "blockquote"}],
-    toDOM: function toDOM() { return ["blockquote", 0] }
+    toDOM: function toDOM() { return blockquoteDOM }
   },
 
   // :: NodeSpec A horizontal rule (`<hr>`).
   horizontal_rule: {
     group: "block",
     parseDOM: [{tag: "hr"}],
-    toDOM: function toDOM() { return ["hr"] }
+    toDOM: function toDOM() { return hrDOM }
   },
 
   // :: NodeSpec A heading textblock, with a `level` attribute that
@@ -25972,7 +26009,7 @@ var nodes = {
     code: true,
     defining: true,
     parseDOM: [{tag: "pre", preserveWhitespace: "full"}],
-    toDOM: function toDOM() { return ["pre", ["code", 0]] }
+    toDOM: function toDOM() { return preDOM }
   },
 
   // :: NodeSpec The text node.
@@ -25999,7 +26036,10 @@ var nodes = {
         alt: dom.getAttribute("alt")
       }
     }}],
-    toDOM: function toDOM(node) { return ["img", node.attrs] }
+    toDOM: function toDOM(node) { var ref = node.attrs;
+    var src = ref.src;
+    var alt = ref.alt;
+    var title = ref.title; return ["img", {src: src, alt: alt, title: title}] }
   },
 
   // :: NodeSpec A hard line break, represented in the DOM as `<br>`.
@@ -26008,9 +26048,13 @@ var nodes = {
     group: "inline",
     selectable: false,
     parseDOM: [{tag: "br"}],
-    toDOM: function toDOM() { return ["br"] }
+    toDOM: function toDOM() { return brDOM }
   }
 };
+
+var emDOM = ["em", 0];
+var strongDOM = ["strong", 0];
+var codeDOM = ["code", 0];
 
 // :: Object [Specs](#model.MarkSpec) for the marks in the schema.
 var marks = {
@@ -26026,14 +26070,16 @@ var marks = {
     parseDOM: [{tag: "a[href]", getAttrs: function getAttrs(dom) {
       return {href: dom.getAttribute("href"), title: dom.getAttribute("title")}
     }}],
-    toDOM: function toDOM(node) { return ["a", node.attrs] }
+    toDOM: function toDOM(node) { var ref = node.attrs;
+    var href = ref.href;
+    var title = ref.title; return ["a", {href: href, title: title}, 0] }
   },
 
   // :: MarkSpec An emphasis mark. Rendered as an `<em>` element.
   // Has parse rules that also match `<i>` and `font-style: italic`.
   em: {
     parseDOM: [{tag: "i"}, {tag: "em"}, {style: "font-style=italic"}],
-    toDOM: function toDOM() { return ["em"] }
+    toDOM: function toDOM() { return emDOM }
   },
 
   // :: MarkSpec A strong mark. Rendered as `<strong>`, parse rules
@@ -26045,13 +26091,13 @@ var marks = {
                // tags with a font-weight normal.
                {tag: "b", getAttrs: function (node) { return node.style.fontWeight != "normal" && null; }},
                {style: "font-weight", getAttrs: function (value) { return /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null; }}],
-    toDOM: function toDOM() { return ["strong"] }
+    toDOM: function toDOM() { return strongDOM }
   },
 
   // :: MarkSpec Code font mark. Represented as a `<code>` element.
   code: {
     parseDOM: [{tag: "code"}],
-    toDOM: function toDOM() { return ["code"] }
+    toDOM: function toDOM() { return codeDOM }
   }
 };
 
@@ -26735,7 +26781,9 @@ var Transaction = (function (Transform$$1) {
         var $from = this.doc.resolve(from);
         marks = to == from ? $from.marks() : $from.marksAcross(this.doc.resolve(to));
       }
-      return this.replaceRangeWith(from, to, schema.text(text, marks))
+      this.replaceRangeWith(from, to, schema.text(text, marks));
+      if (!this.selection.empty) { this.setSelection(Selection.near(this.selection.$to)); }
+      return this
     }
   };
 
@@ -26872,7 +26920,7 @@ EditorState.prototype.apply = function apply (tr) {
   return this.applyTransaction(tr).state
 };
 
-// : (Transaction) → ?Transaction
+// : (Transaction) → bool
 EditorState.prototype.filterTransaction = function filterTransaction (tr, ignore) {
     var this$1 = this;
     if ( ignore === void 0 ) ignore = -1;
@@ -27062,6 +27110,10 @@ EditorState.fromJSON = function fromJSON (config, json, pluginFields) {
 
 // Kludge to allow the view to track mappings between different
 // instances of a state.
+//
+// FIXME this is no longer needed as of prosemirror-view 1.9.0,
+// though due to backwards-compat we should probably keep it around
+// for a while (if only as a no-op)
 EditorState.addApplyListener = function addApplyListener (f) {
   applyListeners.push(f);
 };
@@ -29042,6 +29094,14 @@ var selectionCollapsed = function(domSel) {
   return collapsed
 };
 
+function keyEvent(keyCode, key) {
+  var event = document.createEvent("Event");
+  event.initEvent("keydown", true, true);
+  event.keyCode = keyCode;
+  event.key = event.code = key;
+  return event
+}
+
 function windowRect(win) {
   return {left: 0, right: win.innerWidth,
           top: 0, bottom: win.innerHeight}
@@ -29169,11 +29229,15 @@ function findOffsetInText(node, coords) {
     range.setStart(node, i);
     var rect = singleRect(range, 1);
     if (rect.top == rect.bottom) { continue }
-    if (rect.left - 1 <= coords.left && rect.right + 1 >= coords.left &&
-        rect.top - 1 <= coords.top && rect.bottom + 1 >= coords.top)
+    if (inRect(coords, rect))
       { return {node: node, offset: i + (coords.left >= (rect.left + rect.right) / 2 ? 1 : 0)} }
   }
   return {node: node, offset: 0}
+}
+
+function inRect(coords, rect) {
+  return coords.left >= rect.left - 1 && coords.left <= rect.right + 1&&
+    coords.top >= rect.top - 1 && coords.top <= rect.bottom + 1
 }
 
 function targetKludge(dom, coords) {
@@ -29184,8 +29248,6 @@ function targetKludge(dom, coords) {
 }
 
 function posFromElement(view, elt, coords) {
-  if (!view.dom.contains(elt.nodeType != 1 ? elt.parentNode : elt)) { return null }
-
   var ref = findOffsetInNode(elt, coords);
   var node = ref.node;
   var offset = ref.offset;
@@ -29220,6 +29282,24 @@ function posFromCaret(view, node, offset, coords) {
   return outside > -1 ? outside : view.docView.posFromDOM(node, offset)
 }
 
+function elementFromPoint(element, coords, box) {
+  var len = element.childNodes.length;
+  if (len && box.top < box.bottom) {
+    for (var startI = Math.max(0, Math.floor(len * (coords.top - box.top) / (box.bottom - box.top)) - 2), i = startI;;) {
+      var child = element.childNodes[i];
+      if (child.nodeType == 1) {
+        var rects = child.getClientRects();
+        for (var j = 0; j < rects.length; j++) {
+          var rect = rects[j];
+          if (inRect(coords, rect)) { return elementFromPoint(child, coords, rect) }
+        }
+      }
+      if ((i = (i + 1) % len) == startI) { break }
+    }
+  }
+  return element
+}
+
 // Given an x,y position on the editor, get the position in the document.
 function posAtCoords(view, coords) {
   var root = view.root, node, offset;
@@ -29235,7 +29315,12 @@ function posAtCoords(view, coords) {
   }
 
   var elt = root.elementFromPoint(coords.left, coords.top + 1), pos;
-  if (!elt) { return null }
+  if (!elt || !view.dom.contains(elt.nodeType != 1 ? elt.parentNode : elt)) {
+    var box = view.dom.getBoundingClientRect();
+    if (!inRect(coords, box)) { return null }
+    elt = elementFromPoint(view.dom, coords, box);
+    if (!elt) { return null }
+  }
   elt = targetKludge(elt, coords);
   if (node) {
     // Suspiciously specific kludge to work around caret*FromPoint
@@ -29244,15 +29329,12 @@ function posAtCoords(view, coords) {
         coords.top > node.lastChild.getBoundingClientRect().bottom)
       { pos = view.state.doc.content.size; }
     // Ignore positions directly after a BR, since caret*FromPoint
-    // 'round up' positions that would be more accurately places
+    // 'round up' positions that would be more accurately placed
     // before the BR node.
     else if (offset == 0 || node.nodeType != 1 || node.childNodes[offset - 1].nodeName != "BR")
       { pos = posFromCaret(view, node, offset, coords); }
   }
-  if (pos == null) {
-    pos = posFromElement(view, elt, coords);
-    if (pos == null) { return null }
-  }
+  if (pos == null) { pos = posFromElement(view, elt, coords); }
 
   var desc = view.docView.nearestDesc(elt, true);
   return {pos: pos, inside: desc ? desc.posAtStart - desc.border : -1}
@@ -29270,38 +29352,81 @@ function coordsAtPos(view, pos) {
   var ref = view.docView.domFromPos(pos);
   var node = ref.node;
   var offset = ref.offset;
-  var side, rect;
-  if (node.nodeType == 3) {
-    if (offset < node.nodeValue.length) {
-      rect = singleRect(textRange(node, offset, offset + 1), -1);
-      side = "left";
+
+  // These browsers support querying empty text ranges
+  if (node.nodeType == 3 && (result.chrome || result.gecko)) {
+    var rect = singleRect(textRange(node, offset, offset), 0);
+    // Firefox returns bad results (the position before the space)
+    // when querying a position directly after line-broken
+    // whitespace. Detect this situation and and kludge around it
+    if (result.gecko && offset && /\s/.test(node.nodeValue[offset - 1]) && offset < node.nodeValue.length) {
+      var rectBefore = singleRect(textRange(node, offset - 1, offset - 1), -1);
+      if (Math.abs(rectBefore.left - rect.left) < 1 && rectBefore.top == rect.top) {
+        var rectAfter = singleRect(textRange(node, offset, offset + 1), -1);
+        return flattenV(rectAfter, rectAfter.left < rectBefore.left)
+      }
     }
-    if ((!rect || rect.left == rect.right) && offset) {
-      rect = singleRect(textRange(node, offset - 1, offset), 1);
-      side = "right";
-    }
-  } else if (node.firstChild) {
-    if (offset < node.childNodes.length) {
-      var child = node.childNodes[offset];
-      rect = singleRect(child.nodeType == 3 ? textRange(child) : child, -1);
-      side = "left";
-    }
-    if ((!rect || rect.top == rect.bottom) && offset) {
-      var child$1 = node.childNodes[offset - 1];
-      rect = singleRect(child$1.nodeType == 3 ? textRange(child$1) : child$1, 1);
-      side = "right";
-    }
-  } else {
-    rect = node.getBoundingClientRect();
-    side = "left";
+    return rect
   }
-  var x = rect[side];
+
+  if (node.nodeType == 1 && !view.state.doc.resolve(pos).parent.inlineContent) {
+    // Return a horizontal line in block context
+    var top = true, rect$1;
+    if (offset < node.childNodes.length) {
+      var after = node.childNodes[offset];
+      if (after.nodeType == 1) { rect$1 = after.getBoundingClientRect(); }
+    }
+    if (!rect$1 && offset) {
+      var before = node.childNodes[offset - 1];
+      if (before.nodeType == 1) { rect$1 = before.getBoundingClientRect(); top = false; }
+    }
+    return flattenH(rect$1 || node.getBoundingClientRect(), top)
+  }
+
+  // Not Firefox/Chrome, or not in a text node, so we have to use
+  // actual element/character rectangles to get a solution (this part
+  // is not very bidi-safe)
+  //
+  // Try the left side first, fall back to the right one if that
+  // doesn't work.
+  for (var dir = -1; dir < 2; dir += 2) {
+    if (dir < 0 && offset) {
+      var prev = (void 0), target = node.nodeType == 3 ? textRange(node, offset - 1, offset)
+          : (prev = node.childNodes[offset - 1]).nodeType == 3 ? textRange(prev)
+          : prev.nodeType == 1 && prev.nodeName != "BR" ? prev : null; // BR nodes tend to only return the rectangle before them
+      if (target) {
+        var rect$2 = singleRect(target, 1);
+        if (rect$2.top < rect$2.bottom) { return flattenV(rect$2, false) }
+      }
+    } else if (dir > 0 && offset < nodeSize(node)) {
+      var next = (void 0), target$1 = node.nodeType == 3 ? textRange(node, offset, offset + 1)
+          : (next = node.childNodes[offset]).nodeType == 3 ? textRange(next)
+          : next.nodeType == 1 ? next : null;
+      if (target$1) {
+        var rect$3 = singleRect(target$1, -1);
+        if (rect$3.top < rect$3.bottom) { return flattenV(rect$3, true) }
+      }
+    }
+  }
+  // All else failed, just try to get a rectangle for the target node
+  return flattenV(singleRect(node.nodeType == 3 ? textRange(node) : node, 0), false)
+}
+
+function flattenV(rect, left) {
+  if (rect.width == 0) { return rect }
+  var x = left ? rect.left : rect.right;
   return {top: rect.top, bottom: rect.bottom, left: x, right: x}
+}
+
+function flattenH(rect, top) {
+  if (rect.height == 0) { return rect }
+  var y = top ? rect.top : rect.bottom;
+  return {top: y, bottom: y, left: rect.left, right: rect.right}
 }
 
 function withFlushedState(view, state, f) {
   var viewState = view.state, active = view.root.activeElement;
-  if (viewState != state || !view.inDOMChange) { view.updateState(state); }
+  if (viewState != state) { view.updateState(state); }
   if (active != view.dom) { view.focus(); }
   try {
     return f()
@@ -29317,13 +29442,13 @@ function withFlushedState(view, state, f) {
 function endOfTextblockVertical(view, state, dir) {
   var sel = state.selection;
   var $pos = dir == "up" ? sel.$anchor.min(sel.$head) : sel.$anchor.max(sel.$head);
-  if (!$pos.depth) { return false }
   return withFlushedState(view, state, function () {
     var ref = view.docView.domFromPos($pos.pos);
     var dom = ref.node;
     for (;;) {
       var nearest = view.docView.nearestDesc(dom, true);
-      if (!nearest || nearest.node.isBlock) { break }
+      if (!nearest) { break }
+      if (nearest.node.isBlock) { dom = nearest.dom; break }
       dom = nearest.dom.parentNode;
     }
     var coords = coordsAtPos(view, $pos.pos);
@@ -29347,7 +29472,7 @@ var maybeRTL = /[\u0590-\u08ac]/;
 function endOfTextblockHorizontal(view, state, dir) {
   var ref = state.selection;
   var $head = ref.$head;
-  if (!$head.parent.isTextblock || !$head.depth) { return false }
+  if (!$head.parent.isTextblock) { return false }
   var offset = $head.parentOffset, atStart = !offset, atEnd = offset == $head.parent.content.size;
   var sel = getSelection();
   // If the textblock is all LTR, or the browser doesn't support
@@ -29363,13 +29488,13 @@ function endOfTextblockHorizontal(view, state, dir) {
     // the document).
     var oldRange = sel.getRangeAt(0), oldNode = sel.focusNode, oldOff = sel.focusOffset;
     sel.modify("move", dir, "character");
-    var parentDOM = view.docView.domAfterPos($head.before());
-    var result = !parentDOM.contains(sel.focusNode.nodeType == 1 ? sel.focusNode : sel.focusNode.parentNode) ||
+    var parentDOM = $head.depth ? view.docView.domAfterPos($head.before()) : view.dom;
+    var result$$1 = !parentDOM.contains(sel.focusNode.nodeType == 1 ? sel.focusNode : sel.focusNode.parentNode) ||
         (oldNode == sel.focusNode && oldOff == sel.focusOffset);
     // Restore the previous selection
     sel.removeAllRanges();
     sel.addRange(oldRange);
-    return result
+    return result$$1
   })
 }
 
@@ -29654,8 +29779,9 @@ ViewDesc.prototype.domFromPos = function domFromPos (pos) {
   if (!this.contentDOM) { return {node: this.dom, offset: 0} }
   for (var offset = 0, i = 0;; i++) {
     if (offset == pos) {
-      while (i < this.children.length && this.children[i].beforePosition) { i++; }
-      return {node: this$1.contentDOM, offset: i}
+      while (i < this.children.length && (this.children[i].beforePosition || this.children[i].dom.parentNode != this.contentDOM)) { i++; }
+      return {node: this$1.contentDOM,
+              offset: i == this$1.children.length ? this$1.contentDOM.childNodes.length : domIndex(this$1.children[i].dom)}
     }
     if (i == this$1.children.length) { throw new Error("Invalid position " + pos) }
     var child = this$1.children[i], end = offset + child.size;
@@ -29674,16 +29800,16 @@ ViewDesc.prototype.parseRange = function parseRange (from, to, base) {
     { return {node: this.contentDOM, from: from, to: to, fromOffset: 0, toOffset: this.contentDOM.childNodes.length} }
 
   var fromOffset = -1, toOffset = -1;
-  for (var offset = 0, i = 0;; i++) {
+  for (var offset = base, i = 0;; i++) {
     var child = this$1.children[i], end = offset + child.size;
     if (fromOffset == -1 && from <= end) {
       var childBase = offset + child.border;
       // FIXME maybe descend mark views to parse a narrower range?
       if (from >= childBase && to <= end - child.border && child.node &&
           child.contentDOM && this$1.contentDOM.contains(child.contentDOM))
-        { return child.parseRange(from - childBase, to - childBase, base + childBase) }
+        { return child.parseRange(from, to, childBase) }
 
-      from = base + offset;
+      from = offset;
       for (var j = i; j > 0; j--) {
         var prev = this$1.children[j - 1];
         if (prev.size && prev.dom.parentNode == this$1.contentDOM && !prev.emptyChildAt(1)) {
@@ -29695,7 +29821,7 @@ ViewDesc.prototype.parseRange = function parseRange (from, to, base) {
       if (fromOffset == -1) { fromOffset = 0; }
     }
     if (fromOffset > -1 && to <= end) {
-      to = base + end;
+      to = end;
       for (var j$1 = i + 1; j$1 < this.children.length; j$1++) {
         var next = this$1.children[j$1];
         if (next.size && next.dom.parentNode == this$1.contentDOM && !next.emptyChildAt(-1)) {
@@ -29802,6 +29928,14 @@ ViewDesc.prototype.markDirty = function markDirty (from, to) {
   this.dirty = CONTENT_DIRTY;
 };
 
+ViewDesc.prototype.markParentsDirty = function markParentsDirty () {
+  var level = 1;
+  for (var node = this.parent; node; node = node.parent) {
+    var dirty = level == 1 ? CONTENT_DIRTY : CHILD_DIRTY;
+    if (node.dirty < dirty) { node.dirty = dirty; }
+  }
+};
+
 Object.defineProperties( ViewDesc.prototype, prototypeAccessors$1 );
 
 // Reused array to avoid allocating fresh arrays for things that will
@@ -29870,30 +30004,47 @@ var CursorWrapperDesc = (function (WidgetViewDesc) {
   CursorWrapperDesc.prototype = Object.create( WidgetViewDesc && WidgetViewDesc.prototype );
   CursorWrapperDesc.prototype.constructor = CursorWrapperDesc;
 
-  CursorWrapperDesc.prototype.parseRule = function parseRule () {
-    var content;
-    for (var child = this.dom.firstChild; child; child = child.nextSibling) {
-      var add = (void 0);
-      if (child.nodeType == 3) {
-        var text = child.nodeValue.replace(/\ufeff/g, "");
-        if (!text) { continue }
-        add = document.createTextNode(text);
-      } else if (child.textContent == "\ufeff") {
-        continue
-      } else {
-        add = child.cloneNode(true);
-      }
-      if (!content) { content = document.createDocumentFragment(); }
-      content.appendChild(add);
-    }
-    if (content) { return {skip: content} }
-    else { return WidgetViewDesc.prototype.parseRule.call(this) }
-  };
+  CursorWrapperDesc.prototype.parseRule = function parseRule () { return {skip: withoutZeroWidthSpaces(this.dom)} };
 
   CursorWrapperDesc.prototype.ignoreMutation = function ignoreMutation () { return false };
 
   return CursorWrapperDesc;
 }(WidgetViewDesc));
+
+var CompositionViewDesc = (function (ViewDesc) {
+  function CompositionViewDesc(parent, dom, textDOM, text) {
+    ViewDesc.call(this, parent, nothing, dom, null);
+    this.textDOM = textDOM;
+    this.text = text;
+  }
+
+  if ( ViewDesc ) CompositionViewDesc.__proto__ = ViewDesc;
+  CompositionViewDesc.prototype = Object.create( ViewDesc && ViewDesc.prototype );
+  CompositionViewDesc.prototype.constructor = CompositionViewDesc;
+
+  var prototypeAccessors$2 = { size: {} };
+
+  prototypeAccessors$2.size.get = function () { return this.text.length };
+
+  CompositionViewDesc.prototype.parseRule = function parseRule () { return {skip: withoutZeroWidthSpaces(this.dom)} };
+
+  CompositionViewDesc.prototype.localPosFromDOM = function localPosFromDOM (dom, offset) {
+    if (dom != this.textDOM) { return this.posAtStart + (offset ? this.size : 0) }
+    var zwsp = this.textDOM.nodeValue.indexOf("\ufeff");
+    return this.posAtStart + offset - (zwsp > -1 && zwsp < offset ? 1 : 0)
+  };
+
+  CompositionViewDesc.prototype.domFromPos = function domFromPos (pos) {
+    var zwsp = this.textDOM.nodeValue.indexOf("\ufeff");
+    return {node: this.textDOM, offset: pos + (zwsp > -1 && zwsp <= pos ? 1 : 0)}
+  };
+
+  CompositionViewDesc.prototype.ignoreMutation = function ignoreMutation () { return false };
+
+  Object.defineProperties( CompositionViewDesc.prototype, prototypeAccessors$2 );
+
+  return CompositionViewDesc;
+}(ViewDesc));
 
 // A mark desc represents a mark. May have multiple children,
 // depending on how the mark is split. Note that marks are drawn using
@@ -29933,6 +30084,16 @@ var MarkViewDesc = (function (ViewDesc) {
     }
   };
 
+  MarkViewDesc.prototype.slice = function slice (from, to, view) {
+    var copy = MarkViewDesc.create(this.parent, this.mark, true, view);
+    var nodes = this.children, size = this.size;
+    if (to < size) { nodes = replaceNodes(nodes, to, size, view); }
+    if (from > 0) { nodes = replaceNodes(nodes, 0, from, view); }
+    for (var i = 0; i < nodes.length; i++) { nodes[i].parent = copy; }
+    copy.children = nodes;
+    return copy
+  };
+
   return MarkViewDesc;
 }(ViewDesc));
 
@@ -29953,7 +30114,7 @@ var NodeViewDesc = (function (ViewDesc) {
   NodeViewDesc.prototype = Object.create( ViewDesc && ViewDesc.prototype );
   NodeViewDesc.prototype.constructor = NodeViewDesc;
 
-  var prototypeAccessors$2 = { size: {},border: {} };
+  var prototypeAccessors$3 = { size: {},border: {} };
 
   // By default, a node is rendered using the `toDOM` method from the
   // node type spec. But client code can use the `nodeViews` spec to
@@ -29982,7 +30143,7 @@ var NodeViewDesc = (function (ViewDesc) {
       ((assign = prosemirrorModel.DOMSerializer.renderSpec(document, node.type.spec.toDOM(node)), dom = assign.dom, contentDOM = assign.contentDOM));
     }
     if (!contentDOM && !node.isText && dom.nodeName != "BR") { // Chrome gets confused by <br contenteditable=false>
-      dom.contentEditable = false;
+      if (!dom.hasAttribute("contenteditable")) { dom.contentEditable = false; }
       if (node.type.spec.draggable) { dom.draggable = true; }
     }
 
@@ -30019,9 +30180,9 @@ var NodeViewDesc = (function (ViewDesc) {
       sameOuterDeco(outerDeco, this.outerDeco) && innerDeco.eq(this.innerDeco)
   };
 
-  prototypeAccessors$2.size.get = function () { return this.node.nodeSize };
+  prototypeAccessors$3.size.get = function () { return this.node.nodeSize };
 
-  prototypeAccessors$2.border.get = function () { return this.node.isLeaf ? 0 : 1 };
+  prototypeAccessors$3.border.get = function () { return this.node.isLeaf ? 0 : 1 };
 
   // Syncs `this.children` to match `this.node.content` and the local
   // decorations, possibly introducing nesting for marks. Then, in a
@@ -30030,7 +30191,9 @@ var NodeViewDesc = (function (ViewDesc) {
   NodeViewDesc.prototype.updateChildren = function updateChildren (view, pos) {
     var this$1 = this;
 
-    var updater = new ViewTreeUpdater(this), inline = this.node.inlineContent;
+    var inline = this.node.inlineContent, off = pos;
+    var composition = inline && view.composing && this.localCompositionNode(view, pos);
+    var updater = new ViewTreeUpdater(this, composition && composition.node);
     iterDeco(this.node, this.innerDeco, function (widget, i) {
       if (widget.spec.marks)
         { updater.syncToMarks(widget.spec.marks, inline, view); }
@@ -30038,7 +30201,7 @@ var NodeViewDesc = (function (ViewDesc) {
         { updater.syncToMarks(i == this$1.node.childCount ? prosemirrorModel.Mark.none : this$1.node.child(i).marks, inline, view); }
       // If the next node is a desc matching this widget, reuse it,
       // otherwise insert the widget as a new view desc.
-      updater.placeWidget(widget, view, pos);
+      updater.placeWidget(widget, view, off);
     }, function (child, outerDeco, innerDeco, i) {
       // Make sure the wrapping mark descs match the node's marks.
       updater.syncToMarks(child.marks, inline, view);
@@ -30048,8 +30211,8 @@ var NodeViewDesc = (function (ViewDesc) {
         // Or try updating the next desc to reflect this node.
         updater.updateNextNode(child, outerDeco, innerDeco, view, i) ||
         // Or just add it as a new desc.
-        updater.addNode(child, outerDeco, innerDeco, view, pos);
-      pos += child.nodeSize;
+        updater.addNode(child, outerDeco, innerDeco, view, off);
+      off += child.nodeSize;
     });
     // Drop all remaining descs after the current position.
     updater.syncToMarks(nothing, inline, view);
@@ -30057,12 +30220,61 @@ var NodeViewDesc = (function (ViewDesc) {
     updater.destroyRest();
 
     // Sync the DOM if anything changed
-    if (updater.changed || this.dirty == CONTENT_DIRTY) { this.renderChildren(); }
+    if (updater.changed || this.dirty == CONTENT_DIRTY) {
+      // May have to protect focused DOM from being changed if a composition is active
+      if (composition) { this.protectLocalComposition(view, composition); }
+      this.renderChildren();
+    }
   };
 
   NodeViewDesc.prototype.renderChildren = function renderChildren () {
     renderDescs(this.contentDOM, this.children, NodeViewDesc.is);
     if (result.ios) { iosHacks(this.dom); }
+  };
+
+  NodeViewDesc.prototype.localCompositionNode = function localCompositionNode (view, pos) {
+    // Only do something if both the selection and a focused text node
+    // are inside of this node, and the node isn't already part of a
+    // view that's a child of this view
+    var ref = view.state.selection;
+    var from = ref.from;
+    var to = ref.to;
+    if (!(view.state.selection instanceof prosemirrorState.TextSelection) || from < pos || to > pos + this.node.content.size) { return }
+    var sel = view.root.getSelection();
+    var textNode = nearbyTextNode(sel.focusNode, sel.focusOffset);
+    if (!textNode || !this.dom.contains(textNode.parentNode)) { return }
+
+    // Find the text in the focused node in the node, stop if it's not
+    // there (may have been modified through other means, in which
+    // case it should overwritten)
+    var text = textNode.nodeValue.replace(/\ufeff/g, "");
+    var textPos = findTextInFragment(this.node.content, text, from - pos, to - pos);
+
+    return textPos < 0 ? null : {node: textNode, pos: textPos, text: text}
+  };
+
+  NodeViewDesc.prototype.protectLocalComposition = function protectLocalComposition (view, ref) {
+    var this$1 = this;
+    var node = ref.node;
+    var pos = ref.pos;
+    var text = ref.text;
+
+    // The node is already part of a local view desc, leave it there
+    if (this.getDesc(node)) { return }
+
+    // Create a composition view for the orphaned nodes
+    var topNode = node;
+    for (;; topNode = topNode.parentNode) {
+      if (topNode.parentNode == this$1.contentDOM) { break }
+      while (topNode.previousSibling) { topNode.parentNode.removeChild(topNode.previousSibling); }
+      while (topNode.nextSibling) { topNode.parentNode.removeChild(topNode.nextSibling); }
+      if (topNode.pmViewDesc) { topNode.pmViewDesc = null; }
+    }
+    var desc = new CompositionViewDesc(this, topNode, node, text);
+    view.compositionNodes.push(desc);
+
+    // Patch up this.children to contain the composition view
+    this.children = replaceNodes(this.children, pos, pos + text.length, view, desc);
   };
 
   // : (Node, [Decoration], DecorationSet, EditorView) → bool
@@ -30100,14 +30312,16 @@ var NodeViewDesc = (function (ViewDesc) {
   // Mark this node as being the selected node.
   NodeViewDesc.prototype.selectNode = function selectNode () {
     this.nodeDOM.classList.add("ProseMirror-selectednode");
+    if (this.contentDOM || !this.node.type.spec.draggable) { this.dom.draggable = true; }
   };
 
   // Remove selected node marking from this node.
   NodeViewDesc.prototype.deselectNode = function deselectNode () {
     this.nodeDOM.classList.remove("ProseMirror-selectednode");
+    if (this.contentDOM || !this.node.type.spec.draggable) { this.dom.draggable = false; }
   };
 
-  Object.defineProperties( NodeViewDesc.prototype, prototypeAccessors$2 );
+  Object.defineProperties( NodeViewDesc.prototype, prototypeAccessors$3 );
 
   return NodeViewDesc;
 }(ViewDesc));
@@ -30161,6 +30375,11 @@ var TextViewDesc = (function (NodeViewDesc) {
 
   TextViewDesc.prototype.ignoreMutation = function ignoreMutation (mutation) {
     return mutation.type != "characterData"
+  };
+
+  TextViewDesc.prototype.slice = function slice (from, to, view) {
+    var node = this.node.cut(from, to), dom = document.createTextNode(node.text);
+    return new TextViewDesc(this.parent, node, this.outerDeco, this.innerDeco, dom, dom, view)
   };
 
   return TextViewDesc;
@@ -30365,8 +30584,9 @@ function rm(dom) {
 
 // Helper class for incrementally updating a tree of mark descs and
 // the widget and node descs inside of them.
-var ViewTreeUpdater = function ViewTreeUpdater(top) {
+var ViewTreeUpdater = function ViewTreeUpdater(top, lockedNode) {
   this.top = top;
+  this.lock = lockedNode;
   // Index into `this.top`'s child array, represents the current
   // update position.
   this.index = 0;
@@ -30376,7 +30596,13 @@ var ViewTreeUpdater = function ViewTreeUpdater(top) {
   // Tracks whether anything was changed
   this.changed = false;
 
-  this.preMatched = preMatch(top.node.content, top.children);
+  var pre = preMatch(top.node.content, top.children);
+  this.preMatched = pre.nodes;
+  this.preMatchOffset = pre.offset;
+};
+
+ViewTreeUpdater.prototype.getPreMatch = function getPreMatch (index) {
+  return index >= this.preMatchOffset ? this.preMatched[index - this.preMatchOffset] : null
 };
 
 // Destroy and remove the children between the given indices in
@@ -30404,7 +30630,7 @@ ViewTreeUpdater.prototype.syncToMarks = function syncToMarks (marks, inline, vie
   var keep = 0, depth = this.stack.length >> 1;
   var maxKeep = Math.min(depth, marks.length);
   while (keep < maxKeep &&
-         (keep == depth - 1 ? this.top : this.stack[(keep + 1) << 1]).matchesMark(marks[keep]))
+         (keep == depth - 1 ? this.top : this.stack[(keep + 1) << 1]).matchesMark(marks[keep]) && marks[keep].type.spec.spanning !== false)
     { keep++; }
 
   while (keep < depth) {
@@ -30443,7 +30669,7 @@ ViewTreeUpdater.prototype.syncToMarks = function syncToMarks (marks, inline, vie
 ViewTreeUpdater.prototype.findNodeMatch = function findNodeMatch (node, outerDeco, innerDeco, index) {
     var this$1 = this;
 
-  var found = -1, preMatch = this.preMatched[index], children = this.top.children;
+  var found = -1, preMatch = index < 0 ? undefined : this.getPreMatch(index), children = this.top.children;
   if (preMatch && preMatch.matchesNode(node, outerDeco, innerDeco)) {
     found = children.indexOf(preMatch);
   } else {
@@ -30469,9 +30695,16 @@ ViewTreeUpdater.prototype.updateNextNode = function updateNextNode (node, outerD
   var next = this.top.children[this.index];
   if (next instanceof NodeViewDesc) {
     var preMatch = this.preMatched.indexOf(next);
-    if (preMatch > -1 && preMatch != index) { return false }
+    if (preMatch > -1 && preMatch + this.preMatchOffset != index) { return false }
     var nextDOM = next.dom;
-    if (next.update(node, outerDeco, innerDeco, view)) {
+
+    // Can't update if nextDOM is or contains this.lock, except if
+    // it's a text node whose content already matches the new text
+    // and whose decorations match the new ones.
+    var locked = this.lock && (nextDOM == this.lock || nextDOM.nodeType == 1 && nextDOM.contains(this.lock.parentNode)) &&
+        !(node.isText && next.node && next.node.isText && next.nodeDOM.nodeValue == node.text &&
+          next.dirty != NODE_DIRTY && sameOuterDeco(outerDeco, next.outerDeco));
+    if (!locked && next.update(node, outerDeco, innerDeco, view)) {
       if (next.dom != nextDOM) { this.changed = true; }
       this.index++;
       return true
@@ -30495,6 +30728,12 @@ ViewTreeUpdater.prototype.placeWidget = function placeWidget (widget, view, pos)
     this.top.children.splice(this.index++, 0, desc);
     this.changed = true;
   }
+};
+
+ViewTreeUpdater.prototype.placeComposition = function placeComposition (view, desc) {
+  this.syncToMarks(nothing, true, view);
+  if (this.top.children[this.index] == desc) { this.index++; }
+  else { this.top.children.splice(this.index++, 0, desc); this.changed = true; }
 };
 
 // Make sure a textblock looks and behaves correctly in
@@ -30528,14 +30767,15 @@ function preMatch(frag, descs) {
     var desc = descs[i], node = desc.node;
     if (!node) { continue }
     if (node != frag.child(end - 1)) { break }
-    result$$1[--end] = desc;
+    result$$1.push(desc);
+    --end;
   }
-  return result$$1
+  return {nodes: result$$1.reverse(), offset: end}
 }
 
 function compareSide(a, b) { return a.type.side - b.type.side }
 
-// : (ViewDesc, DecorationSet, (Decoration), (Node, [Decoration], DecorationSet, number))
+// : (ViewDesc, DecorationSet, (Decoration, number), (Node, [Decoration], DecorationSet, number))
 // This function abstracts iterating over the nodes and decorations in
 // a fragment. Calls `onNode` for each node, with its local and child
 // decorations. Splits text nodes when there is a decoration starting
@@ -30566,11 +30806,13 @@ function iterDeco(parent, deco, onWidget, onNode) {
       }
     }
 
-    var child$1 = (void 0);
+    var child$1 = (void 0), index = (void 0);
     if (restNode) {
+      index = -1;
       child$1 = restNode;
       restNode = null;
     } else if (parentIndex < parent.childCount) {
+      index = parentIndex;
       child$1 = parent.child(parentIndex++);
     } else {
       break
@@ -30588,10 +30830,11 @@ function iterDeco(parent, deco, onWidget, onNode) {
         restNode = child$1.cut(cutAt - offset);
         child$1 = child$1.cut(0, cutAt - offset);
         end = cutAt;
+        index = -1;
       }
     }
 
-    onNode(child$1, active.length ? active.slice() : nothing, deco.forChild(offset, child$1), parentIndex - 1);
+    onNode(child$1, active.length ? active.slice() : nothing, deco.forChild(offset, child$1), index);
     offset = end;
   }
 }
@@ -30605,6 +30848,79 @@ function iosHacks(dom) {
     window.getComputedStyle(dom).listStyle;
     dom.style.cssText = oldCSS;
   }
+}
+
+function nearbyTextNode(node, offset) {
+  for (;;) {
+    if (node.nodeType == 3) { return node }
+    if (node.nodeType == 1 && offset > 0) {
+      node = node.childNodes[offset - 1];
+      offset = nodeSize(node);
+    } else if (node.nodeType == 1 && offset < node.childNodes.length) {
+      node = node.childNodes[offset];
+      offset = 0;
+    } else {
+      return null
+    }
+  }
+}
+
+// Find a piece of text in an inline fragment, overlapping from-to
+function findTextInFragment(frag, text, from, to) {
+  for (var str = "", i = 0, childPos = 0; i < frag.childCount; i++) {
+    var child = frag.child(i), end = childPos + child.nodeSize;
+    if (child.isText) {
+      str += child.text;
+      if (end >= to) {
+        var strStart = end - str.length, found = str.lastIndexOf(text);
+        while (found > -1 && strStart + found > from) { found = str.lastIndexOf(text, found - 1); }
+        if (found > -1 && strStart + found + text.length >= to) {
+          return strStart + found
+        } else if (end > to - text.length) {
+          break
+        }
+      }
+    } else {
+      str = "";
+    }
+    childPos = end;
+  }
+  return -1
+}
+
+// Replace range from-to in an array of view descs with replacement
+// (may be null to just delete). This goes very much against the grain
+// of the rest of this code, which tends to create nodes with the
+// right shape in one go, rather than messing with them after
+// creation, but is necessary in the composition hack.
+function replaceNodes(nodes, from, to, view, replacement) {
+  var result$$1 = [];
+  for (var i = 0, off = 0; i < nodes.length; i++) {
+    var child = nodes[i], start = off, end = off += child.size;
+    if (start >= to || end <= from) {
+      result$$1.push(child);
+    } else {
+      if (start < from) { result$$1.push(child.slice(0, from - start, view)); }
+      if (replacement) {
+        result$$1.push(replacement);
+        replacement = null;
+      }
+      if (end > to) { result$$1.push(child.slice(to - start, child.size, view)); }
+    }
+  }
+  return result$$1
+}
+
+function withoutZeroWidthSpaces(dom) {
+  var clone = dom.cloneNode(true);
+  function scan(node) {
+    if (node.nodeType == 1)
+      { for (var child = node.firstChild; child; child = child.nextSibling) { scan(child); } }
+    else if (node.nodeType == 3)
+      { node.nodeValue = node.nodeValue.replace(/\ufeff/g, ""); }
+  }
+  scan(clone);
+  return clone
 }
 
 function moveSelectionBlock(state, dir) {
@@ -30621,10 +30937,10 @@ function apply(view, sel) {
   return true
 }
 
-function selectHorizontally(view, dir) {
+function selectHorizontally(view, dir, mods) {
   var sel = view.state.selection;
   if (sel instanceof prosemirrorState.TextSelection) {
-    if (!sel.empty) {
+    if (!sel.empty || mods.indexOf("s") > -1) {
       return false
     } else if (view.endOfTextblock(dir > 0 ? "right" : "left")) {
       var next = moveSelectionBlock(view.state, dir);
@@ -30632,12 +30948,19 @@ function selectHorizontally(view, dir) {
       return false
     } else {
       var $head = sel.$head, node = $head.textOffset ? null : dir < 0 ? $head.nodeBefore : $head.nodeAfter, desc;
-      if (node && prosemirrorState.NodeSelection.isSelectable(node)) {
-        var nodePos = dir < 0 ? $head.pos - node.nodeSize : $head.pos;
-        if (node.isAtom || (desc = view.docView.descAt(nodePos)) && !desc.contentDOM)
-          { return apply(view, new prosemirrorState.NodeSelection(dir < 0 ? view.state.doc.resolve($head.pos - node.nodeSize) : $head)) }
+      if (!node || node.isText) { return false }
+      var nodePos = dir < 0 ? $head.pos - node.nodeSize : $head.pos;
+      if (!(node.isAtom || (desc = view.docView.descAt(nodePos)) && !desc.contentDOM)) { return false }
+      if (prosemirrorState.NodeSelection.isSelectable(node)) {
+        return apply(view, new prosemirrorState.NodeSelection(dir < 0 ? view.state.doc.resolve($head.pos - node.nodeSize) : $head))
+      } else if (result.webkit) {
+        // Chrome and Safari will introduce extra pointless cursor
+        // positions around inline uneditable nodes, so we have to
+        // take over and move the cursor past them (#937)
+        return apply(view, new prosemirrorState.TextSelection(view.state.doc.resolve(dir < 0 ? nodePos : nodePos + node.nodeSize)))
+      } else {
+        return false
       }
-      return false
     }
   } else if (sel instanceof prosemirrorState.NodeSelection && sel.node.isInline) {
     return apply(view, new prosemirrorState.TextSelection(dir > 0 ? sel.$to : sel.$from))
@@ -30766,16 +31089,16 @@ function setSelFocus(view, sel, node, offset) {
   } else if (sel.extend) {
     sel.extend(node, offset);
   }
-  view.selectionReader.storeDOMState(view.selection);
+  view.domObserver.setCurSelection();
 }
 
 // : (EditorState, number)
 // Check whether vertical selection motion would involve node
 // selections. If so, apply it (if not, the result is left to the
 // browser)
-function selectVertically(view, dir) {
+function selectVertically(view, dir, mods) {
   var sel = view.state.selection;
-  if (sel instanceof prosemirrorState.TextSelection && !sel.empty) { return false }
+  if (sel instanceof prosemirrorState.TextSelection && !sel.empty || mods.indexOf("s") > -1) { return false }
   var $from = sel.$from;
   var $to = sel.$to;
 
@@ -30859,13 +31182,13 @@ function captureKeyDown(view, event) {
   } else if (code == 13 || code == 27) { // Enter, Esc
     return true
   } else if (code == 37) { // Left arrow
-    return selectHorizontally(view, -1) || skipIgnoredNodesLeft(view)
+    return selectHorizontally(view, -1, mods) || skipIgnoredNodesLeft(view)
   } else if (code == 39) { // Right arrow
-    return selectHorizontally(view, 1) || skipIgnoredNodesRight(view)
+    return selectHorizontally(view, 1, mods) || skipIgnoredNodesRight(view)
   } else if (code == 38) { // Up arrow
-    return selectVertically(view, -1) || skipIgnoredNodesLeft(view)
+    return selectVertically(view, -1, mods) || skipIgnoredNodesLeft(view)
   } else if (code == 40) { // Down arrow
-    return chromeDownArrowBug(view) || selectVertically(view, 1) || skipIgnoredNodesRight(view)
+    return chromeDownArrowBug(view) || selectVertically(view, 1, mods) || skipIgnoredNodesRight(view)
   } else if (mods == (result.mac ? "m" : "c") &&
              (code == 66 || code == 73 || code == 89 || code == 90)) { // Mod-[biyz]
     return true
@@ -30873,118 +31196,10 @@ function captureKeyDown(view, event) {
   return false
 }
 
-var TrackedRecord = function TrackedRecord(prev, mapping, state) {
-  this.prev = prev;
-  this.mapping = mapping;
-  this.state = state;
-};
-
-var TrackMappings = function TrackMappings(state) {
-  this.seen = [new TrackedRecord(null, null, state)];
-  // Kludge to listen to state changes globally in order to be able
-  // to find mappings from a given state to another.
-  prosemirrorState.EditorState.addApplyListener(this.track = this.track.bind(this));
-};
-
-TrackMappings.prototype.destroy = function destroy () {
-  prosemirrorState.EditorState.removeApplyListener(this.track);
-};
-
-TrackMappings.prototype.find = function find (state) {
-    var this$1 = this;
-
-  for (var i = this.seen.length - 1; i >= 0; i--) {
-    var record = this$1.seen[i];
-    if (record.state == state) { return record }
-  }
-};
-
-TrackMappings.prototype.track = function track (old, tr, state) {
-  var found = this.seen.length < 200 ? this.find(old) : null;
-  if (found)
-    { this.seen.push(new TrackedRecord(found, tr.docChanged ? tr.mapping : null, state)); }
-};
-
-TrackMappings.prototype.getMapping = function getMapping (state, appendTo) {
-  var found = this.find(state);
-  if (!found) { return null }
-  var mappings = [];
-  for (var rec = found; rec; rec = rec.prev)
-    { if (rec.mapping) { mappings.push(rec.mapping); } }
-  var result = appendTo || new prosemirrorTransform.Mapping;
-  for (var i = mappings.length - 1; i >= 0; i--)
-    { result.appendMapping(mappings[i]); }
-  return result
-};
-
-// Track the state of the DOM selection, creating transactions to
-// update the selection state when necessary.
-var SelectionReader = function SelectionReader(view) {
-  var this$1 = this;
-
-  this.view = view;
-
-  // Track the state of the DOM selection.
-  this.lastAnchorNode = this.lastHeadNode = this.lastAnchorOffset = this.lastHeadOffset = null;
-  this.lastSelection = view.state.selection;
-  this.ignoreUpdates = false;
-  this.suppressUpdates = false;
-  this.poller = poller(this);
-
-  this.focusFunc = (function () { return this$1.poller.start(hasFocusAndSelection(this$1.view)); }).bind(this);
-  this.blurFunc = this.poller.stop;
-
-  view.dom.addEventListener("focus", this.focusFunc);
-  view.dom.addEventListener("blur", this.blurFunc);
-
-  if (!view.editable) { this.poller.start(false); }
-};
-
-SelectionReader.prototype.destroy = function destroy () {
-  this.view.dom.removeEventListener("focus", this.focusFunc);
-  this.view.dom.removeEventListener("blur", this.blurFunc);
-  this.poller.stop();
-};
-
-SelectionReader.prototype.poll = function poll (origin) { this.poller.poll(origin); };
-
-SelectionReader.prototype.editableChanged = function editableChanged () {
-  if (!this.view.editable) { this.poller.start(); }
-  else if (!hasFocusAndSelection(this.view)) { this.poller.stop(); }
-};
-
-// : () → bool
-// Whether the DOM selection has changed from the last known state.
-SelectionReader.prototype.domChanged = function domChanged () {
-  var sel = this.view.root.getSelection();
-  return sel.anchorNode != this.lastAnchorNode || sel.anchorOffset != this.lastAnchorOffset ||
-    sel.focusNode != this.lastHeadNode || sel.focusOffset != this.lastHeadOffset
-};
-
-// Store the current state of the DOM selection.
-SelectionReader.prototype.storeDOMState = function storeDOMState (selection) {
-  var sel = this.view.root.getSelection();
-  this.lastAnchorNode = sel.anchorNode; this.lastAnchorOffset = sel.anchorOffset;
-  this.lastHeadNode = sel.focusNode; this.lastHeadOffset = sel.focusOffset;
-  this.lastSelection = selection;
-};
-
-SelectionReader.prototype.clearDOMState = function clearDOMState () {
-  this.lastAnchorNode = this.lastSelection = null;
-};
-
-// : (?string)
-// When the DOM selection changes in a notable manner, modify the
-// current selection state to match.
-SelectionReader.prototype.readFromDOM = function readFromDOM (origin) {
-  if (this.ignoreUpdates || !this.domChanged() || !hasFocusAndSelection(this.view)) { return }
-  if (this.suppressUpdates) { return selectionToDOM(this.view) }
-  if (!this.view.inDOMChange) { this.view.domObserver.flush(); }
-  if (this.view.inDOMChange) { return }
-
-  var domSel = this.view.root.getSelection(), doc = this.view.state.doc;
-  var nearestDesc = this.view.docView.nearestDesc(domSel.focusNode), inWidget = nearestDesc && nearestDesc.size == 0;
-  var head = this.view.docView.posFromDOM(domSel.focusNode, domSel.focusOffset);
+function selectionFromDOM(view, origin) {
+  var domSel = view.root.getSelection(), doc = view.state.doc;
+  var nearestDesc = view.docView.nearestDesc(domSel.focusNode), inWidget = nearestDesc && nearestDesc.size == 0;
+  var head = view.docView.posFromDOM(domSel.focusNode, domSel.focusOffset);
   var $head = doc.resolve(head), $anchor, selection;
   if (selectionCollapsed(domSel)) {
     $anchor = $head;
@@ -30994,94 +31209,14 @@ SelectionReader.prototype.readFromDOM = function readFromDOM (origin) {
       selection = new prosemirrorState.NodeSelection(head == pos ? $head : doc.resolve(pos));
     }
   } else {
-    $anchor = doc.resolve(this.view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset));
+    $anchor = doc.resolve(view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset));
   }
 
   if (!selection) {
-    var bias = origin == "pointer" || (this.view.state.selection.head < $head.pos && !inWidget) ? 1 : -1;
-    selection = selectionBetween(this.view, $anchor, $head, bias);
+    var bias = origin == "pointer" || (view.state.selection.head < $head.pos && !inWidget) ? 1 : -1;
+    selection = selectionBetween(view, $anchor, $head, bias);
   }
-  if (!this.view.state.selection.eq(selection)) {
-    var tr = this.view.state.tr.setSelection(selection);
-    if (origin == "pointer") { tr.setMeta("pointer", true); }
-    else if (origin == "key") { tr.scrollIntoView(); }
-    this.view.dispatch(tr);
-  } else {
-    selectionToDOM(this.view);
-  }
-};
-
-// There's two polling models. On browsers that support the
-// selectionchange event (everything except Firefox < 52, basically), we
-// register a listener for that whenever the editor is focused.
-var SelectionChangePoller = function SelectionChangePoller(reader) {
-  var this$1 = this;
-
-  this.listening = false;
-  this.curOrigin = null;
-  this.originTime = 0;
-  this.reader = reader;
-
-  this.readFunc = function () { return reader.readFromDOM(this$1.originTime > Date.now() - 50 ? this$1.curOrigin : null); };
-};
-
-SelectionChangePoller.prototype.poll = function poll (origin) {
-  this.curOrigin = origin;
-  this.originTime = Date.now();
-};
-
-SelectionChangePoller.prototype.start = function start (andRead) {
-  if (!this.listening) {
-    var doc = this.reader.view.dom.ownerDocument;
-    doc.addEventListener("selectionchange", this.readFunc);
-    this.listening = true;
-    if (andRead) { this.readFunc(); }
-  }
-};
-
-SelectionChangePoller.prototype.stop = function stop () {
-  if (this.listening) {
-    var doc = this.reader.view.dom.ownerDocument;
-    doc.removeEventListener("selectionchange", this.readFunc);
-    this.listening = false;
-  }
-};
-
-// On Browsers that don't support the selectionchange event,
-// we use timeout-based polling.
-var TimeoutPoller = function TimeoutPoller(reader) {
-  // The timeout ID for the poller when active.
-  this.polling = null;
-  this.reader = reader;
-  this.pollFunc = this.doPoll.bind(this, null);
-};
-
-TimeoutPoller.prototype.doPoll = function doPoll (origin) {
-  var view = this.reader.view;
-  if (view.focused || !view.editable) {
-    this.reader.readFromDOM(origin);
-    this.polling = setTimeout(this.pollFunc, 100);
-  } else {
-    this.polling = null;
-  }
-};
-
-TimeoutPoller.prototype.poll = function poll (origin) {
-  clearTimeout(this.polling);
-  this.polling = setTimeout(origin ? this.doPoll.bind(this, origin) : this.pollFunc, 0);
-};
-
-TimeoutPoller.prototype.start = function start () {
-  if (this.polling == null) { this.poll(); }
-};
-
-TimeoutPoller.prototype.stop = function stop () {
-  clearTimeout(this.polling);
-  this.polling = null;
-};
-
-function poller(reader) {
-  return new ("onselectionchange" in document ? SelectionChangePoller : TimeoutPoller)(reader)
+  return selection
 }
 
 function selectionToDOM(view, takeFocus, force) {
@@ -31092,18 +31227,15 @@ function selectionToDOM(view, takeFocus, force) {
     if (!takeFocus) { return }
     // See https://bugzilla.mozilla.org/show_bug.cgi?id=921444
     if (result.gecko && result.gecko_version <= 55) {
-      view.selectionReader.ignoreUpdates = true;
+      view.domObserver.disconnectSelection();
       view.dom.focus();
-      view.selectionReader.ignoreUpdates = false;
+      view.domObserver.connectSelection();
     }
   } else if (!view.editable && !hasSelection(view) && !takeFocus) {
     return
   }
 
-  var reader = view.selectionReader;
-  if (reader.lastSelection && reader.lastSelection.eq(sel) && !reader.domChanged()) { return }
-
-  reader.ignoreUpdates = true;
+  view.domObserver.disconnectSelection();
 
   if (view.cursorWrapper) {
     selectCursorWrapper(view);
@@ -31130,8 +31262,8 @@ function selectionToDOM(view, takeFocus, force) {
     }
   }
 
-  reader.storeDOMState(sel);
-  reader.ignoreUpdates = false;
+  view.domObserver.setCurSelection();
+  view.domObserver.connectSelection();
 }
 
 // Kludge to work around Webkit not allowing a selection to start/end
@@ -31204,7 +31336,8 @@ function syncNodeSelection(view, sel) {
 // Clear all DOM statefulness of the last node selection.
 function clearNodeSelection(view) {
   if (view.lastSelectedViewDesc) {
-    view.lastSelectedViewDesc.deselectNode();
+    if (view.lastSelectedViewDesc.parent)
+      { view.lastSelectedViewDesc.deselectNode(); }
     view.lastSelectedViewDesc = null;
   }
 }
@@ -31250,103 +31383,11 @@ function needsCursorWrapper(state) {
     { return null }
 }
 
-var DOMChange = function DOMChange(view, composing) {
-  var this$1 = this;
-
-  this.view = view;
-  this.state = view.state;
-  this.composing = composing;
-  this.from = this.to = null;
-  this.typeOver = false;
-  this.timeout = composing ? null : setTimeout(function () { return this$1.finish(); }, DOMChange.commitTimeout);
-  this.trackMappings = new TrackMappings(view.state);
-
-  // If there have been changes since this DOM update started, we must
-  // map our start and end positions, as well as the new selection
-  // positions, through them. This tracks that mapping.
-  this.mapping = new prosemirrorTransform.Mapping;
-  this.mappingTo = view.state;
-};
-
-DOMChange.prototype.addRange = function addRange (from, to) {
-  if (this.from == null) {
-    this.from = from;
-    this.to = to;
-  } else {
-    this.from = Math.min(from, this.from);
-    this.to = Math.max(to, this.to);
-  }
-};
-
-DOMChange.prototype.changedRange = function changedRange () {
-  if (this.from == null) { return rangeAroundSelection(this.state.selection) }
-  var $from = this.state.doc.resolve(Math.min(this.from, this.state.selection.from)), $to = this.state.doc.resolve(this.to);
-  var shared = $from.sharedDepth(this.to);
-  return {from: $from.before(shared + 1), to: $to.after(shared + 1)}
-};
-
-DOMChange.prototype.markDirty = function markDirty (range) {
-  if (this.from == null) { this.view.docView.markDirty((range = range || this.changedRange()).from, range.to); }
-  else { this.view.docView.markDirty(this.from, this.to); }
-};
-
-DOMChange.prototype.stateUpdated = function stateUpdated (state) {
-  if (this.trackMappings.getMapping(state, this.mapping)) {
-    this.trackMappings.destroy();
-    this.trackMappings = new TrackMappings(state);
-    this.mappingTo = state;
-    return true
-  } else {
-    this.markDirty();
-    this.destroy();
-    return false
-  }
-};
-
-DOMChange.prototype.finish = function finish (force) {
-  clearTimeout(this.timeout);
-  if (this.composing && !force) { return }
-  this.view.domObserver.flush();
-  var range = this.changedRange();
-  this.markDirty(range);
-
-  this.destroy();
-  var sel = this.state.selection, allowTypeOver = this.typeOver && sel instanceof prosemirrorState.TextSelection &&
-      !sel.empty && sel.$head.sameParent(sel.$anchor);
-  readDOMChange(this.view, this.mapping, this.state, range, allowTypeOver);
-
-  // If the reading didn't result in a view update, force one by
-  // resetting the view to its current state.
-  if (this.view.docView.dirty) { this.view.updateState(this.view.state); }
-};
-
-DOMChange.prototype.destroy = function destroy () {
-  clearTimeout(this.timeout);
-  this.trackMappings.destroy();
-  this.view.inDOMChange = null;
-};
-
-DOMChange.prototype.compositionEnd = function compositionEnd () {
-    var this$1 = this;
-
-  if (this.composing) {
-    this.composing = false;
-    this.timeout = setTimeout(function () { return this$1.finish(); }, 50);
-  }
-};
-
-DOMChange.start = function start (view, composing) {
-  if (view.inDOMChange) {
-    if (composing) {
-      clearTimeout(view.inDOMChange.timeout);
-      view.inDOMChange.composing = true;
-    }
-  } else {
-    view.inDOMChange = new DOMChange(view, composing);
-  }
-  return view.inDOMChange
-};
-DOMChange.commitTimeout = 20;
+function anchorInRightPlace(view) {
+  var anchorDOM = view.docView.domFromPos(view.state.selection.anchor);
+  var domSel = view.root.getSelection();
+  return isEquivalentPosition(anchorDOM.node, anchorDOM.offset, domSel.anchorNode, domSel.anchorOffset)
+}
 
 // Note that all referencing and parsing is done with the
 // start-of-operation selection and document, since that's the one
@@ -31354,8 +31395,8 @@ DOMChange.commitTimeout = 20;
 // the modification is mapped over those before it is applied, in
 // readDOMChange.
 
-function parseBetween(view, oldState, range) {
-  var ref = view.docView.parseRange(range.from, range.to);
+function parseBetween(view, from_, to_) {
+  var ref = view.docView.parseRange(from_, to_);
   var parent = ref.node;
   var fromOffset = ref.fromOffset;
   var toOffset = ref.toOffset;
@@ -31377,7 +31418,7 @@ function parseBetween(view, oldState, range) {
       if (!desc || desc.size) { break }
     }
   }
-  var startDoc = oldState.doc;
+  var startDoc = view.state.doc;
   var parser = view.someProp("domParser") || prosemirrorModel.DOMParser.fromSchema(view.state.schema);
   var $from = startDoc.resolve(from);
   var sel = null, doc = parser.parse(parent, {
@@ -31417,94 +31458,63 @@ function ruleFromNode(parser, context) {
   }
 }
 
-function isAtEnd($pos, depth) {
-  for (var i = depth || 0; i < $pos.depth; i++)
-    { if ($pos.index(i) + 1 < $pos.node(i).childCount) { return false } }
-  return $pos.parentOffset == $pos.parent.content.size
-}
-function isAtStart($pos, depth) {
-  for (var i = depth || 0; i < $pos.depth; i++)
-    { if ($pos.index(0) > 0) { return false } }
-  return $pos.parentOffset == 0
-}
-
-function rangeAroundSelection(selection) {
-  // Intentionally uses $head/$anchor because those will correspond to the DOM selection
-  var $from = selection.$anchor.min(selection.$head), $to = selection.$anchor.max(selection.$head);
-
-  if ($from.sameParent($to) && $from.parent.inlineContent && $from.parentOffset && $to.parentOffset < $to.parent.content.size) {
-    var startOff = Math.max(0, $from.parentOffset);
-    var size = $from.parent.content.size;
-    var endOff = Math.min(size, $to.parentOffset);
-
-    if (startOff > 0)
-      { startOff = $from.parent.childBefore(startOff).offset; }
-    if (endOff < size) {
-      var after = $from.parent.childAfter(endOff);
-      endOff = after.offset + after.node.nodeSize;
+function readDOMChange(view, from, to, typeOver) {
+  if (from < 0) {
+    var origin = view.lastSelectionTime > Date.now() - 50 ? view.lastSelectionOrigin : null;
+    var newSel = selectionFromDOM(view, origin);
+    if (!view.state.selection.eq(newSel)) {
+      var tr$1 = view.state.tr.setSelection(newSel);
+      if (origin == "pointer") { tr$1.setMeta("pointer", true); }
+      else if (origin == "key") { tr$1.scrollIntoView(); }
+      view.dispatch(tr$1);
     }
-    var nodeStart = $from.start();
-    return {from: nodeStart + startOff, to: nodeStart + endOff}
-  } else {
-    for (var depth = 0;; depth++) {
-      var fromStart = isAtStart($from, depth + 1), toEnd = isAtEnd($to, depth + 1);
-      if (fromStart || toEnd || $from.index(depth) != $to.index(depth) || $to.node(depth).isTextblock) {
-        var from = $from.before(depth + 1), to = $to.after(depth + 1);
-        if (fromStart && $from.index(depth) > 0)
-          { from -= $from.node(depth).child($from.index(depth) - 1).nodeSize; }
-        if (toEnd && $to.index(depth) + 1 < $to.node(depth).childCount)
-          { to += $to.node(depth).child($to.index(depth) + 1).nodeSize; }
-        return {from: from, to: to}
-      }
-    }
+    return
   }
-}
 
-function keyEvent(keyCode, key) {
-  var event = document.createEvent("Event");
-  event.initEvent("keydown", true, true);
-  event.keyCode = keyCode;
-  event.key = event.code = key;
-  return event
-}
+  var $before = view.state.doc.resolve(from);
+  var shared = $before.sharedDepth(to);
+  from = $before.before(shared + 1);
+  to = view.state.doc.resolve(to).after(shared + 1);
 
-function readDOMChange(view, mapping, oldState, range, allowTypeOver) {
-  var parse = parseBetween(view, oldState, range);
+  var sel = view.state.selection;
+  var parse = parseBetween(view, from, to);
 
-  var doc = oldState.doc, compare = doc.slice(parse.from, parse.to);
+  var doc = view.state.doc, compare = doc.slice(parse.from, parse.to);
   var preferredPos, preferredSide;
   // Prefer anchoring to end when Backspace is pressed
   if (view.lastKeyCode === 8 && Date.now() - 100 < view.lastKeyCodeTime) {
-    preferredPos = oldState.selection.to;
+    preferredPos = view.state.selection.to;
     preferredSide = "end";
   } else {
-    preferredPos = oldState.selection.from;
+    preferredPos = view.state.selection.from;
     preferredSide = "start";
   }
   view.lastKeyCode = null;
 
   var change = findDiff(compare.content, parse.doc.content, parse.from, preferredPos, preferredSide);
   if (!change) {
-    if (allowTypeOver) {
-      var state = view.state, sel = state.selection;
-      view.dispatch(state.tr.replaceSelectionWith(state.schema.text(state.doc.textBetween(sel.from, sel.to)), true).scrollIntoView());
+    if (typeOver && sel instanceof prosemirrorState.TextSelection && !sel.empty && sel.$head.sameParent(sel.$anchor) &&
+        !view.composing && !(parse.sel && parse.sel.anchor != parse.sel.head)) {
+      var state = view.state, sel$1 = state.selection;
+      view.dispatch(state.tr.replaceSelectionWith(state.schema.text(state.doc.textBetween(sel$1.from, sel$1.to)), true).scrollIntoView());
     } else if (parse.sel) {
-      var sel$1 = resolveSelection(view, view.state.doc, mapping, parse.sel);
-      if (sel$1 && !sel$1.eq(view.state.selection)) { view.dispatch(view.state.tr.setSelection(sel$1)); }
+      var sel$2 = resolveSelection(view, view.state.doc, parse.sel);
+      if (sel$2 && !sel$2.eq(view.state.selection)) { view.dispatch(view.state.tr.setSelection(sel$2)); }
     }
     return
   }
+  view.domChangeCount++;
   // Handle the case where overwriting a selection by typing matches
   // the start or end of the selected content, creating a change
   // that's smaller than what was actually overwritten.
-  if (oldState.selection.from < oldState.selection.to &&
+  if (view.state.selection.from < view.state.selection.to &&
       change.start == change.endB &&
-      oldState.selection instanceof prosemirrorState.TextSelection) {
-    if (change.start > oldState.selection.from && change.start <= oldState.selection.from + 2) {
-      change.start = oldState.selection.from;
-    } else if (change.endA < oldState.selection.to && change.endA >= oldState.selection.to - 2) {
-      change.endB += (oldState.selection.to - change.endA);
-      change.endA = oldState.selection.to;
+      view.state.selection instanceof prosemirrorState.TextSelection) {
+    if (change.start > view.state.selection.from && change.start <= view.state.selection.from + 2) {
+      change.start = view.state.selection.from;
+    } else if (change.endA < view.state.selection.to && change.endA >= view.state.selection.to - 2) {
+      change.endB += (view.state.selection.to - change.endA);
+      change.endA = view.state.selection.to;
     }
   }
 
@@ -31519,22 +31529,25 @@ function readDOMChange(view, mapping, oldState, range, allowTypeOver) {
       view.someProp("handleKeyDown", function (f) { return f(view, keyEvent(13, "Enter")); }))
     { return }
   // Same for backspace
-  if (oldState.selection.anchor > change.start &&
+  if (view.state.selection.anchor > change.start &&
       looksLikeJoin(doc, change.start, change.endA, $from, $to) &&
       view.someProp("handleKeyDown", function (f) { return f(view, keyEvent(8, "Backspace")); })) {
-    if (result.android && result.chrome) { // #820
-      view.selectionReader.suppressUpdates = true;
-      setTimeout(function () { return view.selectionReader.suppressUpdates = false; }, 50);
-    }
+    if (result.android && result.chrome) { view.domObserver.suppressSelectionUpdates(); } // #820
     return
   }
 
-  var from = mapping.map(change.start), to = mapping.map(change.endA, -1);
+  var chFrom = change.start, chTo = change.endA;
 
   var tr, storedMarks, markChange, $from1;
   if ($from.sameParent($to) && $from.parent.inlineContent) {
     if ($from.pos == $to.pos) { // Deletion
-      tr = view.state.tr.delete(from, to);
+      // IE11 sometimes weirdly moves the DOM selection around after
+      // backspacing out the first element in a textblock
+      if (result.ie && result.ie_version <= 11 && $from.parentOffset == 0) {
+        view.domObserver.suppressSelectionUpdates();
+        setTimeout(function () { return selectionToDOM(view); }, 20);
+      }
+      tr = view.state.tr.delete(chFrom, chTo);
       storedMarks = doc.resolve(change.start).marksAcross(doc.resolve(change.endA));
     } else if ( // Adding or removing a mark
       change.endA == change.endB && ($from1 = doc.resolve(change.start)) &&
@@ -31542,30 +31555,29 @@ function readDOMChange(view, mapping, oldState, range, allowTypeOver) {
                                  $from1.parent.content.cut($from1.parentOffset, change.endA - $from1.start())))
     ) {
       tr = view.state.tr;
-      if (markChange.type == "add") { tr.addMark(from, to, markChange.mark); }
-      else { tr.removeMark(from, to, markChange.mark); }
+      if (markChange.type == "add") { tr.addMark(chFrom, chTo, markChange.mark); }
+      else { tr.removeMark(chFrom, chTo, markChange.mark); }
     } else if ($from.parent.child($from.index()).isText && $from.index() == $to.index() - ($to.textOffset ? 0 : 1)) {
       // Both positions in the same text node -- simply insert text
       var text = $from.parent.textBetween($from.parentOffset, $to.parentOffset);
-      if (view.someProp("handleTextInput", function (f) { return f(view, from, to, text); })) { return }
-      tr = view.state.tr.insertText(text, from, to);
+      if (view.someProp("handleTextInput", function (f) { return f(view, chFrom, chTo, text); })) { return }
+      tr = view.state.tr.insertText(text, chFrom, chTo);
     }
   }
 
   if (!tr)
-    { tr = view.state.tr.replace(from, to, parse.doc.slice(change.start - parse.from, change.endB - parse.from)); }
+    { tr = view.state.tr.replace(chFrom, chTo, parse.doc.slice(change.start - parse.from, change.endB - parse.from)); }
   if (parse.sel) {
-    var sel$2 = resolveSelection(view, tr.doc, mapping, parse.sel);
-    if (sel$2) { tr.setSelection(sel$2); }
+    var sel$3 = resolveSelection(view, tr.doc, parse.sel);
+    if (sel$3) { tr.setSelection(sel$3); }
   }
   if (storedMarks) { tr.ensureMarks(storedMarks); }
   view.dispatch(tr.scrollIntoView());
 }
 
-function resolveSelection(view, doc, mapping, parsedSel) {
+function resolveSelection(view, doc, parsedSel) {
   if (Math.max(parsedSel.anchor, parsedSel.head) > doc.content.size) { return null }
-  return selectionBetween(view, doc.resolve(mapping.map(parsedSel.anchor)),
-                          doc.resolve(mapping.map(parsedSel.head)))
+  return selectionBetween(view, doc.resolve(parsedSel.anchor), doc.resolve(parsedSel.head))
 }
 
 // : (Fragment, Fragment) → ?{mark: Mark, type: string}
@@ -31711,7 +31723,7 @@ function parseFromClipboard(view, text, html, plainText, $context) {
       });
     }
   } else {
-    view.someProp("transformPastedHTML", function (f) { return html = f(html); });
+    view.someProp("transformPastedHTML", function (f) { html = f(html); });
     dom = readHTML(html);
   }
 
@@ -31838,14 +31850,37 @@ var observeOptions = {childList: true, characterData: true, attributes: true, su
 // IE11 has very broken mutation observers, so we also listen to DOMCharacterDataModified
 var useCharData = result.ie && result.ie_version <= 11;
 
-var DOMObserver = function DOMObserver(view) {
+var SelectionState = function SelectionState() {
+  this.anchorNode = this.anchorOffset = this.focusNode = this.focusOffset = null;
+};
+
+SelectionState.prototype.set = function set (sel) {
+  this.anchorNode = sel.anchorNode; this.anchorOffset = sel.anchorOffset;
+  this.focusNode = sel.focusNode; this.focusOffset = sel.focusOffset;
+};
+
+SelectionState.prototype.eq = function eq (sel) {
+  return sel.anchorNode == this.anchorNode && sel.anchorOffset == this.anchorOffset &&
+    sel.focusNode == this.focusNode && sel.focusOffset == this.focusOffset
+};
+
+var DOMObserver = function DOMObserver(view, handleDOMChange) {
   var this$1 = this;
 
   this.view = view;
+  this.handleDOMChange = handleDOMChange;
   this.observer = window.MutationObserver &&
-    new window.MutationObserver(function (mutations) { return this$1.registerMutations(mutations); });
-  if (useCharData)
-    { this.onCharData = function (e) { return this$1.registerMutation({target: e.target, type: "characterData", oldValue: e.prevValue}); }; }
+    new window.MutationObserver(function (mutations) { return this$1.flush(mutations); });
+  this.currentSelection = new SelectionState;
+  this.queue = [];
+  if (useCharData) {
+    this.onCharData = function (e) {
+      this$1.queue.push({target: e.target, type: "characterData", oldValue: e.prevValue});
+      window.setTimeout(function () { return this$1.flush(); }, 20);
+    };
+  }
+  this.onSelectionChange = this.onSelectionChange.bind(this);
+  this.suppressingSelectionUpdates = false;
 };
 
 DOMObserver.prototype.start = function start () {
@@ -31853,60 +31888,106 @@ DOMObserver.prototype.start = function start () {
     { this.observer.observe(this.view.dom, observeOptions); }
   if (useCharData)
     { this.view.dom.addEventListener("DOMCharacterDataModified", this.onCharData); }
+  this.connectSelection();
 };
 
 DOMObserver.prototype.stop = function stop () {
-  if (this.observer) {
-    this.flush();
-    this.observer.disconnect();
-  }
-  if (useCharData)
-    { this.view.dom.removeEventListener("DOMCharacterDataModified", this.onCharData); }
-};
-
-DOMObserver.prototype.flush = function flush () {
-  if (this.observer)
-    { this.registerMutations(this.observer.takeRecords()); }
-};
-
-DOMObserver.prototype.registerMutations = function registerMutations (mutations) {
     var this$1 = this;
 
-  for (var i = 0; i < mutations.length; i++)
-    { this$1.registerMutation(mutations[i]); }
+  var take = this.observer.takeRecords();
+  if (take.length) {
+    for (var i = 0; i < take.length; i++) { this$1.queue.push(take[i]); }
+    window.setTimeout(function () { return this$1.flush(); }, 20);
+  }
+  if (this.observer) { this.observer.disconnect(); }
+  if (useCharData) { this.view.dom.removeEventListener("DOMCharacterDataModified", this.onCharData); }
+  this.disconnectSelection();
+};
+
+DOMObserver.prototype.connectSelection = function connectSelection () {
+  this.view.dom.ownerDocument.addEventListener("selectionchange", this.onSelectionChange);
+};
+
+DOMObserver.prototype.disconnectSelection = function disconnectSelection () {
+  this.view.dom.ownerDocument.removeEventListener("selectionchange", this.onSelectionChange);
+};
+
+DOMObserver.prototype.suppressSelectionUpdates = function suppressSelectionUpdates () {
+    var this$1 = this;
+
+  this.suppressingSelectionUpdates = true;
+  setTimeout(function () { return this$1.suppressingSelectionUpdates = false; }, 50);
+};
+
+DOMObserver.prototype.onSelectionChange = function onSelectionChange () {
+  if (!hasFocusAndSelection(this.view)) { return }
+  if (this.suppressingSelectionUpdates) { return selectionToDOM(this.view) }
+  this.flush();
+};
+
+DOMObserver.prototype.setCurSelection = function setCurSelection () {
+  this.currentSelection.set(this.view.root.getSelection());
+};
+
+DOMObserver.prototype.flush = function flush (mutations) {
+    var this$1 = this;
+
+  if (!this.view.docView) { return }
+  if (!mutations) { mutations = this.observer.takeRecords(); }
+  if (this.queue.length) {
+    mutations = this.queue.concat(mutations);
+    this.queue.length = 0;
+  }
+
+  var sel = this.view.root.getSelection();
+  var newSel = !this.suppressingSelectionUpdates && !this.currentSelection.eq(sel) && hasSelection(this.view);
+
+  var from = -1, to = -1, typeOver = false;
+  if (this.view.editable) {
+    for (var i = 0; i < mutations.length; i++) {
+      var result$$1 = this$1.registerMutation(mutations[i]);
+      if (result$$1) {
+        from = from < 0 ? result$$1.from : Math.min(result$$1.from, from);
+        to = to < 0 ? result$$1.to : Math.max(result$$1.to, to);
+        if (result$$1.typeOver) { typeOver = true; }
+      }
+    }
+  }
+  if (from > -1 || newSel) {
+    if (from > -1) { this.view.docView.markDirty(from, to); }
+    this.handleDOMChange(from, to, typeOver);
+    if (this.view.docView.dirty) { this.view.updateState(this.view.state); }
+    else if (!this.currentSelection.eq(sel)) { selectionToDOM(this.view); }
+  }
 };
 
 DOMObserver.prototype.registerMutation = function registerMutation (mut) {
-  if (!this.view.editable) { return }
   var desc = this.view.docView.nearestDesc(mut.target);
   if (mut.type == "attributes" &&
-      (desc == this.view.docView || mut.attributeName == "contenteditable")) { return }
-  if (!desc || desc.ignoreMutation(mut)) { return }
+      (desc == this.view.docView || mut.attributeName == "contenteditable")) { return null }
+  if (!desc || desc.ignoreMutation(mut)) { return null }
 
-  var from, to;
   if (mut.type == "childList") {
     var fromOffset = mut.previousSibling && mut.previousSibling.parentNode == mut.target
         ? domIndex(mut.previousSibling) + 1 : 0;
-    if (fromOffset == -1) { return }
-    from = desc.localPosFromDOM(mut.target, fromOffset, -1);
+    var from = desc.localPosFromDOM(mut.target, fromOffset, -1);
     var toOffset = mut.nextSibling && mut.nextSibling.parentNode == mut.target
         ? domIndex(mut.nextSibling) : mut.target.childNodes.length;
-    if (toOffset == -1) { return }
-    to = desc.localPosFromDOM(mut.target, toOffset, 1);
+    var to = desc.localPosFromDOM(mut.target, toOffset, 1);
+    return {from: from, to: to}
   } else if (mut.type == "attributes") {
-    from = desc.posAtStart - desc.border;
-    to = desc.posAtEnd + desc.border;
+    return {from: desc.posAtStart - desc.border, to: desc.posAtEnd + desc.border}
   } else { // "characterData"
-    from = desc.posAtStart;
-    to = desc.posAtEnd;
-    // An event was generated for a text change that didn't change
-    // any text. Mark the dom change to fall back to assuming the
-    // selection was typed over with an identical value if it can't
-    // find another change.
-    if (mut.target.nodeValue == mut.oldValue) { DOMChange.start(this.view).typeOver = true; }
+    return {
+      from: desc.posAtStart,
+      to: desc.posAtEnd,
+      // An event was generated for a text change that didn't change
+      // any text. Mark the dom change to fall back to assuming the
+      // selection was typed over with an identical value if it can't
+      // find another change.
+      typeOver: mut.target.nodeValue == mut.oldValue
+    }
   }
-
-  DOMChange.start(this.view).addRange(from, to);
 };
 
 // A collection of DOM events that occur within the editor, and callback functions
@@ -31917,11 +31998,21 @@ var editHandlers = {};
 function initInput(view) {
   view.shiftKey = false;
   view.mouseDown = null;
-  view.inDOMChange = null;
   view.lastKeyCode = null;
   view.lastKeyCodeTime = 0;
-  view.domObserver = new DOMObserver(view);
+  view.lastClick = {time: 0, x: 0, y: 0, type: ""};
+  view.lastSelectionOrigin = null;
+  view.lastSelectionTime = 0;
+
+  view.composing = false;
+  view.composingTimeout = null;
+  view.compositionNodes = [];
+  view.compositionEndedAt = -2e8;
+
+  view.domObserver = new DOMObserver(view, function (from, to, typeOver) { return readDOMChange(view, from, to, typeOver); });
   view.domObserver.start();
+  // Used by hacks like the beforeinput handler to check whether anything happened in the DOM
+  view.domChangeCount = 0;
 
   view.eventHandlers = Object.create(null);
   var loop = function ( event ) {
@@ -31934,14 +32025,24 @@ function initInput(view) {
   };
 
   for (var event in handlers) loop( event );
+  // On Safari, for reasons beyond my understanding, adding an input
+  // event handler makes an issue where the composition vanishes when
+  // you press enter go away.
+  if (result.safari) { view.dom.addEventListener("input", function () { return null; }); }
+
   ensureListeners(view);
+}
+
+function setSelectionOrigin(view, origin) {
+  view.lastSelectionOrigin = origin;
+  view.lastSelectionTime = Date.now();
 }
 
 function destroyInput(view) {
   view.domObserver.stop();
-  if (view.inDOMChange) { view.inDOMChange.destroy(); }
   for (var type in view.eventHandlers)
     { view.dom.removeEventListener(type, view.eventHandlers[type]); }
+  clearTimeout(view.composingTimeout);
 }
 
 function ensureListeners(view) {
@@ -31976,16 +32077,13 @@ function dispatchEvent(view, event) {
 
 editHandlers.keydown = function (view, event) {
   view.shiftKey = event.keyCode == 16 || event.shiftKey;
-  if (view.inDOMChange) {
-    if (view.inDOMChange.composing) { return }
-    view.inDOMChange.finish();
-  }
+  if (inOrNearComposition(view, event)) { return }
   view.lastKeyCode = event.keyCode;
   view.lastKeyCodeTime = Date.now();
   if (view.someProp("handleKeyDown", function (f) { return f(view, event); }) || captureKeyDown(view, event))
     { event.preventDefault(); }
   else
-    { view.selectionReader.poll("key"); }
+    { setSelectionOrigin(view, "key"); }
 };
 
 editHandlers.keyup = function (view, e) {
@@ -31993,7 +32091,7 @@ editHandlers.keyup = function (view, e) {
 };
 
 editHandlers.keypress = function (view, event) {
-  if (view.inDOMChange || !event.charCode ||
+  if (inOrNearComposition(view, event) || !event.charCode ||
       event.ctrlKey && !event.altKey || result.mac && event.metaKey) { return }
 
   if (view.someProp("handleKeyPress", function (f) { return f(view, event); })) {
@@ -32011,8 +32109,6 @@ editHandlers.keypress = function (view, event) {
 };
 
 function eventCoords(event) { return {left: event.clientX, top: event.clientY} }
-
-var lastClick = {time: 0, x: 0, y: 0, type: ""};
 
 function isNear(event, click) {
   var dx = click.x - event.clientX, dy = click.y - event.clientY;
@@ -32121,9 +32217,7 @@ function defaultTripleClick(view, inside) {
 }
 
 function forceDOMFlush(view) {
-  if (!view.inDOMChange) { return false }
-  view.inDOMChange.finish(true);
-  return true
+  return endComposition(view)
 }
 
 var selectNodeModifier = result.mac ? "metaKey" : "ctrlKey";
@@ -32132,11 +32226,11 @@ handlers.mousedown = function (view, event) {
   view.shiftKey = event.shiftKey;
   var flushed = forceDOMFlush(view);
   var now = Date.now(), type = "singleClick";
-  if (now - lastClick.time < 500 && isNear(event, lastClick) && !event[selectNodeModifier]) {
-    if (lastClick.type == "singleClick") { type = "doubleClick"; }
-    else if (lastClick.type == "doubleClick") { type = "tripleClick"; }
+  if (now - view.lastClick.time < 500 && isNear(event, view.lastClick) && !event[selectNodeModifier]) {
+    if (view.lastClick.type == "singleClick") { type = "doubleClick"; }
+    else if (view.lastClick.type == "doubleClick") { type = "tripleClick"; }
   }
-  lastClick = {time: now, x: event.clientX, y: event.clientY, type: type};
+  view.lastClick = {time: now, x: event.clientX, y: event.clientY, type: type};
 
   var pos = view.posAtCoords(eventCoords(event));
   if (!pos) { return }
@@ -32146,13 +32240,14 @@ handlers.mousedown = function (view, event) {
   else if ((type == "doubleClick" ? handleDoubleClick : handleTripleClick)(view, pos.pos, pos.inside, event))
     { event.preventDefault(); }
   else
-    { view.selectionReader.poll("pointer"); }
+    { setSelectionOrigin(view, "pointer"); }
 };
 
 var MouseDown = function MouseDown(view, pos, event, flushed) {
   var this$1 = this;
 
   this.view = view;
+  this.startDoc = view.state.doc;
   this.pos = pos;
   this.event = event;
   this.flushed = flushed;
@@ -32192,7 +32287,7 @@ var MouseDown = function MouseDown(view, pos, event, flushed) {
 
   view.root.addEventListener("mouseup", this.up = this.up.bind(this));
   view.root.addEventListener("mousemove", this.move = this.move.bind(this));
-  view.selectionReader.poll("pointer");
+  setSelectionOrigin(view, "pointer");
 };
 
 MouseDown.prototype.done = function done () {
@@ -32213,11 +32308,14 @@ MouseDown.prototype.up = function up (event) {
   if (!this.view.dom.contains(event.target.nodeType == 3 ? event.target.parentNode : event.target))
     { return }
 
-  if (this.allowDefault) {
+  var pos = this.pos;
+  if (this.view.state.doc != this.startDoc) { pos = this.view.posAtCoords(eventCoords(event)); }
+
+  if (this.allowDefault || !pos) {
     // Force a cursor wrapper redraw if this was suppressed (to avoid an issue with IE drag-selection)
     if (result.ie && needsCursorWrapper(this.view.state)) { this.view.updateState(this.view.state); }
-    this.view.selectionReader.poll("pointer");
-  } else if (handleSingleClick(this.view, this.pos.pos, this.pos.inside, event, this.selectNode)) {
+    setSelectionOrigin(this.view, "pointer");
+  } else if (handleSingleClick(this.view, pos.pos, pos.inside, event, this.selectNode)) {
     event.preventDefault();
   } else if (this.flushed ||
              // Chrome will sometimes treat a node selection as a
@@ -32227,11 +32325,12 @@ MouseDown.prototype.up = function up (event) {
              // (hidden) cursor is doesn't change the selection, and
              // thus doesn't get a reaction from ProseMirror. This
              // works around that.
-             (result.chrome && !(this.view.state.selection instanceof prosemirrorState.TextSelection))) {
-    updateSelection(this.view, prosemirrorState.Selection.near(this.view.state.doc.resolve(this.pos.pos)), "pointer");
+             (result.chrome && !(this.view.state.selection instanceof prosemirrorState.TextSelection) &&
+              (pos.pos == this.view.state.selection.from || pos.pos == this.view.state.selection.to))) {
+    updateSelection(this.view, prosemirrorState.Selection.near(this.view.state.doc.resolve(pos.pos)), "pointer");
     event.preventDefault();
   } else {
-    this.view.selectionReader.poll("pointer");
+    setSelectionOrigin(this.view, "pointer");
   }
 };
 
@@ -32239,51 +32338,69 @@ MouseDown.prototype.move = function move (event) {
   if (!this.allowDefault && (Math.abs(this.event.x - event.clientX) > 4 ||
                              Math.abs(this.event.y - event.clientY) > 4))
     { this.allowDefault = true; }
-  this.view.selectionReader.poll("pointer");
+  setSelectionOrigin(this.view, "pointer");
 };
 
 handlers.touchdown = function (view) {
   forceDOMFlush(view);
-  view.selectionReader.poll("pointer");
+  setSelectionOrigin(view, "pointer");
 };
 
 handlers.contextmenu = function (view) { return forceDOMFlush(view); };
 
-// Input compositions are hard. Mostly because the events fired by
-// browsers are A) very unpredictable and inconsistent, and B) not
-// cancelable.
-//
-// ProseMirror has the problem that it must not update the DOM during
-// a composition, or the browser will cancel it. What it does is keep
-// long-running operations (delayed DOM updates) when a composition is
-// active.
-//
-// We _do not_ trust the information in the composition events which,
-// apart from being very uninformative to begin with, is often just
-// plain wrong. Instead, when a composition ends, we parse the dom
-// around the original selection, and derive an update from that.
+function inOrNearComposition(view, event) {
+  if (view.composing) { return true }
+  // See https://www.stum.de/2016/06/24/handling-ime-events-in-javascript/.
+  // On Japanese input method editors (IMEs), the Enter key is used to confirm character
+  // selection. On Safari, when Enter is pressed, compositionend and keydown events are
+  // emitted. The keydown event triggers newline insertion, which we don't want.
+  // This method returns true if the keydown event should be ignored.
+  // We only ignore it once, as pressing Enter a second time *should* insert a newline.
+  // Furthermore, the keydown event timestamp must be close to the compositionEndedAt timestamp.
+  // This guards against the case where compositionend is triggered without the keyboard
+  // (e.g. character confirmation may be done with the mouse), and keydown is triggered
+  // afterwards- we wouldn't want to ignore the keydown event in this case.
+  if (result.safari && Math.abs(event.timeStamp - view.compositionEndedAt) < 500) {
+    view.compositionEndedAt = -2e8;
+    return true
+  }
+  return false
+}
+
+// Drop active composition after 5 seconds of inactivity on Android
+var timeoutComposition = result.android ? 5000 : -1;
 
 editHandlers.compositionstart = editHandlers.compositionupdate = function (view) {
-  DOMChange.start(view, true);
-};
-
-editHandlers.compositionend = function (view, e) {
-  if (!view.inDOMChange) {
-    // We received a compositionend without having seen any previous
-    // events for the composition. If there's data in the event
-    // object, we assume that it's a real change, and start a
-    // composition. Otherwise, we just ignore it.
-    if (e.data) { DOMChange.start(view, true); }
-    else { return }
+  if (!view.composing) {
+    view.domObserver.flush();
+    endComposition(view);
+    view.composing = true;
   }
-
-  view.inDOMChange.compositionEnd();
+  scheduleComposeEnd(view, timeoutComposition);
 };
 
-editHandlers.input = function (view) {
-  var change = DOMChange.start(view);
-  if (!change.composing) { change.finish(); }
+editHandlers.compositionend = function (view, event) {
+  if (view.composing) {
+    view.composing = false;
+    view.compositionEndedAt = event.timeStamp;
+    scheduleComposeEnd(view, 20);
+  }
 };
+
+function scheduleComposeEnd(view, delay) {
+  clearTimeout(view.composingTimeout);
+  if (delay > -1) { view.composingTimeout = setTimeout(function () { return endComposition(view); }, delay); }
+}
+
+function endComposition(view) {
+  view.composing = false;
+  while (view.compositionNodes.length > 0) { view.compositionNodes.pop().markParentsDirty(); }
+  if (view.docView.dirty) {
+    view.updateState(view.state);
+    return true
+  }
+  return false
+}
 
 function captureCopy(view, dom) {
   // The extra wrapper is somehow necessary on IE/Edge to prevent the
@@ -32354,9 +32471,7 @@ function capturePaste(view, e) {
 
 function doPaste(view, text, html, e) {
   var slice = parseFromClipboard(view, text, html, view.shiftKey, view.state.selection.$from);
-  if (!slice) { return false }
-
-  if (view.someProp("handlePaste", function (f) { return f(view, e, slice); })) { return true }
+  if (view.someProp("handlePaste", function (f) { return f(view, e, slice || prosemirrorModel.Slice.empty); }) || !slice) { return true }
 
   var singleNode = sliceSingleNode(slice);
   var tr = singleNode ? view.state.tr.replaceSelectionWith(singleNode, view.shiftKey) : view.state.tr.replaceSelection(slice);
@@ -32455,15 +32570,41 @@ editHandlers.drop = function (view, e) {
 
 handlers.focus = function (view) {
   if (!view.focused) {
+    view.domObserver.stop();
     view.dom.classList.add("ProseMirror-focused");
+    view.domObserver.start();
     view.focused = true;
   }
 };
 
 handlers.blur = function (view) {
   if (view.focused) {
+    view.domObserver.stop();
     view.dom.classList.remove("ProseMirror-focused");
+    view.domObserver.start();
     view.focused = false;
+  }
+};
+
+handlers.beforeinput = function (view, event) {
+  // We should probably do more with beforeinput events, but support
+  // is so spotty that I'm still waiting to see where they are going.
+
+  // Very specific hack to deal with backspace sometimes failing on
+  // Chrome Android when after an uneditable node.
+  if (result.chrome && result.android && event.inputType == "deleteContentBackward") {
+    var domChangeCount = view.domChangeCount;
+    setTimeout(function () {
+      if (view.domChangeCount != domChangeCount) { return } // Event already had some effect
+      // This bug tends to close the virtual keyboard, so we refocus
+      view.dom.blur();
+      view.focus();
+      if (view.someProp("handleKeyDown", function (f) { return f(view, keyEvent(8, "Backspace")); })) { return }
+      var ref = view.state.selection;
+      var $cursor = ref.$cursor;
+      // Crude approximation of backspace behavior when no command handled it
+      if ($cursor && $cursor.pos > 0) { view.dispatch(view.state.tr.delete($cursor.pos - 1, $cursor.pos).scrollIntoView()); }
+    }, 50);
   }
 };
 
@@ -33179,7 +33320,6 @@ var EditorView = function EditorView(place, props) {
   }
 
   this.editable = getEditable(this);
-  this.redraw = false;
   this.cursorWrapper = null;
   updateCursorWrapper(this);
   this.nodeViews = buildNodeViews(this);
@@ -33191,15 +33331,19 @@ var EditorView = function EditorView(place, props) {
   // information about the dragged slice and whether it is being
   // copied or moved. At any other time, it is null.
   this.dragging = null;
-  initInput(this); // Must be done before creating a SelectionReader
 
-  this.selectionReader = new SelectionReader(this);
+  initInput(this);
 
   this.pluginViews = [];
   this.updatePluginViews();
 };
 
 var prototypeAccessors = { props: {},root: {} };
+
+// composing:: boolean
+// Holds `true` when a
+// [composition](https://developer.mozilla.org/en-US/docs/Mozilla/IME_handling_guide)
+// is active.
 
 // :: DirectEditorProps
 // The view's current [props](#view.EditorProps).
@@ -33221,12 +33365,7 @@ prototypeAccessors.props.get = function () {
 EditorView.prototype.update = function update (props) {
   if (props.handleDOMEvents != this._props.handleDOMEvents) { ensureListeners(this); }
   this._props = props;
-  var nodeViews = buildNodeViews(this);
-  if (changedNodeViews(nodeViews, this.nodeViews)) {
-    this.nodeViews = nodeViews;
-    this.redraw = true;
-  }
-  this.updateState(props.state);
+  this.updateStateInner(props.state, true);
 };
 
 // :: (DirectEditorProps)
@@ -33247,25 +33386,32 @@ EditorView.prototype.setProps = function setProps (props) {
 // Update the editor's `state` prop, without touching any of the
 // other props.
 EditorView.prototype.updateState = function updateState (state) {
+  this.updateStateInner(state, this.state.plugins != state.plugins);
+};
+
+EditorView.prototype.updateStateInner = function updateStateInner (state, reconfigured) {
     var this$1 = this;
 
-  var prev = this.state;
+  var prev = this.state, redraw = false;
   this.state = state;
-  if (prev.plugins != state.plugins) { ensureListeners(this); }
+  if (reconfigured) {
+    var nodeViews = buildNodeViews(this);
+    if (changedNodeViews(nodeViews, this.nodeViews)) {
+      this.nodeViews = nodeViews;
+      redraw = true;
+    }
+    ensureListeners(this);
+  }
 
-  this.domObserver.flush();
-  if (this.inDOMChange && this.inDOMChange.stateUpdated(state)) { return }
-
-  var prevEditable = this.editable;
   this.editable = getEditable(this);
   updateCursorWrapper(this);
   var innerDeco = viewDecorations(this), outerDeco = computeDocDeco(this);
 
-  var scroll = prev.config != state.config ? "reset"
+  var scroll = reconfigured ? "reset"
       : state.scrollToSelection > prev.scrollToSelection ? "to selection" : "preserve";
-  var updateDoc = this.redraw || !this.docView.matchesNode(state.doc, outerDeco, innerDeco);
-  var updateSel = updateDoc || !state.selection.eq(prev.selection) || this.selectionReader.domChanged();
-  var oldScrollPos = scroll == "preserve" && updateSel && storeScrollPos(this);
+  var updateDoc = redraw || !this.docView.matchesNode(state.doc, outerDeco, innerDeco);
+  var updateSel = updateDoc || !state.selection.eq(prev.selection);
+  var oldScrollPos = scroll == "preserve" && updateSel && this.dom.style.overflowAnchor == null && storeScrollPos(this);
 
   if (updateSel) {
     this.domObserver.stop();
@@ -33276,20 +33422,27 @@ EditorView.prototype.updateState = function updateState (state) {
       // where the thing the user sees differs from the selection
       // reported by the Selection object (#710)
       var startSelContext = result.chrome && selectionContext(this.root);
-      if (this.redraw || !this.docView.update(state.doc, outerDeco, innerDeco, this)) {
+      if (redraw || !this.docView.update(state.doc, outerDeco, innerDeco, this)) {
         this.docView.destroy();
         this.docView = docViewDesc(state.doc, outerDeco, innerDeco, this.dom, this);
-        this.redraw = false;
       }
-      this.selectionReader.clearDOMState();
       if (startSelContext)
         { forceSelUpdate = needChromeSelectionForce(startSelContext, this.root); }
     }
-    selectionToDOM(this, false, forceSelUpdate);
+    // Work around for an issue where an update arriving right between
+    // a DOM selection change and the "selectionchange" event for it
+    // can cause a spurious DOM selection update, disrupting mouse
+    // drag selection.
+    if (forceSelUpdate ||
+        !(this.mouseDown && this.domObserver.currentSelection.eq(this.root.getSelection()) && anchorInRightPlace(this))) {
+      selectionToDOM(this, false, forceSelUpdate);
+    } else {
+      syncNodeSelection(this, state.selection);
+      this.domObserver.setCurSelection();
+    }
     this.domObserver.start();
   }
 
-  if (prevEditable != this.editable) { this.selectionReader.editableChanged(); }
   this.updatePluginViews(prev);
 
   if (scroll == "reset") {
@@ -33315,11 +33468,10 @@ EditorView.prototype.destroyPluginViews = function destroyPluginViews () {
 EditorView.prototype.updatePluginViews = function updatePluginViews (prevState) {
     var this$1 = this;
 
-  var plugins = this.state.plugins;
-  if (!prevState || prevState.plugins != plugins) {
+  if (!prevState || prevState.plugins != this.state.plugins) {
     this.destroyPluginViews();
-    for (var i = 0; i < plugins.length; i++) {
-      var plugin = plugins[i];
+    for (var i = 0; i < this.state.plugins.length; i++) {
+      var plugin = this$1.state.plugins[i];
       if (plugin.spec.view) { this$1.pluginViews.push(plugin.spec.view(this$1)); }
     }
   } else {
@@ -33381,18 +33533,13 @@ prototypeAccessors.root.get = function () {
 // :: ({left: number, top: number}) → ?{pos: number, inside: number}
 // Given a pair of viewport coordinates, return the document
 // position that corresponds to them. May return null if the given
-// coordinates aren't inside of the visible editor. When an object
-// is returned, its `pos` property is the position nearest to the
+// coordinates aren't inside of the editor. When an object is
+// returned, its `pos` property is the position nearest to the
 // coordinates, and its `inside` property holds the position of the
 // inner node that the position falls inside of, or -1 if it is at
 // the top level, not in any node.
 EditorView.prototype.posAtCoords = function posAtCoords$1 (coords) {
-  var pos = posAtCoords(this, coords);
-  if (this.inDOMChange && pos) {
-    pos.pos = this.inDOMChange.mapping.map(pos.pos);
-    if (pos.inside != -1) { pos.inside = this.inDOMChange.mapping.map(pos.inside); }
-  }
-  return pos
+  return posAtCoords(this, coords)
 };
 
 // :: (number) → {left: number, right: number, top: number, bottom: number}
@@ -33400,8 +33547,6 @@ EditorView.prototype.posAtCoords = function posAtCoords$1 (coords) {
 // and `right` will be the same number, as this returns a flat
 // cursor-ish rectangle.
 EditorView.prototype.coordsAtPos = function coordsAtPos$1 (pos) {
-  if (this.inDOMChange)
-    { pos = this.inDOMChange.mapping.invert().map(pos); }
   return coordsAtPos(this, pos)
 };
 
@@ -33411,8 +33556,6 @@ EditorView.prototype.coordsAtPos = function coordsAtPos$1 (pos) {
 // internal DOM, only inspect it (and even that is usually not
 // necessary).
 EditorView.prototype.domAtPos = function domAtPos (pos) {
-  if (this.inDOMChange)
-    { pos = this.inDOMChange.mapping.invert().map(pos); }
   return this.docView.domFromPos(pos)
 };
 
@@ -33426,8 +33569,6 @@ EditorView.prototype.domAtPos = function domAtPos (pos) {
 // editor DOM directly, or add styling this way, since that will be
 // immediately overriden by the editor as it redraws the node.
 EditorView.prototype.nodeDOM = function nodeDOM (pos) {
-  if (this.inDOMChange)
-    { pos = this.inDOMChange.mapping.invert().map(pos); }
   var desc = this.docView.descAt(pos);
   return desc ? desc.nodeDOM : null
 };
@@ -33446,8 +33587,6 @@ EditorView.prototype.posAtDOM = function posAtDOM (node, offset, bias) {
 
   var pos = this.docView.posFromDOM(node, offset, bias);
   if (pos == null) { throw new RangeError("DOM position not inside the editor") }
-  if (this.inDOMChange)
-    { pos = this.inDOMChange.mapping.map(pos); }
   return pos
 };
 
@@ -33469,7 +33608,6 @@ EditorView.prototype.destroy = function destroy () {
   if (!this.docView) { return }
   destroyInput(this);
   this.destroyPluginViews();
-  this.selectionReader.destroy();
   if (this.mounted) {
     this.docView.update(this.state.doc, [], viewDecorations(this), this);
     this.dom.textContent = "";
@@ -33503,7 +33641,7 @@ Object.defineProperties( EditorView.prototype, prototypeAccessors );
 
 function computeDocDeco(view) {
   var attrs = Object.create(null);
-  attrs.class = "ProseMirror" + (view.focused ? " ProseMirror-focused" : "");
+  attrs.class = "ProseMirror";
   attrs.contenteditable = String(view.editable);
 
   view.someProp("attributes", function (value) {
@@ -33742,12 +33880,12 @@ function changedNodeViews(a, b) {
 //   the value provided first (as in
 //   [`someProp`](#view.EditorView.someProp)) will be used.
 //
-//   scrollThreshold:: ?number | {top: number, right: number, bottom: number, left: number}
+//   scrollThreshold:: ?union<number, {top: number, right: number, bottom: number, left: number}>
 //   Determines the distance (in pixels) between the cursor and the
 //   end of the visible viewport at which point, when scrolling the
 //   cursor into view, scrolling takes place. Defaults to 0.
 //
-//   scrollMargin:: ?number | {top: number, right: number, bottom: number, left: number}
+//   scrollMargin:: ?union<number, {top: number, right: number, bottom: number, left: number}>
 //   Determines the extra space (in pixels) that is left above or
 //   below the cursor when it is scrolled into view. Defaults to 5.
 
@@ -33773,6 +33911,7 @@ exports.Decoration = Decoration;
 exports.DecorationSet = DecorationSet;
 exports.__serializeForClipboard = serializeForClipboard;
 exports.__parseFromClipboard = parseFromClipboard;
+exports.__endComposition = endComposition;
 
 
 },{"prosemirror-model":49,"prosemirror-state":51,"prosemirror-transform":52}],54:[function(require,module,exports){

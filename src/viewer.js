@@ -23,33 +23,62 @@ window.gcexports.viewer = (function () {
   function capture(el) {
     return null;
   }
+  function update(proseMirrorState, recompileCode) {
+    let state = {}
+    state[window.gcexports.id] = {
+      data: {
+        proseMirrorState,
+      },
+      recompileCode: recompileCode,
+    };
+    window.gcexports.dispatcher.dispatch(state);
+  }
   let Editor = React.createClass({
-    componentDidMount: () => {
-      let doc = schema.node("doc", null, [
-        schema.node("paragraph", null, [schema.text("One.")]),
-        schema.node("horizontal_rule"),
-        schema.node("paragraph", null, [schema.text("Two!")])
-      ]);
-      let state = EditorState.create({
-        schema,
-        doc: doc,
-        plugins: [
-          history(),
-          keymap({"Mod-z": undo, "Mod-y": redo}),
-          keymap(baseKeymap),
-        ]
-      });
-      let view = new EditorView(document.querySelector("#editor"), {
+    view: undefined,
+    componentDidMount() {
+      let state;
+      if (this.props.newState && this.props.newState.doc) {
+        state = EditorState.create({
+          schema: schema,
+          doc: this.props.newState.doc,
+          plugins: [
+            history(),
+            keymap({"Mod-z": undo, "Mod-y": redo}),
+            keymap(baseKeymap),
+          ]
+        });
+      } else {
+        let doc = schema.node("doc", null, [
+          schema.node("paragraph", null, [schema.text("One.")]),
+          schema.node("horizontal_rule"),
+          schema.node("paragraph", null, [schema.text("Two!")])
+        ]);
+        state = EditorState.create({
+          schema: schema,
+          doc: doc,
+          plugins: [
+            history(),
+            keymap({"Mod-z": undo, "Mod-y": redo}),
+            keymap(baseKeymap),
+          ]
+        });
+      }
+      let view = this.view = new EditorView(document.querySelector("#editor"), {
         state,
         dispatchTransaction(transaction) {
           console.log("Document size went from", transaction.before.content.size,
-                      "to", transaction.doc.content.size)
-          let newState = view.state.apply(transaction)
-          view.updateState(newState)
-        }
+                      "to", transaction.doc.content.size);
+          let newState = view.state.apply(transaction);
+          view.updateState(newState);
+          update(newState);
+        },
       });
     },
-    render: () => {
+    componentDidUpdate() {
+      let props = this.props;
+      this.view.updateState(props.newState);
+    },
+    render() {
       return (
         <div>
           <div key="1" id="editor" style={{"marginBottom": "23px"}}></div>
@@ -61,12 +90,13 @@ window.gcexports.viewer = (function () {
     )},
   });
   let Viewer = React.createClass({
-    render: () => {
-        return (
+    render() {
+      let props = this.props;
+      return (
         <div>
           <link rel="stylesheet" href="/L123/style.css" />
           <div className="L123">
-             <Editor />
+             <Editor newState={props.data.proseMirrorState}/>
           </div>
         </div>
       );
