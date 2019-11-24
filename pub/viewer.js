@@ -332,12 +332,9 @@ window.gcexports.viewer = function () {
           //             "to", transaction.doc.content.size)
           var newState = view.state.apply(transaction);
           view.updateState(newState);
-          update(newState);
+          //          update(newState);
         }
       });
-    },
-    shouldComponentUpdate: function shouldComponentUpdate() {
-      return false;
     },
     componentDidUpdate: function componentDidUpdate() {
       // let props = this.props;
