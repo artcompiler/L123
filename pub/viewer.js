@@ -262,7 +262,7 @@ exports.decodeID = decodeID;
 exports.encodeID = encodeID;
 exports.validate = validate;
 }).call(this,require("buffer").Buffer)
-},{"buffer":5,"hashids":37,"https":38}],2:[function(require,module,exports){
+},{"buffer":5,"hashids":38,"https":39}],2:[function(require,module,exports){
 "use strict";
 
 var _share = require("./share.js");
@@ -283,6 +283,10 @@ var _prosemirrorModel = require("prosemirror-model");
 
 var _prosemirrorSchemaBasic = require("prosemirror-schema-basic");
 
+var _prosemirrorSchemaList = require("prosemirror-schema-list");
+
+var _prosemirrorExampleSetup = require("prosemirror-example-setup");
+
 var _prosemirrorHistory = require("prosemirror-history");
 
 var _prosemirrorKeymap = require("prosemirror-keymap");
@@ -294,6 +298,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 /* Copyright (c) 2017, Art Compiler LLC */
+var mySchema = new _prosemirrorModel.Schema({
+  nodes: (0, _prosemirrorSchemaList.addListNodes)(_prosemirrorSchemaBasic.schema.spec.nodes, "paragraph block*", "block"),
+  marks: _prosemirrorSchemaBasic.schema.spec.marks
+});
+//import * as React from "react";
+
+
 window.gcexports.viewer = function () {
   function capture(el) {
     return null;
@@ -308,66 +319,31 @@ window.gcexports.viewer = function () {
     };
     window.gcexports.dispatcher.dispatch(state);
   }
-  var Editor = _react2.default.createClass({
-    displayName: "Editor",
+  var Viewer = _react2.default.createClass({
+    displayName: "Viewer",
 
     view: undefined,
     componentDidMount: function componentDidMount() {
-      var state = void 0;
-      if (this.props.newState && this.props.newState.doc) {
-        state = _prosemirrorState.EditorState.create({
-          schema: _prosemirrorSchemaBasic.schema,
-          doc: this.props.newState.doc,
-          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
-        });
-      } else {
-        var doc = _prosemirrorSchemaBasic.schema.node("doc", null, [_prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("One.")]), _prosemirrorSchemaBasic.schema.node("horizontal_rule"), _prosemirrorSchemaBasic.schema.node("paragraph", null, [_prosemirrorSchemaBasic.schema.text("Two!")])]);
-        state = _prosemirrorState.EditorState.create({
-          schema: _prosemirrorSchemaBasic.schema,
-          doc: doc,
-          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
-        });
-      }
+      var state = _prosemirrorState.EditorState.create({ schema: _prosemirrorSchemaBasic.schema });
       var view = this.view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
         state: state,
         dispatchTransaction: function dispatchTransaction(transaction) {
-          console.log("Document size went from", transaction.before.content.size, "to", transaction.doc.content.size);
+          // console.log("Document size went from", transaction.before.content.size,
+          //             "to", transaction.doc.content.size)
           var newState = view.state.apply(transaction);
           view.updateState(newState);
           update(newState);
         }
       });
     },
+    shouldComponentUpdate: function shouldComponentUpdate() {
+      return false;
+    },
     componentDidUpdate: function componentDidUpdate() {
-      var props = this.props;
-      this.view.updateState(props.newState);
+      // let props = this.props;
+      // this.view.updateState(props.data.proseMirrorState || props.obj.proseMirrorState);
     },
     render: function render() {
-      return _react2.default.createElement(
-        "div",
-        null,
-        _react2.default.createElement("div", { key: "1", id: "editor", style: { "marginBottom": "23px" } }),
-        _react2.default.createElement(
-          "div",
-          { key: "2", style: { "display": "none" }, id: "content" },
-          _react2.default.createElement(
-            "h3",
-            null,
-            "Hello ProseMirror"
-          ),
-          _react2.default.createElement(
-            "p",
-            null,
-            "This is editable text. You can focus it and start typing."
-          )
-        )
-      );
-    }
-  });
-  var Viewer = _react2.default.createClass({
-    displayName: "Viewer",
-    render: function render() {
-      var props = this.props;
       return _react2.default.createElement(
         "div",
         null,
@@ -375,18 +351,16 @@ window.gcexports.viewer = function () {
         _react2.default.createElement(
           "div",
           { className: "L123" },
-          _react2.default.createElement(Editor, { newState: props.data.proseMirrorState })
+          _react2.default.createElement("div", { id: "editor", style: { "marginBottom": "23px" } })
         )
       );
     }
   });
   return {
-    capture: capture,
     Viewer: Viewer
   };
 }();
-//import * as React from "react";
-},{"./share.js":1,"d3":8,"prosemirror-commands":46,"prosemirror-history":47,"prosemirror-keymap":48,"prosemirror-model":49,"prosemirror-schema-basic":50,"prosemirror-state":51,"prosemirror-view":53,"react":186}],3:[function(require,module,exports){
+},{"./share.js":1,"d3":9,"prosemirror-commands":47,"prosemirror-example-setup":49,"prosemirror-history":51,"prosemirror-keymap":53,"prosemirror-model":55,"prosemirror-schema-basic":56,"prosemirror-schema-list":57,"prosemirror-state":58,"prosemirror-view":60,"react":193}],3:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2066,7 +2040,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":3,"ieee754":39,"isarray":42}],6:[function(require,module,exports){
+},{"base64-js":3,"ieee754":40,"isarray":43}],6:[function(require,module,exports){
 module.exports = {
   "100": "Continue",
   "101": "Switching Protocols",
@@ -2243,7 +2217,103 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":41}],8:[function(require,module,exports){
+},{"../../is-buffer/index.js":42}],8:[function(require,module,exports){
+/* Copyright (C) 2012 Kory Nunn
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+NOTE:
+This code is formatted for run-speed and to assist compilers.
+This might make it harder to read at times, but the code's intention should be transparent. */
+
+// IIFE our function
+((exporter) => {
+    // Define our function and its properties
+    // These strings are used multiple times, so this makes things smaller once compiled
+    const func = 'function',
+        isNodeString = 'isNode',
+        d = document,
+        // Helper functions used throughout the script
+        isType = (object, type) => typeof object === type,
+        // Recursively appends children to given element. As a text node if not already an element
+        appendChild = (element, child) => {
+            if (child !== null) {
+                if (Array.isArray(child)) { // Support (deeply) nested child elements
+                    child.map(subChild => appendChild(element, subChild));
+                } else {
+                    if (!crel[isNodeString](child)) {
+                        child = d.createTextNode(child);
+                    }
+                    element.appendChild(child);
+                }
+            }
+        };
+    //
+    function crel (element, settings) {
+        // Define all used variables / shortcuts here, to make things smaller once compiled
+        let args = arguments, // Note: assigned to a variable to assist compilers.
+            index = 1,
+            key,
+            attribute;
+        // If first argument is an element, use it as is, otherwise treat it as a tagname
+        element = crel.isElement(element) ? element : d.createElement(element);
+        // Check if second argument is a settings object
+        if (isType(settings, 'object') && !crel[isNodeString](settings) && !Array.isArray(settings)) {
+            // Don't treat settings as a child
+            index++;
+            // Go through settings / attributes object, if it exists
+            for (key in settings) {
+                // Store the attribute into a variable, before we potentially modify the key
+                attribute = settings[key];
+                // Get mapped key / function, if one exists
+                key = crel.attrMap[key] || key;
+                // Note: We want to prioritise mapping over properties
+                if (isType(key, func)) {
+                    key(element, attribute);
+                } else if (isType(attribute, func)) { // ex. onClick property
+                    element[key] = attribute;
+                } else {
+                    // Set the element attribute
+                    element.setAttribute(key, attribute);
+                }
+            }
+        }
+        // Loop through all arguments, if any, and append them to our element if they're not `null`
+        for (; index < args.length; index++) {
+            appendChild(element, args[index]);
+        }
+
+        return element;
+    }
+
+    // Used for mapping attribute keys to supported versions in bad browsers, or to custom functionality
+    crel.attrMap = {};
+    crel.isElement = object => object instanceof Element;
+    crel[isNodeString] = node => node instanceof Node;
+    // Expose proxy interface
+    crel.proxy = new Proxy(crel, {
+        get: (target, key) => {
+            !(key in crel) && (crel[key] = crel.bind(null, key));
+            return crel[key];
+        }
+    });
+    // Export crel
+    exporter(crel, func);
+})((product, func) => {
+    if (typeof exports === 'object') {
+        // Export for Browserify / CommonJS format
+        module.exports = product;
+    } else if (typeof define === func && define.amd) {
+        // Export for RequireJS / AMD format
+        define(() => product);
+    } else {
+        // Export as a 'global' function
+        this.crel = product;
+    }
+});
+
+},{}],9:[function(require,module,exports){
 // https://d3js.org Version 4.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -18810,7 +18880,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19114,7 +19184,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -19201,7 +19271,7 @@ var EventListener = {
 
 module.exports = EventListener;
 }).call(this,require('_process'))
-},{"./emptyFunction":17,"_process":45}],11:[function(require,module,exports){
+},{"./emptyFunction":18,"_process":46}],12:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19238,7 +19308,7 @@ var ExecutionEnvironment = {
 };
 
 module.exports = ExecutionEnvironment;
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19271,7 +19341,7 @@ function camelize(string) {
 }
 
 module.exports = camelize;
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19312,7 +19382,7 @@ function camelizeStyleName(string) {
 }
 
 module.exports = camelizeStyleName;
-},{"./camelize":12}],14:[function(require,module,exports){
+},{"./camelize":13}],15:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19368,7 +19438,7 @@ function containsNode(_x, _x2) {
 }
 
 module.exports = containsNode;
-},{"./isTextNode":27}],15:[function(require,module,exports){
+},{"./isTextNode":28}],16:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19454,7 +19524,7 @@ function createArrayFromMixed(obj) {
 }
 
 module.exports = createArrayFromMixed;
-},{"./toArray":35}],16:[function(require,module,exports){
+},{"./toArray":36}],17:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -19541,7 +19611,7 @@ function createNodesFromMarkup(markup, handleScript) {
 
 module.exports = createNodesFromMarkup;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":11,"./createArrayFromMixed":15,"./getMarkupWrap":21,"./invariant":25,"_process":45}],17:[function(require,module,exports){
+},{"./ExecutionEnvironment":12,"./createArrayFromMixed":16,"./getMarkupWrap":22,"./invariant":26,"_process":46}],18:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19580,7 +19650,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -19603,7 +19673,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = emptyObject;
 }).call(this,require('_process'))
-},{"_process":45}],19:[function(require,module,exports){
+},{"_process":46}],20:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19630,7 +19700,7 @@ function focusNode(node) {
 }
 
 module.exports = focusNode;
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19666,7 +19736,7 @@ function getActiveElement() /*?DOMElement*/{
 }
 
 module.exports = getActiveElement;
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -19764,7 +19834,7 @@ function getMarkupWrap(nodeName) {
 
 module.exports = getMarkupWrap;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":11,"./invariant":25,"_process":45}],22:[function(require,module,exports){
+},{"./ExecutionEnvironment":12,"./invariant":26,"_process":46}],23:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19803,7 +19873,7 @@ function getUnboundedScrollPosition(scrollable) {
 }
 
 module.exports = getUnboundedScrollPosition;
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19837,7 +19907,7 @@ function hyphenate(string) {
 }
 
 module.exports = hyphenate;
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19877,7 +19947,7 @@ function hyphenateStyleName(string) {
 }
 
 module.exports = hyphenateStyleName;
-},{"./hyphenate":23}],25:[function(require,module,exports){
+},{"./hyphenate":24}],26:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -19930,7 +20000,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":45}],26:[function(require,module,exports){
+},{"_process":46}],27:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19954,7 +20024,7 @@ function isNode(object) {
 }
 
 module.exports = isNode;
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19980,7 +20050,7 @@ function isTextNode(object) {
 }
 
 module.exports = isTextNode;
-},{"./isNode":26}],28:[function(require,module,exports){
+},{"./isNode":27}],29:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -20031,7 +20101,7 @@ var keyMirror = function (obj) {
 
 module.exports = keyMirror;
 }).call(this,require('_process'))
-},{"./invariant":25,"_process":45}],29:[function(require,module,exports){
+},{"./invariant":26,"_process":46}],30:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20067,7 +20137,7 @@ var keyOf = function (oneKeyObj) {
 };
 
 module.exports = keyOf;
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20119,7 +20189,7 @@ function mapObject(object, callback, context) {
 }
 
 module.exports = mapObject;
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20151,7 +20221,7 @@ function memoizeStringOnly(callback) {
 }
 
 module.exports = memoizeStringOnly;
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20175,7 +20245,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = performance || {};
-},{"./ExecutionEnvironment":11}],33:[function(require,module,exports){
+},{"./ExecutionEnvironment":12}],34:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20210,7 +20280,7 @@ if (performance.now) {
 }
 
 module.exports = performanceNow;
-},{"./performance":32}],34:[function(require,module,exports){
+},{"./performance":33}],35:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20261,7 +20331,7 @@ function shallowEqual(objA, objB) {
 }
 
 module.exports = shallowEqual;
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -20321,7 +20391,7 @@ function toArray(obj) {
 
 module.exports = toArray;
 }).call(this,require('_process'))
-},{"./invariant":25,"_process":45}],36:[function(require,module,exports){
+},{"./invariant":26,"_process":46}],37:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -20381,7 +20451,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":17,"_process":45}],37:[function(require,module,exports){
+},{"./emptyFunction":18,"_process":46}],38:[function(require,module,exports){
 (function (global, factory) {
 	if (typeof define === "function" && define.amd) {
 		define(['module', 'exports'], factory);
@@ -20758,7 +20828,7 @@ module.exports = warning;
 	module.exports = exports['default'];
 });
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var http = require('http');
 
 var https = module.exports;
@@ -20774,7 +20844,7 @@ https.request = function (params, cb) {
     return http.request.call(this, params, cb);
 }
 
-},{"http":198}],39:[function(require,module,exports){
+},{"http":205}],40:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -20860,7 +20930,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -20885,7 +20955,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -20908,14 +20978,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 // ::- Persistent data structure representing an ordered mapping from
 // strings to values, with some convenient update methods.
 function OrderedMap(content) {
@@ -21046,7 +21116,7 @@ OrderedMap.from = function(value) {
 
 module.exports = OrderedMap
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -21094,7 +21164,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 
 
 }).call(this,require('_process'))
-},{"_process":45}],45:[function(require,module,exports){
+},{"_process":46}],46:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -21280,7 +21350,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -21920,33 +21990,977 @@ var mac = typeof navigator != "undefined" ? /Mac/.test(navigator.platform)
 // [`macBaseKeymap`](#commands.macBaseKeymap).
 var baseKeymap = mac ? macBaseKeymap : pcBaseKeymap;
 
-exports.deleteSelection = deleteSelection;
-exports.joinBackward = joinBackward;
-exports.selectNodeBackward = selectNodeBackward;
-exports.joinForward = joinForward;
-exports.selectNodeForward = selectNodeForward;
-exports.joinUp = joinUp;
-exports.joinDown = joinDown;
-exports.lift = lift;
-exports.newlineInCode = newlineInCode;
-exports.exitCode = exitCode;
+exports.autoJoin = autoJoin;
+exports.baseKeymap = baseKeymap;
+exports.chainCommands = chainCommands;
 exports.createParagraphNear = createParagraphNear;
+exports.deleteSelection = deleteSelection;
+exports.exitCode = exitCode;
+exports.joinBackward = joinBackward;
+exports.joinDown = joinDown;
+exports.joinForward = joinForward;
+exports.joinUp = joinUp;
+exports.lift = lift;
 exports.liftEmptyBlock = liftEmptyBlock;
+exports.macBaseKeymap = macBaseKeymap;
+exports.newlineInCode = newlineInCode;
+exports.pcBaseKeymap = pcBaseKeymap;
+exports.selectAll = selectAll;
+exports.selectNodeBackward = selectNodeBackward;
+exports.selectNodeForward = selectNodeForward;
+exports.selectParentNode = selectParentNode;
+exports.setBlockType = setBlockType;
 exports.splitBlock = splitBlock;
 exports.splitBlockKeepMarks = splitBlockKeepMarks;
-exports.selectParentNode = selectParentNode;
-exports.selectAll = selectAll;
-exports.wrapIn = wrapIn;
-exports.setBlockType = setBlockType;
 exports.toggleMark = toggleMark;
-exports.autoJoin = autoJoin;
-exports.chainCommands = chainCommands;
-exports.pcBaseKeymap = pcBaseKeymap;
-exports.macBaseKeymap = macBaseKeymap;
-exports.baseKeymap = baseKeymap;
+exports.wrapIn = wrapIn;
 
 
-},{"prosemirror-model":49,"prosemirror-state":51,"prosemirror-transform":52}],47:[function(require,module,exports){
+},{"prosemirror-model":55,"prosemirror-state":58,"prosemirror-transform":59}],48:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var prosemirrorState = require('prosemirror-state');
+var prosemirrorTransform = require('prosemirror-transform');
+
+// :: (options: ?Object) → Plugin
+// Create a plugin that, when added to a ProseMirror instance,
+// causes a decoration to show up at the drop position when something
+// is dragged over the editor.
+//
+//   options::- These options are supported:
+//
+//     color:: ?string
+//     The color of the cursor. Defaults to `black`.
+//
+//     width:: ?number
+//     The precise width of the cursor in pixels. Defaults to 1.
+//
+//     class:: ?string
+//     A CSS class name to add to the cursor element.
+function dropCursor(options) {
+  if ( options === void 0 ) options = {};
+
+  return new prosemirrorState.Plugin({
+    view: function view(editorView) { return new DropCursorView(editorView, options) }
+  })
+}
+
+var DropCursorView = function DropCursorView(editorView, options) {
+  var this$1 = this;
+
+  this.editorView = editorView;
+  this.width = options.width || 1;
+  this.color = options.color || "black";
+  this.class = options.class;
+  this.cursorPos = null;
+  this.element = null;
+  this.timeout = null;
+
+  this.handlers = ["dragover", "dragend", "drop", "dragleave"].map(function (name) {
+    var handler = function (e) { return this$1[name](e); };
+    editorView.dom.addEventListener(name, handler);
+    return {name: name, handler: handler}
+  });
+};
+
+DropCursorView.prototype.destroy = function destroy () {
+    var this$1 = this;
+
+  this.handlers.forEach(function (ref) {
+      var name = ref.name;
+      var handler = ref.handler;
+
+      return this$1.editorView.dom.removeEventListener(name, handler);
+    });
+};
+
+DropCursorView.prototype.update = function update (editorView, prevState) {
+  if (this.cursorPos != null && prevState.doc != editorView.state.doc) { this.updateOverlay(); }
+};
+
+DropCursorView.prototype.setCursor = function setCursor (pos) {
+  if (pos == this.cursorPos) { return }
+  this.cursorPos = pos;
+  if (pos == null) {
+    this.element.parentNode.removeChild(this.element);
+    this.element = null;
+  } else {
+    this.updateOverlay();
+  }
+};
+
+DropCursorView.prototype.updateOverlay = function updateOverlay () {
+  var $pos = this.editorView.state.doc.resolve(this.cursorPos), rect;
+  if (!$pos.parent.inlineContent) {
+    var before = $pos.nodeBefore, after = $pos.nodeAfter;
+    if (before || after) {
+      var nodeRect = this.editorView.nodeDOM(this.cursorPos - (before ?before.nodeSize : 0)).getBoundingClientRect();
+      var top = before ? nodeRect.bottom : nodeRect.top;
+      if (before && after)
+        { top = (top + this.editorView.nodeDOM(this.cursorPos).getBoundingClientRect().top) / 2; }
+      rect = {left: nodeRect.left, right: nodeRect.right, top: top - this.width / 2, bottom: top + this.width / 2};
+    }
+  }
+  if (!rect) {
+    var coords = this.editorView.coordsAtPos(this.cursorPos);
+    rect = {left: coords.left - this.width / 2, right: coords.left + this.width / 2, top: coords.top, bottom: coords.bottom};
+  }
+
+  var parent = this.editorView.dom.offsetParent;
+  if (!this.element) {
+    this.element = parent.appendChild(document.createElement("div"));
+    if (this.class) { this.element.className = this.class; }
+    this.element.style.cssText = "position: absolute; z-index: 50; pointer-events: none; background-color: " + this.color;
+  }
+  var parentRect = !parent || parent == document.body && getComputedStyle(parent).position == "static"
+      ? {left: -pageXOffset, top: -pageYOffset} : parent.getBoundingClientRect();
+  this.element.style.left = (rect.left - parentRect.left) + "px";
+  this.element.style.top = (rect.top - parentRect.top) + "px";
+  this.element.style.width = (rect.right - rect.left) + "px";
+  this.element.style.height = (rect.bottom - rect.top) + "px";
+};
+
+DropCursorView.prototype.scheduleRemoval = function scheduleRemoval (timeout) {
+    var this$1 = this;
+
+  clearTimeout(this.timeout);
+  this.timeout = setTimeout(function () { return this$1.setCursor(null); }, timeout);
+};
+
+DropCursorView.prototype.dragover = function dragover (event) {
+  if (!this.editorView.editable) { return }
+  var pos = this.editorView.posAtCoords({left: event.clientX, top: event.clientY});
+  if (pos) {
+    var target = pos.pos;
+    if (this.editorView.dragging && this.editorView.dragging.slice) {
+      target = prosemirrorTransform.dropPoint(this.editorView.state.doc, target, this.editorView.dragging.slice);
+      if (target == null) { target = pos.pos; }
+    }
+    this.setCursor(target);
+    this.scheduleRemoval(5000);
+  }
+};
+
+DropCursorView.prototype.dragend = function dragend () {
+  this.scheduleRemoval(20);
+};
+
+DropCursorView.prototype.drop = function drop () {
+  this.scheduleRemoval(20);
+};
+
+DropCursorView.prototype.dragleave = function dragleave (event) {
+  if (event.target == this.editorView.dom || !this.editorView.dom.contains(event.relatedTarget))
+    { this.setCursor(null); }
+};
+
+exports.dropCursor = dropCursor;
+
+
+},{"prosemirror-state":58,"prosemirror-transform":59}],49:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var prosemirrorKeymap = require('prosemirror-keymap');
+var prosemirrorHistory = require('prosemirror-history');
+var prosemirrorCommands = require('prosemirror-commands');
+var prosemirrorState = require('prosemirror-state');
+var prosemirrorDropcursor = require('prosemirror-dropcursor');
+var prosemirrorGapcursor = require('prosemirror-gapcursor');
+var prosemirrorMenu = require('prosemirror-menu');
+var prosemirrorSchemaList = require('prosemirror-schema-list');
+var prosemirrorInputrules = require('prosemirror-inputrules');
+
+var prefix = "ProseMirror-prompt";
+
+function openPrompt(options) {
+  var wrapper = document.body.appendChild(document.createElement("div"));
+  wrapper.className = prefix;
+
+  var mouseOutside = function (e) { if (!wrapper.contains(e.target)) { close(); } };
+  setTimeout(function () { return window.addEventListener("mousedown", mouseOutside); }, 50);
+  var close = function () {
+    window.removeEventListener("mousedown", mouseOutside);
+    if (wrapper.parentNode) { wrapper.parentNode.removeChild(wrapper); }
+  };
+
+  var domFields = [];
+  for (var name in options.fields) { domFields.push(options.fields[name].render()); }
+
+  var submitButton = document.createElement("button");
+  submitButton.type = "submit";
+  submitButton.className = prefix + "-submit";
+  submitButton.textContent = "OK";
+  var cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = prefix + "-cancel";
+  cancelButton.textContent = "Cancel";
+  cancelButton.addEventListener("click", close);
+
+  var form = wrapper.appendChild(document.createElement("form"));
+  if (options.title) { form.appendChild(document.createElement("h5")).textContent = options.title; }
+  domFields.forEach(function (field) {
+    form.appendChild(document.createElement("div")).appendChild(field);
+  });
+  var buttons = form.appendChild(document.createElement("div"));
+  buttons.className = prefix + "-buttons";
+  buttons.appendChild(submitButton);
+  buttons.appendChild(document.createTextNode(" "));
+  buttons.appendChild(cancelButton);
+
+  var box = wrapper.getBoundingClientRect();
+  wrapper.style.top = ((window.innerHeight - box.height) / 2) + "px";
+  wrapper.style.left = ((window.innerWidth - box.width) / 2) + "px";
+
+  var submit = function () {
+    var params = getValues(options.fields, domFields);
+    if (params) {
+      close();
+      options.callback(params);
+    }
+  };
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    submit();
+  });
+
+  form.addEventListener("keydown", function (e) {
+    if (e.keyCode == 27) {
+      e.preventDefault();
+      close();
+    } else if (e.keyCode == 13 && !(e.ctrlKey || e.metaKey || e.shiftKey)) {
+      e.preventDefault();
+      submit();
+    } else if (e.keyCode == 9) {
+      window.setTimeout(function () {
+        if (!wrapper.contains(document.activeElement)) { close(); }
+      }, 500);
+    }
+  });
+
+  var input = form.elements[0];
+  if (input) { input.focus(); }
+}
+
+function getValues(fields, domFields) {
+  var result = Object.create(null), i = 0;
+  for (var name in fields) {
+    var field = fields[name], dom = domFields[i++];
+    var value = field.read(dom), bad = field.validate(value);
+    if (bad) {
+      reportInvalid(dom, bad);
+      return null
+    }
+    result[name] = field.clean(value);
+  }
+  return result
+}
+
+function reportInvalid(dom, message) {
+  // FIXME this is awful and needs a lot more work
+  var parent = dom.parentNode;
+  var msg = parent.appendChild(document.createElement("div"));
+  msg.style.left = (dom.offsetLeft + dom.offsetWidth + 2) + "px";
+  msg.style.top = (dom.offsetTop - 5) + "px";
+  msg.className = "ProseMirror-invalid";
+  msg.textContent = message;
+  setTimeout(function () { return parent.removeChild(msg); }, 1500);
+}
+
+// ::- The type of field that `FieldPrompt` expects to be passed to it.
+var Field = function Field(options) { this.options = options; };
+
+// render:: (state: EditorState, props: Object) → dom.Node
+// Render the field to the DOM. Should be implemented by all subclasses.
+
+// :: (dom.Node) → any
+// Read the field's value from its DOM node.
+Field.prototype.read = function read (dom) { return dom.value };
+
+// :: (any) → ?string
+// A field-type-specific validation function.
+Field.prototype.validateType = function validateType (_value) {};
+
+Field.prototype.validate = function validate (value) {
+  if (!value && this.options.required)
+    { return "Required field" }
+  return this.validateType(value) || (this.options.validate && this.options.validate(value))
+};
+
+Field.prototype.clean = function clean (value) {
+  return this.options.clean ? this.options.clean(value) : value
+};
+
+// ::- A field class for single-line text fields.
+var TextField = /*@__PURE__*/(function (Field) {
+  function TextField () {
+    Field.apply(this, arguments);
+  }
+
+  if ( Field ) TextField.__proto__ = Field;
+  TextField.prototype = Object.create( Field && Field.prototype );
+  TextField.prototype.constructor = TextField;
+
+  TextField.prototype.render = function render () {
+    var input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = this.options.label;
+    input.value = this.options.value || "";
+    input.autocomplete = "off";
+    return input
+  };
+
+  return TextField;
+}(Field));
+
+// Helpers to create specific types of items
+
+function canInsert(state, nodeType) {
+  var $from = state.selection.$from;
+  for (var d = $from.depth; d >= 0; d--) {
+    var index = $from.index(d);
+    if ($from.node(d).canReplaceWith(index, index, nodeType)) { return true }
+  }
+  return false
+}
+
+function insertImageItem(nodeType) {
+  return new prosemirrorMenu.MenuItem({
+    title: "Insert image",
+    label: "Image",
+    enable: function enable(state) { return canInsert(state, nodeType) },
+    run: function run(state, _, view) {
+      var ref = state.selection;
+      var from = ref.from;
+      var to = ref.to;
+      var attrs = null;
+      if (state.selection instanceof prosemirrorState.NodeSelection && state.selection.node.type == nodeType)
+        { attrs = state.selection.node.attrs; }
+      openPrompt({
+        title: "Insert image",
+        fields: {
+          src: new TextField({label: "Location", required: true, value: attrs && attrs.src}),
+          title: new TextField({label: "Title", value: attrs && attrs.title}),
+          alt: new TextField({label: "Description",
+                              value: attrs ? attrs.alt : state.doc.textBetween(from, to, " ")})
+        },
+        callback: function callback(attrs) {
+          view.dispatch(view.state.tr.replaceSelectionWith(nodeType.createAndFill(attrs)));
+          view.focus();
+        }
+      });
+    }
+  })
+}
+
+function cmdItem(cmd, options) {
+  var passedOptions = {
+    label: options.title,
+    run: cmd
+  };
+  for (var prop in options) { passedOptions[prop] = options[prop]; }
+  if ((!options.enable || options.enable === true) && !options.select)
+    { passedOptions[options.enable ? "enable" : "select"] = function (state) { return cmd(state); }; }
+
+  return new prosemirrorMenu.MenuItem(passedOptions)
+}
+
+function markActive(state, type) {
+  var ref = state.selection;
+  var from = ref.from;
+  var $from = ref.$from;
+  var to = ref.to;
+  var empty = ref.empty;
+  if (empty) { return type.isInSet(state.storedMarks || $from.marks()) }
+  else { return state.doc.rangeHasMark(from, to, type) }
+}
+
+function markItem(markType, options) {
+  var passedOptions = {
+    active: function active(state) { return markActive(state, markType) },
+    enable: true
+  };
+  for (var prop in options) { passedOptions[prop] = options[prop]; }
+  return cmdItem(prosemirrorCommands.toggleMark(markType), passedOptions)
+}
+
+function linkItem(markType) {
+  return new prosemirrorMenu.MenuItem({
+    title: "Add or remove link",
+    icon: prosemirrorMenu.icons.link,
+    active: function active(state) { return markActive(state, markType) },
+    enable: function enable(state) { return !state.selection.empty },
+    run: function run(state, dispatch, view) {
+      if (markActive(state, markType)) {
+        prosemirrorCommands.toggleMark(markType)(state, dispatch);
+        return true
+      }
+      openPrompt({
+        title: "Create a link",
+        fields: {
+          href: new TextField({
+            label: "Link target",
+            required: true
+          }),
+          title: new TextField({label: "Title"})
+        },
+        callback: function callback(attrs) {
+          prosemirrorCommands.toggleMark(markType, attrs)(view.state, view.dispatch);
+          view.focus();
+        }
+      });
+    }
+  })
+}
+
+function wrapListItem(nodeType, options) {
+  return cmdItem(prosemirrorSchemaList.wrapInList(nodeType, options.attrs), options)
+}
+
+// :: (Schema) → Object
+// Given a schema, look for default mark and node types in it and
+// return an object with relevant menu items relating to those marks:
+//
+// **`toggleStrong`**`: MenuItem`
+//   : A menu item to toggle the [strong mark](#schema-basic.StrongMark).
+//
+// **`toggleEm`**`: MenuItem`
+//   : A menu item to toggle the [emphasis mark](#schema-basic.EmMark).
+//
+// **`toggleCode`**`: MenuItem`
+//   : A menu item to toggle the [code font mark](#schema-basic.CodeMark).
+//
+// **`toggleLink`**`: MenuItem`
+//   : A menu item to toggle the [link mark](#schema-basic.LinkMark).
+//
+// **`insertImage`**`: MenuItem`
+//   : A menu item to insert an [image](#schema-basic.Image).
+//
+// **`wrapBulletList`**`: MenuItem`
+//   : A menu item to wrap the selection in a [bullet list](#schema-list.BulletList).
+//
+// **`wrapOrderedList`**`: MenuItem`
+//   : A menu item to wrap the selection in an [ordered list](#schema-list.OrderedList).
+//
+// **`wrapBlockQuote`**`: MenuItem`
+//   : A menu item to wrap the selection in a [block quote](#schema-basic.BlockQuote).
+//
+// **`makeParagraph`**`: MenuItem`
+//   : A menu item to set the current textblock to be a normal
+//     [paragraph](#schema-basic.Paragraph).
+//
+// **`makeCodeBlock`**`: MenuItem`
+//   : A menu item to set the current textblock to be a
+//     [code block](#schema-basic.CodeBlock).
+//
+// **`makeHead[N]`**`: MenuItem`
+//   : Where _N_ is 1 to 6. Menu items to set the current textblock to
+//     be a [heading](#schema-basic.Heading) of level _N_.
+//
+// **`insertHorizontalRule`**`: MenuItem`
+//   : A menu item to insert a horizontal rule.
+//
+// The return value also contains some prefabricated menu elements and
+// menus, that you can use instead of composing your own menu from
+// scratch:
+//
+// **`insertMenu`**`: Dropdown`
+//   : A dropdown containing the `insertImage` and
+//     `insertHorizontalRule` items.
+//
+// **`typeMenu`**`: Dropdown`
+//   : A dropdown containing the items for making the current
+//     textblock a paragraph, code block, or heading.
+//
+// **`fullMenu`**`: [[MenuElement]]`
+//   : An array of arrays of menu elements for use as the full menu
+//     for, for example the [menu bar](https://github.com/prosemirror/prosemirror-menu#user-content-menubar).
+function buildMenuItems(schema) {
+  var r = {}, type;
+  if (type = schema.marks.strong)
+    { r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: prosemirrorMenu.icons.strong}); }
+  if (type = schema.marks.em)
+    { r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: prosemirrorMenu.icons.em}); }
+  if (type = schema.marks.code)
+    { r.toggleCode = markItem(type, {title: "Toggle code font", icon: prosemirrorMenu.icons.code}); }
+  if (type = schema.marks.link)
+    { r.toggleLink = linkItem(type); }
+
+  if (type = schema.nodes.image)
+    { r.insertImage = insertImageItem(type); }
+  if (type = schema.nodes.bullet_list)
+    { r.wrapBulletList = wrapListItem(type, {
+      title: "Wrap in bullet list",
+      icon: prosemirrorMenu.icons.bulletList
+    }); }
+  if (type = schema.nodes.ordered_list)
+    { r.wrapOrderedList = wrapListItem(type, {
+      title: "Wrap in ordered list",
+      icon: prosemirrorMenu.icons.orderedList
+    }); }
+  if (type = schema.nodes.blockquote)
+    { r.wrapBlockQuote = prosemirrorMenu.wrapItem(type, {
+      title: "Wrap in block quote",
+      icon: prosemirrorMenu.icons.blockquote
+    }); }
+  if (type = schema.nodes.paragraph)
+    { r.makeParagraph = prosemirrorMenu.blockTypeItem(type, {
+      title: "Change to paragraph",
+      label: "Plain"
+    }); }
+  if (type = schema.nodes.code_block)
+    { r.makeCodeBlock = prosemirrorMenu.blockTypeItem(type, {
+      title: "Change to code block",
+      label: "Code"
+    }); }
+  if (type = schema.nodes.heading)
+    { for (var i = 1; i <= 10; i++)
+      { r["makeHead" + i] = prosemirrorMenu.blockTypeItem(type, {
+        title: "Change to heading " + i,
+        label: "Level " + i,
+        attrs: {level: i}
+      }); } }
+  if (type = schema.nodes.horizontal_rule) {
+    var hr = type;
+    r.insertHorizontalRule = new prosemirrorMenu.MenuItem({
+      title: "Insert horizontal rule",
+      label: "Horizontal rule",
+      enable: function enable(state) { return canInsert(state, hr) },
+      run: function run(state, dispatch) { dispatch(state.tr.replaceSelectionWith(hr.create())); }
+    });
+  }
+
+  var cut = function (arr) { return arr.filter(function (x) { return x; }); };
+  r.insertMenu = new prosemirrorMenu.Dropdown(cut([r.insertImage, r.insertHorizontalRule]), {label: "Insert"});
+  r.typeMenu = new prosemirrorMenu.Dropdown(cut([r.makeParagraph, r.makeCodeBlock, r.makeHead1 && new prosemirrorMenu.DropdownSubmenu(cut([
+    r.makeHead1, r.makeHead2, r.makeHead3, r.makeHead4, r.makeHead5, r.makeHead6
+  ]), {label: "Heading"})]), {label: "Type..."});
+
+  r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleCode, r.toggleLink])];
+  r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, prosemirrorMenu.joinUpItem,
+                      prosemirrorMenu.liftItem, prosemirrorMenu.selectParentNodeItem])];
+  r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu]], [[prosemirrorMenu.undoItem, prosemirrorMenu.redoItem]], r.blockMenu);
+
+  return r
+}
+
+var mac = typeof navigator != "undefined" ? /Mac/.test(navigator.platform) : false;
+
+// :: (Schema, ?Object) → Object
+// Inspect the given schema looking for marks and nodes from the
+// basic schema, and if found, add key bindings related to them.
+// This will add:
+//
+// * **Mod-b** for toggling [strong](#schema-basic.StrongMark)
+// * **Mod-i** for toggling [emphasis](#schema-basic.EmMark)
+// * **Mod-`** for toggling [code font](#schema-basic.CodeMark)
+// * **Ctrl-Shift-0** for making the current textblock a paragraph
+// * **Ctrl-Shift-1** to **Ctrl-Shift-Digit6** for making the current
+//   textblock a heading of the corresponding level
+// * **Ctrl-Shift-Backslash** to make the current textblock a code block
+// * **Ctrl-Shift-8** to wrap the selection in an ordered list
+// * **Ctrl-Shift-9** to wrap the selection in a bullet list
+// * **Ctrl->** to wrap the selection in a block quote
+// * **Enter** to split a non-empty textblock in a list item while at
+//   the same time splitting the list item
+// * **Mod-Enter** to insert a hard break
+// * **Mod-_** to insert a horizontal rule
+// * **Backspace** to undo an input rule
+// * **Alt-ArrowUp** to `joinUp`
+// * **Alt-ArrowDown** to `joinDown`
+// * **Mod-BracketLeft** to `lift`
+// * **Escape** to `selectParentNode`
+//
+// You can suppress or map these bindings by passing a `mapKeys`
+// argument, which maps key names (say `"Mod-B"` to either `false`, to
+// remove the binding, or a new key name string.
+function buildKeymap(schema, mapKeys) {
+  var keys = {}, type;
+  function bind(key, cmd) {
+    if (mapKeys) {
+      var mapped = mapKeys[key];
+      if (mapped === false) { return }
+      if (mapped) { key = mapped; }
+    }
+    keys[key] = cmd;
+  }
+
+
+  bind("Mod-z", prosemirrorHistory.undo);
+  bind("Shift-Mod-z", prosemirrorHistory.redo);
+  bind("Backspace", prosemirrorInputrules.undoInputRule);
+  if (!mac) { bind("Mod-y", prosemirrorHistory.redo); }
+
+  bind("Alt-ArrowUp", prosemirrorCommands.joinUp);
+  bind("Alt-ArrowDown", prosemirrorCommands.joinDown);
+  bind("Mod-BracketLeft", prosemirrorCommands.lift);
+  bind("Escape", prosemirrorCommands.selectParentNode);
+
+  if (type = schema.marks.strong) {
+    bind("Mod-b", prosemirrorCommands.toggleMark(type));
+    bind("Mod-B", prosemirrorCommands.toggleMark(type));
+  }
+  if (type = schema.marks.em) {
+    bind("Mod-i", prosemirrorCommands.toggleMark(type));
+    bind("Mod-I", prosemirrorCommands.toggleMark(type));
+  }
+  if (type = schema.marks.code)
+    { bind("Mod-`", prosemirrorCommands.toggleMark(type)); }
+
+  if (type = schema.nodes.bullet_list)
+    { bind("Shift-Ctrl-8", prosemirrorSchemaList.wrapInList(type)); }
+  if (type = schema.nodes.ordered_list)
+    { bind("Shift-Ctrl-9", prosemirrorSchemaList.wrapInList(type)); }
+  if (type = schema.nodes.blockquote)
+    { bind("Ctrl->", prosemirrorCommands.wrapIn(type)); }
+  if (type = schema.nodes.hard_break) {
+    var br = type, cmd = prosemirrorCommands.chainCommands(prosemirrorCommands.exitCode, function (state, dispatch) {
+      dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
+      return true
+    });
+    bind("Mod-Enter", cmd);
+    bind("Shift-Enter", cmd);
+    if (mac) { bind("Ctrl-Enter", cmd); }
+  }
+  if (type = schema.nodes.list_item) {
+    bind("Enter", prosemirrorSchemaList.splitListItem(type));
+    bind("Mod-[", prosemirrorSchemaList.liftListItem(type));
+    bind("Mod-]", prosemirrorSchemaList.sinkListItem(type));
+  }
+  if (type = schema.nodes.paragraph)
+    { bind("Shift-Ctrl-0", prosemirrorCommands.setBlockType(type)); }
+  if (type = schema.nodes.code_block)
+    { bind("Shift-Ctrl-\\", prosemirrorCommands.setBlockType(type)); }
+  if (type = schema.nodes.heading)
+    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, prosemirrorCommands.setBlockType(type, {level: i})); } }
+  if (type = schema.nodes.horizontal_rule) {
+    var hr = type;
+    bind("Mod-_", function (state, dispatch) {
+      dispatch(state.tr.replaceSelectionWith(hr.create()).scrollIntoView());
+      return true
+    });
+  }
+
+  return keys
+}
+
+// : (NodeType) → InputRule
+// Given a blockquote node type, returns an input rule that turns `"> "`
+// at the start of a textblock into a blockquote.
+function blockQuoteRule(nodeType) {
+  return prosemirrorInputrules.wrappingInputRule(/^\s*>\s$/, nodeType)
+}
+
+// : (NodeType) → InputRule
+// Given a list node type, returns an input rule that turns a number
+// followed by a dot at the start of a textblock into an ordered list.
+function orderedListRule(nodeType) {
+  return prosemirrorInputrules.wrappingInputRule(/^(\d+)\.\s$/, nodeType, function (match) { return ({order: +match[1]}); },
+                           function (match, node) { return node.childCount + node.attrs.order == +match[1]; })
+}
+
+// : (NodeType) → InputRule
+// Given a list node type, returns an input rule that turns a bullet
+// (dash, plush, or asterisk) at the start of a textblock into a
+// bullet list.
+function bulletListRule(nodeType) {
+  return prosemirrorInputrules.wrappingInputRule(/^\s*([-+*])\s$/, nodeType)
+}
+
+// : (NodeType) → InputRule
+// Given a code block node type, returns an input rule that turns a
+// textblock starting with three backticks into a code block.
+function codeBlockRule(nodeType) {
+  return prosemirrorInputrules.textblockTypeInputRule(/^```$/, nodeType)
+}
+
+// : (NodeType, number) → InputRule
+// Given a node type and a maximum level, creates an input rule that
+// turns up to that number of `#` characters followed by a space at
+// the start of a textblock into a heading whose level corresponds to
+// the number of `#` signs.
+function headingRule(nodeType, maxLevel) {
+  return prosemirrorInputrules.textblockTypeInputRule(new RegExp("^(#{1," + maxLevel + "})\\s$"),
+                                nodeType, function (match) { return ({level: match[1].length}); })
+}
+
+// : (Schema) → Plugin
+// A set of input rules for creating the basic block quotes, lists,
+// code blocks, and heading.
+function buildInputRules(schema) {
+  var rules = prosemirrorInputrules.smartQuotes.concat(prosemirrorInputrules.ellipsis, prosemirrorInputrules.emDash), type;
+  if (type = schema.nodes.blockquote) { rules.push(blockQuoteRule(type)); }
+  if (type = schema.nodes.ordered_list) { rules.push(orderedListRule(type)); }
+  if (type = schema.nodes.bullet_list) { rules.push(bulletListRule(type)); }
+  if (type = schema.nodes.code_block) { rules.push(codeBlockRule(type)); }
+  if (type = schema.nodes.heading) { rules.push(headingRule(type, 6)); }
+  return prosemirrorInputrules.inputRules({rules: rules})
+}
+
+// !! This module exports helper functions for deriving a set of basic
+// menu items, input rules, or key bindings from a schema. These
+// values need to know about the schema for two reasons—they need
+// access to specific instances of node and mark types, and they need
+// to know which of the node and mark types that they know about are
+// actually present in the schema.
+//
+// The `exampleSetup` plugin ties these together into a plugin that
+// will automatically enable this basic functionality in an editor.
+
+// :: (Object) → [Plugin]
+// A convenience plugin that bundles together a simple menu with basic
+// key bindings, input rules, and styling for the example schema.
+// Probably only useful for quickly setting up a passable
+// editor—you'll need more control over your settings in most
+// real-world situations.
+//
+//   options::- The following options are recognized:
+//
+//     schema:: Schema
+//     The schema to generate key bindings and menu items for.
+//
+//     mapKeys:: ?Object
+//     Can be used to [adjust](#example-setup.buildKeymap) the key bindings created.
+//
+//     menuBar:: ?bool
+//     Set to false to disable the menu bar.
+//
+//     history:: ?bool
+//     Set to false to disable the history plugin.
+//
+//     floatingMenu:: ?bool
+//     Set to false to make the menu bar non-floating.
+//
+//     menuContent:: [[MenuItem]]
+//     Can be used to override the menu content.
+function exampleSetup(options) {
+  var plugins = [
+    buildInputRules(options.schema),
+    prosemirrorKeymap.keymap(buildKeymap(options.schema, options.mapKeys)),
+    prosemirrorKeymap.keymap(prosemirrorCommands.baseKeymap),
+    prosemirrorDropcursor.dropCursor(),
+    prosemirrorGapcursor.gapCursor()
+  ];
+  if (options.menuBar !== false)
+    { plugins.push(prosemirrorMenu.menuBar({floating: options.floatingMenu !== false,
+                          content: options.menuContent || buildMenuItems(options.schema).fullMenu})); }
+  if (options.history !== false)
+    { plugins.push(prosemirrorHistory.history()); }
+
+  return plugins.concat(new prosemirrorState.Plugin({
+    props: {
+      attributes: {class: "ProseMirror-example-setup-style"}
+    }
+  }))
+}
+
+exports.buildInputRules = buildInputRules;
+exports.buildKeymap = buildKeymap;
+exports.buildMenuItems = buildMenuItems;
+exports.exampleSetup = exampleSetup;
+
+
+},{"prosemirror-commands":47,"prosemirror-dropcursor":48,"prosemirror-gapcursor":50,"prosemirror-history":51,"prosemirror-inputrules":52,"prosemirror-keymap":53,"prosemirror-menu":54,"prosemirror-schema-list":57,"prosemirror-state":58}],50:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var prosemirrorKeymap = require('prosemirror-keymap');
+var prosemirrorState = require('prosemirror-state');
+var prosemirrorView = require('prosemirror-view');
+var prosemirrorModel = require('prosemirror-model');
+
+// ::- Gap cursor selections are represented using this class. Its
+// `$anchor` and `$head` properties both point at the cursor position.
+var GapCursor = /*@__PURE__*/(function (Selection) {
+  function GapCursor($pos) {
+    Selection.call(this, $pos, $pos);
+  }
+
+  if ( Selection ) GapCursor.__proto__ = Selection;
+  GapCursor.prototype = Object.create( Selection && Selection.prototype );
+  GapCursor.prototype.constructor = GapCursor;
+
+  GapCursor.prototype.map = function map (doc, mapping) {
+    var $pos = doc.resolve(mapping.map(this.head));
+    return GapCursor.valid($pos) ? new GapCursor($pos) : Selection.near($pos)
+  };
+
+  GapCursor.prototype.content = function content () { return prosemirrorModel.Slice.empty };
+
+  GapCursor.prototype.eq = function eq (other) {
+    return other instanceof GapCursor && other.head == this.head
+  };
+
+  GapCursor.prototype.toJSON = function toJSON () {
+    return {type: "gapcursor", pos: this.head}
+  };
+
+  GapCursor.fromJSON = function fromJSON (doc, json) {
+    if (typeof json.pos != "number") { throw new RangeError("Invalid input for GapCursor.fromJSON") }
+    return new GapCursor(doc.resolve(json.pos))
+  };
+
+  GapCursor.prototype.getBookmark = function getBookmark () { return new GapBookmark(this.anchor) };
+
+  GapCursor.valid = function valid ($pos) {
+    var parent = $pos.parent;
+    if (parent.isTextblock || !closedBefore($pos) || !closedAfter($pos)) { return false }
+    var override = parent.type.spec.allowGapCursor;
+    if (override != null) { return override }
+    var deflt = parent.contentMatchAt($pos.index()).defaultType;
+    return deflt && deflt.isTextblock
+  };
+
+  GapCursor.findFrom = function findFrom ($pos, dir, mustMove) {
+    if (!mustMove && GapCursor.valid($pos)) { return $pos }
+
+    var pos = $pos.pos, next = null;
+    // Scan up from this position
+    for (var d = $pos.depth;; d--) {
+      var parent = $pos.node(d);
+      if (dir > 0 ? $pos.indexAfter(d) < parent.childCount : $pos.index(d) > 0) {
+        next = parent.maybeChild(dir > 0 ? $pos.indexAfter(d) : $pos.index(d) - 1);
+        break
+      } else if (d == 0) {
+        return null
+      }
+      pos += dir;
+      var $cur = $pos.doc.resolve(pos);
+      if (GapCursor.valid($cur)) { return $cur }
+    }
+
+    // And then down into the next node
+    for (;;) {
+      next = dir > 0 ? next.firstChild : next.lastChild;
+      if (!next) { break }
+      pos += dir;
+      var $cur$1 = $pos.doc.resolve(pos);
+      if (GapCursor.valid($cur$1)) { return $cur$1 }
+    }
+
+    return null
+  };
+
+  return GapCursor;
+}(prosemirrorState.Selection));
+
+GapCursor.prototype.visible = false;
+
+prosemirrorState.Selection.jsonID("gapcursor", GapCursor);
+
+var GapBookmark = function GapBookmark(pos) {
+  this.pos = pos;
+};
+GapBookmark.prototype.map = function map (mapping) {
+  return new GapBookmark(mapping.map(this.pos))
+};
+GapBookmark.prototype.resolve = function resolve (doc) {
+  var $pos = doc.resolve(this.pos);
+  return GapCursor.valid($pos) ? new GapCursor($pos) : prosemirrorState.Selection.near($pos)
+};
+
+function closedBefore($pos) {
+  for (var d = $pos.depth; d >= 0; d--) {
+    var index = $pos.index(d);
+    // At the start of this parent, look at next one
+    if (index == 0) { continue }
+    // See if the node before (or its first ancestor) is closed
+    for (var before = $pos.node(d).child(index - 1);; before = before.lastChild) {
+      if ((before.childCount == 0 && !before.inlineContent) || before.isAtom || before.type.spec.isolating) { return true }
+      if (before.inlineContent) { return false }
+    }
+  }
+  // Hit start of document
+  return true
+}
+
+function closedAfter($pos) {
+  for (var d = $pos.depth; d >= 0; d--) {
+    var index = $pos.indexAfter(d), parent = $pos.node(d);
+    if (index == parent.childCount) { continue }
+    for (var after = parent.child(index);; after = after.firstChild) {
+      if ((after.childCount == 0 && !after.inlineContent) || after.isAtom || after.type.spec.isolating) { return true }
+      if (after.inlineContent) { return false }
+    }
+  }
+  return true
+}
+
+// :: () → Plugin
+// Create a gap cursor plugin. When enabled, this will capture clicks
+// near and arrow-key-motion past places that don't have a normally
+// selectable position nearby, and create a gap cursor selection for
+// them. The cursor is drawn as an element with class
+// `ProseMirror-gapcursor`. You can either include
+// `style/gapcursor.css` from the package's directory or add your own
+// styles to make it visible.
+var gapCursor = function() {
+  return new prosemirrorState.Plugin({
+    props: {
+      decorations: drawGapCursor,
+
+      createSelectionBetween: function createSelectionBetween(_view, $anchor, $head) {
+        if ($anchor.pos == $head.pos && GapCursor.valid($head)) { return new GapCursor($head) }
+      },
+
+      handleClick: handleClick,
+      handleKeyDown: handleKeyDown
+    }
+  })
+};
+
+var handleKeyDown = prosemirrorKeymap.keydownHandler({
+  "ArrowLeft": arrow("horiz", -1),
+  "ArrowRight": arrow("horiz", 1),
+  "ArrowUp": arrow("vert", -1),
+  "ArrowDown": arrow("vert", 1)
+});
+
+function arrow(axis, dir) {
+  var dirStr = axis == "vert" ? (dir > 0 ? "down" : "up") : (dir > 0 ? "right" : "left");
+  return function(state, dispatch, view) {
+    var sel = state.selection;
+    var $start = dir > 0 ? sel.$to : sel.$from, mustMove = sel.empty;
+    if (sel instanceof prosemirrorState.TextSelection) {
+      if (!view.endOfTextblock(dirStr)) { return false }
+      mustMove = false;
+      $start = state.doc.resolve(dir > 0 ? $start.after() : $start.before());
+    }
+    var $found = GapCursor.findFrom($start, dir, mustMove);
+    if (!$found) { return false }
+    if (dispatch) { dispatch(state.tr.setSelection(new GapCursor($found))); }
+    return true
+  }
+}
+
+function handleClick(view, pos, event) {
+  if (!view.editable) { return false }
+  var $pos = view.state.doc.resolve(pos);
+  if (!GapCursor.valid($pos)) { return false }
+  var ref = view.posAtCoords({left: event.clientX, top: event.clientY});
+  var inside = ref.inside;
+  if (inside > -1 && prosemirrorState.NodeSelection.isSelectable(view.state.doc.nodeAt(inside))) { return false }
+  view.dispatch(view.state.tr.setSelection(new GapCursor($pos)));
+  return true
+}
+
+function drawGapCursor(state) {
+  if (!(state.selection instanceof GapCursor)) { return null }
+  var node = document.createElement("div");
+  node.className = "ProseMirror-gapcursor";
+  return prosemirrorView.DecorationSet.create(state.doc, [prosemirrorView.Decoration.widget(state.selection.head, node, {key: "gapcursor"})])
+}
+
+exports.GapCursor = GapCursor;
+exports.gapCursor = gapCursor;
+
+
+},{"prosemirror-keymap":53,"prosemirror-model":55,"prosemirror-state":58,"prosemirror-view":60}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -21991,7 +23005,7 @@ Branch.prototype.popEvent = function popEvent (state, preserveItems) {
 
   var end = this.items.length;
   for (;; end--) {
-    var next = this$1.items.get(end - 1);
+    var next = this.items.get(end - 1);
     if (next.selection) { --end; break }
   }
 
@@ -22180,9 +23194,16 @@ function cutOffEvents(items, n) {
 }
 
 var Item = function Item(map, step, selection, mirrorOffset) {
+  // The (forward) step map for this item.
   this.map = map;
+  // The inverted step
   this.step = step;
+  // If this is non-null, this item is the start of a group, and
+  // this selection is the starting selection for the group (the one
+  // that was active before the first step was applied)
   this.selection = selection;
+  // If this item is the inverse of a previous mapping on the stack,
+  // this points at the inverse's offset
   this.mirrorOffset = mirrorOffset;
 };
 
@@ -22226,8 +23247,8 @@ function applyTransaction(history, state, tr, options) {
                               null, history.prevTime) }
   } else if (tr.getMeta("addToHistory") !== false && !(appended && appended.getMeta("addToHistory") === false)) {
     // Group transforms that occur in quick succession into one event.
-    var newGroup = history.prevTime < (tr.time || 0) - options.newGroupDelay ||
-        !appended && !isAdjacentTo(tr, history.prevRanges);
+    var newGroup = !appended && (history.prevTime < (tr.time || 0) - options.newGroupDelay ||
+                                 !isAdjacentTo(tr, history.prevRanges));
     var prevRanges = appended ? mapRanges(history.prevRanges, tr.mapping) : rangesFor(tr.mapping.maps[tr.steps.length - 1]);
     return new HistoryState(history.done.addTransform(tr, newGroup ? state.selection.getBookmark() : null,
                                                       options, mustPreserveItems(state)),
@@ -22289,8 +23310,7 @@ function histTransaction(history, state, dispatch, redo) {
   dispatch(pop.transform.setSelection(selection).setMeta(historyKey, {redo: redo, historyState: newHist}).scrollIntoView());
 }
 
-var cachedPreserveItems = false;
-var cachedPreserveItemsPlugins = null;
+var cachedPreserveItems = false, cachedPreserveItemsPlugins = null;
 // Check whether any plugin in the given state has a
 // `historyPreserveItems` property in its spec, in which case we must
 // preserve steps exactly as they came in, so that they can be
@@ -22393,20 +23413,207 @@ function redoDepth(state) {
 exports.HistoryState = HistoryState;
 exports.closeHistory = closeHistory;
 exports.history = history;
-exports.undo = undo;
 exports.redo = redo;
-exports.undoDepth = undoDepth;
 exports.redoDepth = redoDepth;
+exports.undo = undo;
+exports.undoDepth = undoDepth;
 
 
-},{"prosemirror-state":51,"prosemirror-transform":52,"rope-sequence":196}],48:[function(require,module,exports){
+},{"prosemirror-state":58,"prosemirror-transform":59,"rope-sequence":203}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var prosemirrorState = require('prosemirror-state');
+var prosemirrorTransform = require('prosemirror-transform');
 
-var keyName = _interopDefault(require('w3c-keyname'));
+// ::- Input rules are regular expressions describing a piece of text
+// that, when typed, causes something to happen. This might be
+// changing two dashes into an emdash, wrapping a paragraph starting
+// with `"> "` into a blockquote, or something entirely different.
+var InputRule = function InputRule(match, handler) {
+  this.match = match;
+  this.handler = typeof handler == "string" ? stringHandler(handler) : handler;
+};
+
+function stringHandler(string) {
+  return function(state, match, start, end) {
+    var insert = string;
+    if (match[1]) {
+      var offset = match[0].lastIndexOf(match[1]);
+      insert += match[0].slice(offset + match[1].length);
+      start += offset;
+      var cutOff = start - end;
+      if (cutOff > 0) {
+        insert = match[0].slice(offset - cutOff, offset) + insert;
+        start = end;
+      }
+    }
+    return state.tr.insertText(insert, start, end)
+  }
+}
+
+var MAX_MATCH = 500;
+
+// :: (config: {rules: [InputRule]}) → Plugin
+// Create an input rules plugin. When enabled, it will cause text
+// input that matches any of the given rules to trigger the rule's
+// action.
+function inputRules(ref) {
+  var rules = ref.rules;
+
+  var plugin = new prosemirrorState.Plugin({
+    state: {
+      init: function init() { return null },
+      apply: function apply(tr, prev) {
+        var stored = tr.getMeta(this);
+        if (stored) { return stored }
+        return tr.selectionSet || tr.docChanged ? null : prev
+      }
+    },
+
+    props: {
+      handleTextInput: function handleTextInput(view, from, to, text) {
+        return run(view, from, to, text, rules, plugin)
+      },
+      handleDOMEvents: {
+        compositionend: function (view) {
+          setTimeout(function () {
+            var ref = view.state.selection;
+            var $cursor = ref.$cursor;
+            if ($cursor) { run(view, $cursor.pos, $cursor.pos, "", rules, plugin); }
+          });
+        }
+      }
+    },
+
+    isInputRules: true
+  });
+  return plugin
+}
+
+function run(view, from, to, text, rules, plugin) {
+  if (view.composing) { return false }
+  var state = view.state, $from = state.doc.resolve(from);
+  if ($from.parent.type.spec.code) { return false }
+  var textBefore = $from.parent.textBetween(Math.max(0, $from.parentOffset - MAX_MATCH), $from.parentOffset,
+                                            null, "\ufffc") + text;
+  for (var i = 0; i < rules.length; i++) {
+    var match = rules[i].match.exec(textBefore);
+    var tr = match && rules[i].handler(state, match, from - (match[0].length - text.length), to);
+    if (!tr) { continue }
+    view.dispatch(tr.setMeta(plugin, {transform: tr, from: from, to: to, text: text}));
+    return true
+  }
+  return false
+}
+
+// :: (EditorState, ?(Transaction)) → bool
+// This is a command that will undo an input rule, if applying such a
+// rule was the last thing that the user did.
+function undoInputRule(state, dispatch) {
+  var plugins = state.plugins;
+  for (var i = 0; i < plugins.length; i++) {
+    var plugin = plugins[i], undoable = (void 0);
+    if (plugin.spec.isInputRules && (undoable = plugin.getState(state))) {
+      if (dispatch) {
+        var tr = state.tr, toUndo = undoable.transform;
+        for (var j = toUndo.steps.length - 1; j >= 0; j--)
+          { tr.step(toUndo.steps[j].invert(toUndo.docs[j])); }
+        var marks = tr.doc.resolve(undoable.from).marks();
+        dispatch(tr.replaceWith(undoable.from, undoable.to, state.schema.text(undoable.text, marks)));
+      }
+      return true
+    }
+  }
+  return false
+}
+
+// :: InputRule Converts double dashes to an emdash.
+var emDash = new InputRule(/--$/, "—");
+// :: InputRule Converts three dots to an ellipsis character.
+var ellipsis = new InputRule(/\.\.\.$/, "…");
+// :: InputRule “Smart” opening double quotes.
+var openDoubleQuote = new InputRule(/(?:^|[\s\{\[\(\<'"\u2018\u201C])(")$/, "“");
+// :: InputRule “Smart” closing double quotes.
+var closeDoubleQuote = new InputRule(/"$/, "”");
+// :: InputRule “Smart” opening single quotes.
+var openSingleQuote = new InputRule(/(?:^|[\s\{\[\(\<'"\u2018\u201C])(')$/, "‘");
+// :: InputRule “Smart” closing single quotes.
+var closeSingleQuote = new InputRule(/'$/, "’");
+
+// :: [InputRule] Smart-quote related input rules.
+var smartQuotes = [openDoubleQuote, closeDoubleQuote, openSingleQuote, closeSingleQuote];
+
+// :: (RegExp, NodeType, ?union<Object, ([string]) → ?Object>, ?([string], Node) → bool) → InputRule
+// Build an input rule for automatically wrapping a textblock when a
+// given string is typed. The `regexp` argument is
+// directly passed through to the `InputRule` constructor. You'll
+// probably want the regexp to start with `^`, so that the pattern can
+// only occur at the start of a textblock.
+//
+// `nodeType` is the type of node to wrap in. If it needs attributes,
+// you can either pass them directly, or pass a function that will
+// compute them from the regular expression match.
+//
+// By default, if there's a node with the same type above the newly
+// wrapped node, the rule will try to [join](#transform.Transform.join) those
+// two nodes. You can pass a join predicate, which takes a regular
+// expression match and the node before the wrapped node, and can
+// return a boolean to indicate whether a join should happen.
+function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
+  return new InputRule(regexp, function (state, match, start, end) {
+    var attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    var tr = state.tr.delete(start, end);
+    var $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && prosemirrorTransform.findWrapping(range, nodeType, attrs);
+    if (!wrapping) { return null }
+    tr.wrap(range, wrapping);
+    var before = tr.doc.resolve(start - 1).nodeBefore;
+    if (before && before.type == nodeType && prosemirrorTransform.canJoin(tr.doc, start - 1) &&
+        (!joinPredicate || joinPredicate(match, before)))
+      { tr.join(start - 1); }
+    return tr
+  })
+}
+
+// :: (RegExp, NodeType, ?union<Object, ([string]) → ?Object>) → InputRule
+// Build an input rule that changes the type of a textblock when the
+// matched text is typed into it. You'll usually want to start your
+// regexp with `^` to that it is only matched at the start of a
+// textblock. The optional `getAttrs` parameter can be used to compute
+// the new node's attributes, and works the same as in the
+// `wrappingInputRule` function.
+function textblockTypeInputRule(regexp, nodeType, getAttrs) {
+  return new InputRule(regexp, function (state, match, start, end) {
+    var $start = state.doc.resolve(start);
+    var attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) { return null }
+    return state.tr
+      .delete(start, end)
+      .setBlockType(start, start, nodeType, attrs)
+  })
+}
+
+exports.InputRule = InputRule;
+exports.closeDoubleQuote = closeDoubleQuote;
+exports.closeSingleQuote = closeSingleQuote;
+exports.ellipsis = ellipsis;
+exports.emDash = emDash;
+exports.inputRules = inputRules;
+exports.openDoubleQuote = openDoubleQuote;
+exports.openSingleQuote = openSingleQuote;
+exports.smartQuotes = smartQuotes;
+exports.textblockTypeInputRule = textblockTypeInputRule;
+exports.undoInputRule = undoInputRule;
+exports.wrappingInputRule = wrappingInputRule;
+
+
+},{"prosemirror-state":58,"prosemirror-transform":59}],53:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var w3cKeyname = require('w3c-keyname');
 var prosemirrorState = require('prosemirror-state');
 
 // declare global: navigator
@@ -22484,27 +23691,692 @@ function keymap(bindings) {
 // :: (Object) → (view: EditorView, event: dom.Event) → bool
 // Given a set of bindings (using the same format as
 // [`keymap`](#keymap.keymap), return a [keydown
-// handler](#view.EditorProps.handleKeyDown) handles them.
+// handler](#view.EditorProps.handleKeyDown) that handles them.
 function keydownHandler(bindings) {
   var map = normalize(bindings);
   return function(view, event) {
-    var name = keyName(event), isChar = name.length == 1 && name != " ", baseName;
+    var name = w3cKeyname.keyName(event), isChar = name.length == 1 && name != " ", baseName;
     var direct = map[modifiers(name, event, !isChar)];
     if (direct && direct(view.state, view.dispatch, view)) { return true }
     if (isChar && (event.shiftKey || event.altKey || event.metaKey) &&
-        (baseName = keyName.base[event.keyCode]) && baseName != name) {
+        (baseName = w3cKeyname.base[event.keyCode]) && baseName != name) {
       var fromCode = map[modifiers(baseName, event, true)];
       if (fromCode && fromCode(view.state, view.dispatch, view)) { return true }
+    } else if (isChar && event.shiftKey) {
+      var withShift = map[modifiers(name, event, true)];
+      if (withShift && withShift(view.state, view.dispatch, view)) { return true }
     }
     return false
   }
 }
 
-exports.keymap = keymap;
 exports.keydownHandler = keydownHandler;
+exports.keymap = keymap;
 
 
-},{"prosemirror-state":51,"w3c-keyname":208}],49:[function(require,module,exports){
+},{"prosemirror-state":58,"w3c-keyname":215}],54:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var crel = _interopDefault(require('crel'));
+var prosemirrorCommands = require('prosemirror-commands');
+var prosemirrorHistory = require('prosemirror-history');
+var prosemirrorState = require('prosemirror-state');
+
+var SVG = "http://www.w3.org/2000/svg";
+var XLINK = "http://www.w3.org/1999/xlink";
+
+var prefix = "ProseMirror-icon";
+
+function hashPath(path) {
+  var hash = 0;
+  for (var i = 0; i < path.length; i++)
+    { hash = (((hash << 5) - hash) + path.charCodeAt(i)) | 0; }
+  return hash
+}
+
+function getIcon(icon) {
+  var node = document.createElement("div");
+  node.className = prefix;
+  if (icon.path) {
+    var name = "pm-icon-" + hashPath(icon.path).toString(16);
+    if (!document.getElementById(name)) { buildSVG(name, icon); }
+    var svg = node.appendChild(document.createElementNS(SVG, "svg"));
+    svg.style.width = (icon.width / icon.height) + "em";
+    var use = svg.appendChild(document.createElementNS(SVG, "use"));
+    use.setAttributeNS(XLINK, "href", /([^#]*)/.exec(document.location)[1] + "#" + name);
+  } else if (icon.dom) {
+    node.appendChild(icon.dom.cloneNode(true));
+  } else {
+    node.appendChild(document.createElement("span")).textContent = icon.text || '';
+    if (icon.css) { node.firstChild.style.cssText = icon.css; }
+  }
+  return node
+}
+
+function buildSVG(name, data) {
+  var collection = document.getElementById(prefix + "-collection");
+  if (!collection) {
+    collection = document.createElementNS(SVG, "svg");
+    collection.id = prefix + "-collection";
+    collection.style.display = "none";
+    document.body.insertBefore(collection, document.body.firstChild);
+  }
+  var sym = document.createElementNS(SVG, "symbol");
+  sym.id = name;
+  sym.setAttribute("viewBox", "0 0 " + data.width + " " + data.height);
+  var path = sym.appendChild(document.createElementNS(SVG, "path"));
+  path.setAttribute("d", data.path);
+  collection.appendChild(sym);
+}
+
+var prefix$1 = "ProseMirror-menu";
+
+// ::- An icon or label that, when clicked, executes a command.
+var MenuItem = function MenuItem(spec) {
+  // :: MenuItemSpec
+  // The spec used to create the menu item.
+  this.spec = spec;
+};
+
+// :: (EditorView) → {dom: dom.Node, update: (EditorState) → bool}
+// Renders the icon according to its [display
+// spec](#menu.MenuItemSpec.display), and adds an event handler which
+// executes the command when the representation is clicked.
+MenuItem.prototype.render = function render (view) {
+  var spec = this.spec;
+  var dom = spec.render ? spec.render(view)
+      : spec.icon ? getIcon(spec.icon)
+      : spec.label ? crel("div", null, translate(view, spec.label))
+      : null;
+  if (!dom) { throw new RangeError("MenuItem without icon or label property") }
+  if (spec.title) {
+    var title = (typeof spec.title === "function" ? spec.title(view.state) : spec.title);
+    dom.setAttribute("title", translate(view, title));
+  }
+  if (spec.class) { dom.classList.add(spec.class); }
+  if (spec.css) { dom.style.cssText += spec.css; }
+
+  dom.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    if (!dom.classList.contains(prefix$1 + "-disabled"))
+      { spec.run(view.state, view.dispatch, view, e); }
+  });
+
+  function update(state) {
+    if (spec.select) {
+      var selected = spec.select(state);
+      dom.style.display = selected ? "" : "none";
+      if (!selected) { return false }
+    }
+    var enabled = true;
+    if (spec.enable) {
+      enabled = spec.enable(state) || false;
+      setClass(dom, prefix$1 + "-disabled", !enabled);
+    }
+    if (spec.active) {
+      var active = enabled && spec.active(state) || false;
+      setClass(dom, prefix$1 + "-active", active);
+    }
+    return true
+  }
+
+  return {dom: dom, update: update}
+};
+
+function translate(view, text) {
+  return view._props.translate ? view._props.translate(text) : text
+}
+
+// MenuItemSpec:: interface
+// The configuration object passed to the `MenuItem` constructor.
+//
+//   run:: (EditorState, (Transaction), EditorView, dom.Event)
+//   The function to execute when the menu item is activated.
+//
+//   select:: ?(EditorState) → bool
+//   Optional function that is used to determine whether the item is
+//   appropriate at the moment. Deselected items will be hidden.
+//
+//   enable:: ?(EditorState) → bool
+//   Function that is used to determine if the item is enabled. If
+//   given and returning false, the item will be given a disabled
+//   styling.
+//
+//   active:: ?(EditorState) → bool
+//   A predicate function to determine whether the item is 'active' (for
+//   example, the item for toggling the strong mark might be active then
+//   the cursor is in strong text).
+//
+//   render:: ?(EditorView) → dom.Node
+//   A function that renders the item. You must provide either this,
+//   [`icon`](#menu.MenuItemSpec.icon), or [`label`](#MenuItemSpec.label).
+//
+//   icon:: ?Object
+//   Describes an icon to show for this item. The object may specify
+//   an SVG icon, in which case its `path` property should be an [SVG
+//   path
+//   spec](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d),
+//   and `width` and `height` should provide the viewbox in which that
+//   path exists. Alternatively, it may have a `text` property
+//   specifying a string of text that makes up the icon, with an
+//   optional `css` property giving additional CSS styling for the
+//   text. _Or_ it may contain `dom` property containing a DOM node.
+//
+//   label:: ?string
+//   Makes the item show up as a text label. Mostly useful for items
+//   wrapped in a [drop-down](#menu.Dropdown) or similar menu. The object
+//   should have a `label` property providing the text to display.
+//
+//   title:: ?union<string, (EditorState) → string>
+//   Defines DOM title (mouseover) text for the item.
+//
+//   class:: ?string
+//   Optionally adds a CSS class to the item's DOM representation.
+//
+//   css:: ?string
+//   Optionally adds a string of inline CSS to the item's DOM
+//   representation.
+//
+//   execEvent:: ?string
+//   Defines which event on the command's DOM representation should
+//   trigger the execution of the command. Defaults to mousedown.
+
+var lastMenuEvent = {time: 0, node: null};
+function markMenuEvent(e) {
+  lastMenuEvent.time = Date.now();
+  lastMenuEvent.node = e.target;
+}
+function isMenuEvent(wrapper) {
+  return Date.now() - 100 < lastMenuEvent.time &&
+    lastMenuEvent.node && wrapper.contains(lastMenuEvent.node)
+}
+
+// ::- A drop-down menu, displayed as a label with a downwards-pointing
+// triangle to the right of it.
+var Dropdown = function Dropdown(content, options) {
+  this.options = options || {};
+  this.content = Array.isArray(content) ? content : [content];
+};
+
+// :: (EditorView) → {dom: dom.Node, update: (EditorState)}
+// Render the dropdown menu and sub-items.
+Dropdown.prototype.render = function render (view) {
+    var this$1 = this;
+
+  var content = renderDropdownItems(this.content, view);
+
+  var label = crel("div", {class: prefix$1 + "-dropdown " + (this.options.class || ""),
+                           style: this.options.css},
+                   translate(view, this.options.label));
+  if (this.options.title) { label.setAttribute("title", translate(view, this.options.title)); }
+  var wrap = crel("div", {class: prefix$1 + "-dropdown-wrap"}, label);
+  var open = null, listeningOnClose = null;
+  var close = function () {
+    if (open && open.close()) {
+      open = null;
+      window.removeEventListener("mousedown", listeningOnClose);
+    }
+  };
+  label.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    markMenuEvent(e);
+    if (open) {
+      close();
+    } else {
+      open = this$1.expand(wrap, content.dom);
+      window.addEventListener("mousedown", listeningOnClose = function () {
+        if (!isMenuEvent(wrap)) { close(); }
+      });
+    }
+  });
+
+  function update(state) {
+    var inner = content.update(state);
+    wrap.style.display = inner ? "" : "none";
+    return inner
+  }
+
+  return {dom: wrap, update: update}
+};
+
+Dropdown.prototype.expand = function expand (dom, items) {
+  var menuDOM = crel("div", {class: prefix$1 + "-dropdown-menu " + (this.options.class || "")}, items);
+
+  var done = false;
+  function close() {
+    if (done) { return }
+    done = true;
+    dom.removeChild(menuDOM);
+    return true
+  }
+  dom.appendChild(menuDOM);
+  return {close: close, node: menuDOM}
+};
+
+function renderDropdownItems(items, view) {
+  var rendered = [], updates = [];
+  for (var i = 0; i < items.length; i++) {
+    var ref = items[i].render(view);
+    var dom = ref.dom;
+    var update = ref.update;
+    rendered.push(crel("div", {class: prefix$1 + "-dropdown-item"}, dom));
+    updates.push(update);
+  }
+  return {dom: rendered, update: combineUpdates(updates, rendered)}
+}
+
+function combineUpdates(updates, nodes) {
+  return function (state) {
+    var something = false;
+    for (var i = 0; i < updates.length; i++) {
+      var up = updates[i](state);
+      nodes[i].style.display = up ? "" : "none";
+      if (up) { something = true; }
+    }
+    return something
+  }
+}
+
+// ::- Represents a submenu wrapping a group of elements that start
+// hidden and expand to the right when hovered over or tapped.
+var DropdownSubmenu = function DropdownSubmenu(content, options) {
+  this.options = options || {};
+  this.content = Array.isArray(content) ? content : [content];
+};
+
+// :: (EditorView) → {dom: dom.Node, update: (EditorState) → bool}
+// Renders the submenu.
+DropdownSubmenu.prototype.render = function render (view) {
+  var items = renderDropdownItems(this.content, view);
+
+  var label = crel("div", {class: prefix$1 + "-submenu-label"}, translate(view, this.options.label));
+  var wrap = crel("div", {class: prefix$1 + "-submenu-wrap"}, label,
+                 crel("div", {class: prefix$1 + "-submenu"}, items.dom));
+  var listeningOnClose = null;
+  label.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    markMenuEvent(e);
+    setClass(wrap, prefix$1 + "-submenu-wrap-active");
+    if (!listeningOnClose)
+      { window.addEventListener("mousedown", listeningOnClose = function () {
+        if (!isMenuEvent(wrap)) {
+          wrap.classList.remove(prefix$1 + "-submenu-wrap-active");
+          window.removeEventListener("mousedown", listeningOnClose);
+          listeningOnClose = null;
+        }
+      }); }
+  });
+
+  function update(state) {
+    var inner = items.update(state);
+    wrap.style.display = inner ? "" : "none";
+    return inner
+  }
+  return {dom: wrap, update: update}
+};
+
+// :: (EditorView, [union<MenuElement, [MenuElement]>]) → {dom: ?dom.DocumentFragment, update: (EditorState) → bool}
+// Render the given, possibly nested, array of menu elements into a
+// document fragment, placing separators between them (and ensuring no
+// superfluous separators appear when some of the groups turn out to
+// be empty).
+function renderGrouped(view, content) {
+  var result = document.createDocumentFragment();
+  var updates = [], separators = [];
+  for (var i = 0; i < content.length; i++) {
+    var items = content[i], localUpdates = [], localNodes = [];
+    for (var j = 0; j < items.length; j++) {
+      var ref = items[j].render(view);
+      var dom = ref.dom;
+      var update$1 = ref.update;
+      var span = crel("span", {class: prefix$1 + "item"}, dom);
+      result.appendChild(span);
+      localNodes.push(span);
+      localUpdates.push(update$1);
+    }
+    if (localUpdates.length) {
+      updates.push(combineUpdates(localUpdates, localNodes));
+      if (i < content.length - 1)
+        { separators.push(result.appendChild(separator())); }
+    }
+  }
+
+  function update(state) {
+    var something = false, needSep = false;
+    for (var i = 0; i < updates.length; i++) {
+      var hasContent = updates[i](state);
+      if (i) { separators[i - 1].style.display = needSep && hasContent ? "" : "none"; }
+      needSep = hasContent;
+      if (hasContent) { something = true; }
+    }
+    return something
+  }
+  return {dom: result, update: update}
+}
+
+function separator() {
+  return crel("span", {class: prefix$1 + "separator"})
+}
+
+// :: Object
+// A set of basic editor-related icons. Contains the properties
+// `join`, `lift`, `selectParentNode`, `undo`, `redo`, `strong`, `em`,
+// `code`, `link`, `bulletList`, `orderedList`, and `blockquote`, each
+// holding an object that can be used as the `icon` option to
+// `MenuItem`.
+var icons = {
+  join: {
+    width: 800, height: 900,
+    path: "M0 75h800v125h-800z M0 825h800v-125h-800z M250 400h100v-100h100v100h100v100h-100v100h-100v-100h-100z"
+  },
+  lift: {
+    width: 1024, height: 1024,
+    path: "M219 310v329q0 7-5 12t-12 5q-8 0-13-5l-164-164q-5-5-5-13t5-13l164-164q5-5 13-5 7 0 12 5t5 12zM1024 749v109q0 7-5 12t-12 5h-987q-7 0-12-5t-5-12v-109q0-7 5-12t12-5h987q7 0 12 5t5 12zM1024 530v109q0 7-5 12t-12 5h-621q-7 0-12-5t-5-12v-109q0-7 5-12t12-5h621q7 0 12 5t5 12zM1024 310v109q0 7-5 12t-12 5h-621q-7 0-12-5t-5-12v-109q0-7 5-12t12-5h621q7 0 12 5t5 12zM1024 91v109q0 7-5 12t-12 5h-987q-7 0-12-5t-5-12v-109q0-7 5-12t12-5h987q7 0 12 5t5 12z"
+  },
+  selectParentNode: {text: "\u2b1a", css: "font-weight: bold"},
+  undo: {
+    width: 1024, height: 1024,
+    path: "M761 1024c113-206 132-520-313-509v253l-384-384 384-384v248c534-13 594 472 313 775z"
+  },
+  redo: {
+    width: 1024, height: 1024,
+    path: "M576 248v-248l384 384-384 384v-253c-446-10-427 303-313 509-280-303-221-789 313-775z"
+  },
+  strong: {
+    width: 805, height: 1024,
+    path: "M317 869q42 18 80 18 214 0 214-191 0-65-23-102-15-25-35-42t-38-26-46-14-48-6-54-1q-41 0-57 5 0 30-0 90t-0 90q0 4-0 38t-0 55 2 47 6 38zM309 442q24 4 62 4 46 0 81-7t62-25 42-51 14-81q0-40-16-70t-45-46-61-24-70-8q-28 0-74 7 0 28 2 86t2 86q0 15-0 45t-0 45q0 26 0 39zM0 950l1-53q8-2 48-9t60-15q4-6 7-15t4-19 3-18 1-21 0-19v-37q0-561-12-585-2-4-12-8t-25-6-28-4-27-2-17-1l-2-47q56-1 194-6t213-5q13 0 39 0t38 0q40 0 78 7t73 24 61 40 42 59 16 78q0 29-9 54t-22 41-36 32-41 25-48 22q88 20 146 76t58 141q0 57-20 102t-53 74-78 48-93 27-100 8q-25 0-75-1t-75-1q-60 0-175 6t-132 6z"
+  },
+  em: {
+    width: 585, height: 1024,
+    path: "M0 949l9-48q3-1 46-12t63-21q16-20 23-57 0-4 35-165t65-310 29-169v-14q-13-7-31-10t-39-4-33-3l10-58q18 1 68 3t85 4 68 1q27 0 56-1t69-4 56-3q-2 22-10 50-17 5-58 16t-62 19q-4 10-8 24t-5 22-4 26-3 24q-15 84-50 239t-44 203q-1 5-7 33t-11 51-9 47-3 32l0 10q9 2 105 17-1 25-9 56-6 0-18 0t-18 0q-16 0-49-5t-49-5q-78-1-117-1-29 0-81 5t-69 6z"
+  },
+  code: {
+    width: 896, height: 1024,
+    path: "M608 192l-96 96 224 224-224 224 96 96 288-320-288-320zM288 192l-288 320 288 320 96-96-224-224 224-224-96-96z"
+  },
+  link: {
+    width: 951, height: 1024,
+    path: "M832 694q0-22-16-38l-118-118q-16-16-38-16-24 0-41 18 1 1 10 10t12 12 8 10 7 14 2 15q0 22-16 38t-38 16q-8 0-15-2t-14-7-10-8-12-12-10-10q-18 17-18 41 0 22 16 38l117 118q15 15 38 15 22 0 38-14l84-83q16-16 16-38zM430 292q0-22-16-38l-117-118q-16-16-38-16-22 0-38 15l-84 83q-16 16-16 38 0 22 16 38l118 118q15 15 38 15 24 0 41-17-1-1-10-10t-12-12-8-10-7-14-2-15q0-22 16-38t38-16q8 0 15 2t14 7 10 8 12 12 10 10q18-17 18-41zM941 694q0 68-48 116l-84 83q-47 47-116 47-69 0-116-48l-117-118q-47-47-47-116 0-70 50-119l-50-50q-49 50-118 50-68 0-116-48l-118-118q-48-48-48-116t48-116l84-83q47-47 116-47 69 0 116 48l117 118q47 47 47 116 0 70-50 119l50 50q49-50 118-50 68 0 116 48l118 118q48 48 48 116z"
+  },
+  bulletList: {
+    width: 768, height: 896,
+    path: "M0 512h128v-128h-128v128zM0 256h128v-128h-128v128zM0 768h128v-128h-128v128zM256 512h512v-128h-512v128zM256 256h512v-128h-512v128zM256 768h512v-128h-512v128z"
+  },
+  orderedList: {
+    width: 768, height: 896,
+    path: "M320 512h448v-128h-448v128zM320 768h448v-128h-448v128zM320 128v128h448v-128h-448zM79 384h78v-256h-36l-85 23v50l43-2v185zM189 590c0-36-12-78-96-78-33 0-64 6-83 16l1 66c21-10 42-15 67-15s32 11 32 28c0 26-30 58-110 112v50h192v-67l-91 2c49-30 87-66 87-113l1-1z"
+  },
+  blockquote: {
+    width: 640, height: 896,
+    path: "M0 448v256h256v-256h-128c0 0 0-128 128-128v-128c0 0-256 0-256 256zM640 320v-128c0 0-256 0-256 256v256h256v-256h-128c0 0 0-128 128-128z"
+  }
+};
+
+// :: MenuItem
+// Menu item for the `joinUp` command.
+var joinUpItem = new MenuItem({
+  title: "Join with above block",
+  run: prosemirrorCommands.joinUp,
+  select: function (state) { return prosemirrorCommands.joinUp(state); },
+  icon: icons.join
+});
+
+// :: MenuItem
+// Menu item for the `lift` command.
+var liftItem = new MenuItem({
+  title: "Lift out of enclosing block",
+  run: prosemirrorCommands.lift,
+  select: function (state) { return prosemirrorCommands.lift(state); },
+  icon: icons.lift
+});
+
+// :: MenuItem
+// Menu item for the `selectParentNode` command.
+var selectParentNodeItem = new MenuItem({
+  title: "Select parent node",
+  run: prosemirrorCommands.selectParentNode,
+  select: function (state) { return prosemirrorCommands.selectParentNode(state); },
+  icon: icons.selectParentNode
+});
+
+// :: MenuItem
+// Menu item for the `undo` command.
+var undoItem = new MenuItem({
+  title: "Undo last change",
+  run: prosemirrorHistory.undo,
+  enable: function (state) { return prosemirrorHistory.undo(state); },
+  icon: icons.undo
+});
+
+// :: MenuItem
+// Menu item for the `redo` command.
+var redoItem = new MenuItem({
+  title: "Redo last undone change",
+  run: prosemirrorHistory.redo,
+  enable: function (state) { return prosemirrorHistory.redo(state); },
+  icon: icons.redo
+});
+
+// :: (NodeType, Object) → MenuItem
+// Build a menu item for wrapping the selection in a given node type.
+// Adds `run` and `select` properties to the ones present in
+// `options`. `options.attrs` may be an object or a function.
+function wrapItem(nodeType, options) {
+  var passedOptions = {
+    run: function run(state, dispatch) {
+      // FIXME if (options.attrs instanceof Function) options.attrs(state, attrs => wrapIn(nodeType, attrs)(state))
+      return prosemirrorCommands.wrapIn(nodeType, options.attrs)(state, dispatch)
+    },
+    select: function select(state) {
+      return prosemirrorCommands.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
+    }
+  };
+  for (var prop in options) { passedOptions[prop] = options[prop]; }
+  return new MenuItem(passedOptions)
+}
+
+// :: (NodeType, Object) → MenuItem
+// Build a menu item for changing the type of the textblock around the
+// selection to the given type. Provides `run`, `active`, and `select`
+// properties. Others must be given in `options`. `options.attrs` may
+// be an object to provide the attributes for the textblock node.
+function blockTypeItem(nodeType, options) {
+  var command = prosemirrorCommands.setBlockType(nodeType, options.attrs);
+  var passedOptions = {
+    run: command,
+    enable: function enable(state) { return command(state) },
+    active: function active(state) {
+      var ref = state.selection;
+      var $from = ref.$from;
+      var to = ref.to;
+      var node = ref.node;
+      if (node) { return node.hasMarkup(nodeType, options.attrs) }
+      return to <= $from.end() && $from.parent.hasMarkup(nodeType, options.attrs)
+    }
+  };
+  for (var prop in options) { passedOptions[prop] = options[prop]; }
+  return new MenuItem(passedOptions)
+}
+
+// Work around classList.toggle being broken in IE11
+function setClass(dom, cls, on) {
+  if (on) { dom.classList.add(cls); }
+  else { dom.classList.remove(cls); }
+}
+
+var prefix$2 = "ProseMirror-menubar";
+
+function isIOS() {
+  if (typeof navigator == "undefined") { return false }
+  var agent = navigator.userAgent;
+  return !/Edge\/\d/.test(agent) && /AppleWebKit/.test(agent) && /Mobile\/\w+/.test(agent)
+}
+
+// :: (Object) → Plugin
+// A plugin that will place a menu bar above the editor. Note that
+// this involves wrapping the editor in an additional `<div>`.
+//
+//   options::-
+//   Supports the following options:
+//
+//     content:: [[MenuElement]]
+//     Provides the content of the menu, as a nested array to be
+//     passed to `renderGrouped`.
+//
+//     floating:: ?bool
+//     Determines whether the menu floats, i.e. whether it sticks to
+//     the top of the viewport when the editor is partially scrolled
+//     out of view.
+function menuBar(options) {
+  return new prosemirrorState.Plugin({
+    view: function view(editorView) { return new MenuBarView(editorView, options) }
+  })
+}
+
+var MenuBarView = function MenuBarView(editorView, options) {
+  var this$1 = this;
+
+  this.editorView = editorView;
+  this.options = options;
+
+  this.wrapper = crel("div", {class: prefix$2 + "-wrapper"});
+  this.menu = this.wrapper.appendChild(crel("div", {class: prefix$2}));
+  this.menu.className = prefix$2;
+  this.spacer = null;
+
+  editorView.dom.parentNode.replaceChild(this.wrapper, editorView.dom);
+  this.wrapper.appendChild(editorView.dom);
+
+  this.maxHeight = 0;
+  this.widthForMaxHeight = 0;
+  this.floating = false;
+
+  var ref = renderGrouped(this.editorView, this.options.content);
+  var dom = ref.dom;
+  var update = ref.update;
+  this.contentUpdate = update;
+  this.menu.appendChild(dom);
+  this.update();
+
+  if (options.floating && !isIOS()) {
+    this.updateFloat();
+    var potentialScrollers = getAllWrapping(this.wrapper);
+    this.scrollFunc = function (e) {
+      var root = this$1.editorView.root;
+      if (!(root.body || root).contains(this$1.wrapper)) {
+          potentialScrollers.forEach(function (el) { return el.removeEventListener("scroll", this$1.scrollFunc); });
+      } else {
+          this$1.updateFloat(e.target.getBoundingClientRect && e.target);
+      }
+    };
+    potentialScrollers.forEach(function (el) { return el.addEventListener('scroll', this$1.scrollFunc); });
+  }
+};
+
+MenuBarView.prototype.update = function update () {
+  this.contentUpdate(this.editorView.state);
+
+  if (this.floating) {
+    this.updateScrollCursor();
+  } else {
+    if (this.menu.offsetWidth != this.widthForMaxHeight) {
+      this.widthForMaxHeight = this.menu.offsetWidth;
+      this.maxHeight = 0;
+    }
+    if (this.menu.offsetHeight > this.maxHeight) {
+      this.maxHeight = this.menu.offsetHeight;
+      this.menu.style.minHeight = this.maxHeight + "px";
+    }
+  }
+};
+
+MenuBarView.prototype.updateScrollCursor = function updateScrollCursor () {
+  var selection = this.editorView.root.getSelection();
+  if (!selection.focusNode) { return }
+  var rects = selection.getRangeAt(0).getClientRects();
+  var selRect = rects[selectionIsInverted(selection) ? 0 : rects.length - 1];
+  if (!selRect) { return }
+  var menuRect = this.menu.getBoundingClientRect();
+  if (selRect.top < menuRect.bottom && selRect.bottom > menuRect.top) {
+    var scrollable = findWrappingScrollable(this.wrapper);
+    if (scrollable) { scrollable.scrollTop -= (menuRect.bottom - selRect.top); }
+  }
+};
+
+MenuBarView.prototype.updateFloat = function updateFloat (scrollAncestor) {
+  var parent = this.wrapper, editorRect = parent.getBoundingClientRect(),
+      top = scrollAncestor ? Math.max(0, scrollAncestor.getBoundingClientRect().top) : 0;
+
+  if (this.floating) {
+    if (editorRect.top >= top || editorRect.bottom < this.menu.offsetHeight + 10) {
+      this.floating = false;
+      this.menu.style.position = this.menu.style.left = this.menu.style.top = this.menu.style.width = "";
+      this.menu.style.display = "";
+      this.spacer.parentNode.removeChild(this.spacer);
+      this.spacer = null;
+    } else {
+      var border = (parent.offsetWidth - parent.clientWidth) / 2;
+      this.menu.style.left = (editorRect.left + border) + "px";
+      this.menu.style.display = (editorRect.top > window.innerHeight ? "none" : "");
+      if (scrollAncestor) { this.menu.style.top = top + "px"; }
+    }
+  } else {
+    if (editorRect.top < top && editorRect.bottom >= this.menu.offsetHeight + 10) {
+      this.floating = true;
+      var menuRect = this.menu.getBoundingClientRect();
+      this.menu.style.left = menuRect.left + "px";
+      this.menu.style.width = menuRect.width + "px";
+      if (scrollAncestor) { this.menu.style.top = top + "px"; }
+      this.menu.style.position = "fixed";
+      this.spacer = crel("div", {class: prefix$2 + "-spacer", style: ("height: " + (menuRect.height) + "px")});
+      parent.insertBefore(this.spacer, this.menu);
+    }
+  }
+};
+
+MenuBarView.prototype.destroy = function destroy () {
+  if (this.wrapper.parentNode)
+    { this.wrapper.parentNode.replaceChild(this.editorView.dom, this.wrapper); }
+};
+
+// Not precise, but close enough
+function selectionIsInverted(selection) {
+  if (selection.anchorNode == selection.focusNode) { return selection.anchorOffset > selection.focusOffset }
+  return selection.anchorNode.compareDocumentPosition(selection.focusNode) == Node.DOCUMENT_POSITION_FOLLOWING
+}
+
+function findWrappingScrollable(node) {
+  for (var cur = node.parentNode; cur; cur = cur.parentNode)
+    { if (cur.scrollHeight > cur.clientHeight) { return cur } }
+}
+
+function getAllWrapping(node) {
+    var res = [window];
+    for (var cur = node.parentNode; cur; cur = cur.parentNode)
+        { res.push(cur); }
+    return res
+}
+
+exports.Dropdown = Dropdown;
+exports.DropdownSubmenu = DropdownSubmenu;
+exports.MenuItem = MenuItem;
+exports.blockTypeItem = blockTypeItem;
+exports.icons = icons;
+exports.joinUpItem = joinUpItem;
+exports.liftItem = liftItem;
+exports.menuBar = menuBar;
+exports.redoItem = redoItem;
+exports.renderGrouped = renderGrouped;
+exports.selectParentNodeItem = selectParentNodeItem;
+exports.undoItem = undoItem;
+exports.wrapItem = wrapItem;
+
+
+},{"crel":8,"prosemirror-commands":47,"prosemirror-history":51,"prosemirror-state":58}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -22570,29 +24442,26 @@ function findDiffEnd(a, b, posA, posB) {
 // should not mutate them or their content. Rather, you create new
 // instances whenever needed. The API tries to make this easy.
 var Fragment = function Fragment(content, size) {
-  var this$1 = this;
-
   this.content = content;
   // :: number
   // The size of the fragment, which is the total of the size of its
   // content nodes.
   this.size = size || 0;
   if (size == null) { for (var i = 0; i < content.length; i++)
-    { this$1.size += content[i].nodeSize; } }
+    { this.size += content[i].nodeSize; } }
 };
 
-var prototypeAccessors$1 = { firstChild: {},lastChild: {},childCount: {} };
+var prototypeAccessors = { firstChild: { configurable: true },lastChild: { configurable: true },childCount: { configurable: true } };
 
 // :: (number, number, (node: Node, start: number, parent: Node, index: number) → ?bool, ?number)
 // Invoke a callback for all descendant nodes between the given two
 // positions (relative to start of this fragment). Doesn't descend
 // into a node when the callback returns `false`.
 Fragment.prototype.nodesBetween = function nodesBetween (from, to, f, nodeStart, parent) {
-    var this$1 = this;
     if ( nodeStart === void 0 ) nodeStart = 0;
 
   for (var i = 0, pos = 0; pos < to; i++) {
-    var child = this$1.content[i], end = pos + child.nodeSize;
+    var child = this.content[i], end = pos + child.nodeSize;
     if (end > from && f(child, nodeStart + pos, parent, i) !== false && child.content.size) {
       var start = pos + 1;
       child.nodesBetween(Math.max(0, from - start),
@@ -22646,13 +24515,11 @@ Fragment.prototype.append = function append (other) {
 // :: (number, ?number) → Fragment
 // Cut out the sub-fragment between the two given positions.
 Fragment.prototype.cut = function cut (from, to) {
-    var this$1 = this;
-
   if (to == null) { to = this.size; }
   if (from == 0 && to == this.size) { return this }
   var result = [], size = 0;
   if (to > from) { for (var i = 0, pos = 0; pos < to; i++) {
-    var child = this$1.content[i], end = pos + child.nodeSize;
+    var child = this.content[i], end = pos + child.nodeSize;
     if (end > from) {
       if (pos < from || end > to) {
         if (child.isText)
@@ -22703,25 +24570,23 @@ Fragment.prototype.addToEnd = function addToEnd (node) {
 // :: (Fragment) → bool
 // Compare this fragment to another one.
 Fragment.prototype.eq = function eq (other) {
-    var this$1 = this;
-
   if (this.content.length != other.content.length) { return false }
   for (var i = 0; i < this.content.length; i++)
-    { if (!this$1.content[i].eq(other.content[i])) { return false } }
+    { if (!this.content[i].eq(other.content[i])) { return false } }
   return true
 };
 
 // :: ?Node
 // The first child of the fragment, or `null` if it is empty.
-prototypeAccessors$1.firstChild.get = function () { return this.content.length ? this.content[0] : null };
+prototypeAccessors.firstChild.get = function () { return this.content.length ? this.content[0] : null };
 
 // :: ?Node
 // The last child of the fragment, or `null` if it is empty.
-prototypeAccessors$1.lastChild.get = function () { return this.content.length ? this.content[this.content.length - 1] : null };
+prototypeAccessors.lastChild.get = function () { return this.content.length ? this.content[this.content.length - 1] : null };
 
 // :: number
 // The number of child nodes in this fragment.
-prototypeAccessors$1.childCount.get = function () { return this.content.length };
+prototypeAccessors.childCount.get = function () { return this.content.length };
 
 // :: (number) → Node
 // Get the child node at the given index. Raise an error when the
@@ -22742,10 +24607,8 @@ Fragment.prototype.maybeChild = function maybeChild (index) {
 // Call `f` for every child node, passing the node, its offset
 // into this parent node, and its index.
 Fragment.prototype.forEach = function forEach (f) {
-    var this$1 = this;
-
   for (var i = 0, p = 0; i < this.content.length; i++) {
-    var child = this$1.content[i];
+    var child = this.content[i];
     f(child, p, i);
     p += child.nodeSize;
   }
@@ -22777,14 +24640,13 @@ Fragment.prototype.findDiffEnd = function findDiffEnd$1 (other, pos, otherPos) {
 // position in this fragment. The result object will be reused
 // (overwritten) the next time the function is called. (Not public.)
 Fragment.prototype.findIndex = function findIndex (pos, round) {
-    var this$1 = this;
     if ( round === void 0 ) round = -1;
 
   if (pos == 0) { return retIndex(0, pos) }
   if (pos == this.size) { return retIndex(this.content.length, pos) }
   if (pos > this.size || pos < 0) { throw new RangeError(("Position " + pos + " outside of fragment (" + (this) + ")")) }
   for (var i = 0, curPos = 0;; i++) {
-    var cur = this$1.child(i), end = curPos + cur.nodeSize;
+    var cur = this.child(i), end = curPos + cur.nodeSize;
     if (end >= pos) {
       if (end == pos || round > 0) { return retIndex(i + 1, end) }
       return retIndex(i, curPos)
@@ -22846,7 +24708,7 @@ Fragment.from = function from (nodes) {
                        (nodes.nodesBetween ? " (looks like multiple versions of prosemirror-model were loaded)" : ""))
 };
 
-Object.defineProperties( Fragment.prototype, prototypeAccessors$1 );
+Object.defineProperties( Fragment.prototype, prototypeAccessors );
 
 var found = {index: 0, offset: 0};
 function retIndex(index, offset) {
@@ -22899,20 +24761,18 @@ var Mark = function Mark(type, attrs) {
 // [exclusive](#model.MarkSpec.excludes) with this mark are present,
 // those are replaced by this one.
 Mark.prototype.addToSet = function addToSet (set) {
-    var this$1 = this;
-
   var copy, placed = false;
   for (var i = 0; i < set.length; i++) {
     var other = set[i];
-    if (this$1.eq(other)) { return set }
-    if (this$1.type.excludes(other.type)) {
+    if (this.eq(other)) { return set }
+    if (this.type.excludes(other.type)) {
       if (!copy) { copy = set.slice(0, i); }
-    } else if (other.type.excludes(this$1.type)) {
+    } else if (other.type.excludes(this.type)) {
       return set
     } else {
-      if (!placed && other.type.rank > this$1.type.rank) {
+      if (!placed && other.type.rank > this.type.rank) {
         if (!copy) { copy = set.slice(0, i); }
-        copy.push(this$1);
+        copy.push(this);
         placed = true;
       }
       if (copy) { copy.push(other); }
@@ -22927,10 +24787,8 @@ Mark.prototype.addToSet = function addToSet (set) {
 // Remove this mark from the given set, returning a new set. If this
 // mark is not in the set, the set itself is returned.
 Mark.prototype.removeFromSet = function removeFromSet (set) {
-    var this$1 = this;
-
   for (var i = 0; i < set.length; i++)
-    { if (this$1.eq(set[i]))
+    { if (this.eq(set[i]))
       { return set.slice(0, i).concat(set.slice(i + 1)) } }
   return set
 };
@@ -22938,10 +24796,8 @@ Mark.prototype.removeFromSet = function removeFromSet (set) {
 // :: ([Mark]) → bool
 // Test whether this mark is in the given set of marks.
 Mark.prototype.isInSet = function isInSet (set) {
-    var this$1 = this;
-
   for (var i = 0; i < set.length; i++)
-    { if (this$1.eq(set[i])) { return true } }
+    { if (this.eq(set[i])) { return true } }
   return false
 };
 
@@ -22956,11 +24812,9 @@ Mark.prototype.eq = function eq (other) {
 // :: () → Object
 // Convert this mark to a JSON-serializeable representation.
 Mark.prototype.toJSON = function toJSON () {
-    var this$1 = this;
-
   var obj = {type: this.type.name};
-  for (var _ in this$1.attrs) {
-    obj.attrs = this$1.attrs;
+  for (var _ in this.attrs) {
+    obj.attrs = this.attrs;
     break
   }
   return obj
@@ -23024,11 +24878,11 @@ var Slice = function Slice(content, openStart, openEnd) {
   this.openEnd = openEnd;
 };
 
-var prototypeAccessors$2 = { size: {} };
+var prototypeAccessors$1 = { size: { configurable: true } };
 
 // :: number
 // The size this slice would add when inserted into a document.
-prototypeAccessors$2.size.get = function () {
+prototypeAccessors$1.size.get = function () {
   return this.content.size - this.openStart - this.openEnd
 };
 
@@ -23083,7 +24937,7 @@ Slice.maxOpen = function maxOpen (fragment, openIsolating) {
   return new Slice(fragment, openStart, openEnd)
 };
 
-Object.defineProperties( Slice.prototype, prototypeAccessors$2 );
+Object.defineProperties( Slice.prototype, prototypeAccessors$1 );
 
 function removeRange(content, from, to) {
   var ref = content.findIndex(from);
@@ -23247,7 +25101,7 @@ var ResolvedPos = function ResolvedPos(pos, path, parentOffset) {
   this.parentOffset = parentOffset;
 };
 
-var prototypeAccessors$3 = { parent: {},doc: {},textOffset: {},nodeAfter: {},nodeBefore: {} };
+var prototypeAccessors$2 = { parent: { configurable: true },doc: { configurable: true },textOffset: { configurable: true },nodeAfter: { configurable: true },nodeBefore: { configurable: true } };
 
 ResolvedPos.prototype.resolveDepth = function resolveDepth (val) {
   if (val == null) { return this.depth }
@@ -23259,11 +25113,11 @@ ResolvedPos.prototype.resolveDepth = function resolveDepth (val) {
 // The parent node that the position points into. Note that even if
 // a position points into a text node, that node is not considered
 // the parent—text nodes are ‘flat’ in this model, and have no content.
-prototypeAccessors$3.parent.get = function () { return this.node(this.depth) };
+prototypeAccessors$2.parent.get = function () { return this.node(this.depth) };
 
 // :: Node
 // The root node in which the position was resolved.
-prototypeAccessors$3.doc.get = function () { return this.node(0) };
+prototypeAccessors$2.doc.get = function () { return this.node(0) };
 
 // :: (?number) → Node
 // The ancestor node at the given level. `p.node(p.depth)` is the
@@ -23273,7 +25127,7 @@ ResolvedPos.prototype.node = function node (depth) { return this.path[this.resol
 // :: (?number) → number
 // The index into the ancestor at the given level. If this points at
 // the 3rd node in the 2nd paragraph on the top level, for example,
-// `p.index(0)` is 2 and `p.index(1)` is 3.
+// `p.index(0)` is 1 and `p.index(1)` is 2.
 ResolvedPos.prototype.index = function index (depth) { return this.path[this.resolveDepth(depth) * 3 + 1] };
 
 // :: (?number) → number
@@ -23302,7 +25156,7 @@ ResolvedPos.prototype.end = function end (depth) {
 
 // :: (?number) → number
 // The (absolute) position directly before the wrapping node at the
-// given level, or, when `level` is `this.depth + 1`, the original
+// given level, or, when `depth` is `this.depth + 1`, the original
 // position.
 ResolvedPos.prototype.before = function before (depth) {
   depth = this.resolveDepth(depth);
@@ -23312,7 +25166,7 @@ ResolvedPos.prototype.before = function before (depth) {
 
 // :: (?number) → number
 // The (absolute) position directly after the wrapping node at the
-// given level, or the original position when `level` is `this.depth + 1`.
+// given level, or the original position when `depth` is `this.depth + 1`.
 ResolvedPos.prototype.after = function after (depth) {
   depth = this.resolveDepth(depth);
   if (!depth) { throw new RangeError("There is no position after the top-level node") }
@@ -23323,13 +25177,13 @@ ResolvedPos.prototype.after = function after (depth) {
 // When this position points into a text node, this returns the
 // distance between the position and the start of the text node.
 // Will be zero for positions that point between nodes.
-prototypeAccessors$3.textOffset.get = function () { return this.pos - this.path[this.path.length - 1] };
+prototypeAccessors$2.textOffset.get = function () { return this.pos - this.path[this.path.length - 1] };
 
 // :: ?Node
 // Get the node directly after the position, if any. If the position
 // points into a text node, only the part of that node after the
 // position is returned.
-prototypeAccessors$3.nodeAfter.get = function () {
+prototypeAccessors$2.nodeAfter.get = function () {
   var parent = this.parent, index = this.index(this.depth);
   if (index == parent.childCount) { return null }
   var dOff = this.pos - this.path[this.path.length - 1], child = parent.child(index);
@@ -23340,7 +25194,7 @@ prototypeAccessors$3.nodeAfter.get = function () {
 // Get the node directly before the position, if any. If the
 // position points into a text node, only the part of that node
 // before the position is returned.
-prototypeAccessors$3.nodeBefore.get = function () {
+prototypeAccessors$2.nodeBefore.get = function () {
   var index = this.index(this.depth);
   var dOff = this.pos - this.path[this.path.length - 1];
   if (dOff) { return this.parent.child(index).cut(0, dOff) }
@@ -23398,10 +25252,8 @@ ResolvedPos.prototype.marksAcross = function marksAcross ($end) {
 // The depth up to which this position and the given (non-resolved)
 // position share the same parent nodes.
 ResolvedPos.prototype.sharedDepth = function sharedDepth (pos) {
-    var this$1 = this;
-
   for (var depth = this.depth; depth > 0; depth--)
-    { if (this$1.start(depth) <= pos && this$1.end(depth) >= pos) { return depth } }
+    { if (this.start(depth) <= pos && this.end(depth) >= pos) { return depth } }
   return 0
 };
 
@@ -23414,13 +25266,12 @@ ResolvedPos.prototype.sharedDepth = function sharedDepth (pos) {
 // pass in an optional predicate that will be called with a parent
 // node to see if a range into that parent is acceptable.
 ResolvedPos.prototype.blockRange = function blockRange (other, pred) {
-    var this$1 = this;
     if ( other === void 0 ) other = this;
 
   if (other.pos < this.pos) { return other.blockRange(this) }
   for (var d = this.depth - (this.parent.inlineContent || this.pos == other.pos ? 1 : 0); d >= 0; d--)
-    { if (other.pos <= this$1.end(d) && (!pred || pred(this$1.node(d))))
-      { return new NodeRange(this$1, other, d) } }
+    { if (other.pos <= this.end(d) && (!pred || pred(this.node(d))))
+      { return new NodeRange(this, other, d) } }
 };
 
 // :: (ResolvedPos) → bool
@@ -23442,11 +25293,9 @@ ResolvedPos.prototype.min = function min (other) {
 };
 
 ResolvedPos.prototype.toString = function toString () {
-    var this$1 = this;
-
   var str = "";
   for (var i = 1; i <= this.depth; i++)
-    { str += (str ? "/" : "") + this$1.node(i).type.name + "_" + this$1.index(i - 1); }
+    { str += (str ? "/" : "") + this.node(i).type.name + "_" + this.index(i - 1); }
   return str + ":" + this.parentOffset
 };
 
@@ -23479,11 +25328,9 @@ ResolvedPos.resolveCached = function resolveCached (doc, pos) {
   return result
 };
 
-Object.defineProperties( ResolvedPos.prototype, prototypeAccessors$3 );
+Object.defineProperties( ResolvedPos.prototype, prototypeAccessors$2 );
 
-var resolveCache = [];
-var resolveCachePos = 0;
-var resolveCacheSize = 12;
+var resolveCache = [], resolveCachePos = 0, resolveCacheSize = 12;
 
 // ::- Represents a flat range of content, i.e. one that starts and
 // ends in the same node.
@@ -23501,7 +25348,7 @@ var NodeRange = function NodeRange($from, $to, depth) {
   this.depth = depth;
 };
 
-var prototypeAccessors$1$1 = { start: {},end: {},parent: {},startIndex: {},endIndex: {} };
+var prototypeAccessors$1$1 = { start: { configurable: true },end: { configurable: true },parent: { configurable: true },startIndex: { configurable: true },endIndex: { configurable: true } };
 
 // :: number The position at the start of the range.
 prototypeAccessors$1$1.start.get = function () { return this.$from.before(this.depth + 1) };
@@ -23552,7 +25399,7 @@ var Node = function Node(type, attrs, content, marks) {
   this.marks = marks || Mark.none;
 };
 
-var prototypeAccessors = { nodeSize: {},childCount: {},textContent: {},firstChild: {},lastChild: {},isBlock: {},isTextblock: {},inlineContent: {},isInline: {},isText: {},isLeaf: {},isAtom: {} };
+var prototypeAccessors$3 = { nodeSize: { configurable: true },childCount: { configurable: true },textContent: { configurable: true },firstChild: { configurable: true },lastChild: { configurable: true },isBlock: { configurable: true },isTextblock: { configurable: true },inlineContent: { configurable: true },isInline: { configurable: true },isText: { configurable: true },isLeaf: { configurable: true },isAtom: { configurable: true } };
 
 // text:: ?string
 // For text nodes, this contains the node's text content.
@@ -23563,11 +25410,11 @@ var prototypeAccessors = { nodeSize: {},childCount: {},textContent: {},firstChil
 // amount of characters. For other leaf nodes, it is one. For
 // non-leaf nodes, it is the size of the content plus two (the start
 // and end token).
-prototypeAccessors.nodeSize.get = function () { return this.isLeaf ? 1 : 2 + this.content.size };
+prototypeAccessors$3.nodeSize.get = function () { return this.isLeaf ? 1 : 2 + this.content.size };
 
 // :: number
 // The number of children that the node has.
-prototypeAccessors.childCount.get = function () { return this.content.childCount };
+prototypeAccessors$3.childCount.get = function () { return this.content.childCount };
 
 // :: (number) → Node
 // Get the child node at the given index. Raises an error when the
@@ -23607,7 +25454,7 @@ Node.prototype.descendants = function descendants (f) {
 // :: string
 // Concatenates all the text nodes found in this fragment and its
 // children.
-prototypeAccessors.textContent.get = function () { return this.textBetween(0, this.content.size, "") };
+prototypeAccessors$3.textContent.get = function () { return this.textBetween(0, this.content.size, "") };
 
 // :: (number, number, ?string, ?string) → string
 // Get all text between positions `from` and `to`. When
@@ -23621,12 +25468,12 @@ Node.prototype.textBetween = function textBetween (from, to, blockSeparator, lea
 // :: ?Node
 // Returns this node's first child, or `null` if there are no
 // children.
-prototypeAccessors.firstChild.get = function () { return this.content.firstChild };
+prototypeAccessors$3.firstChild.get = function () { return this.content.firstChild };
 
 // :: ?Node
 // Returns this node's last child, or `null` if there are no
 // children.
-prototypeAccessors.lastChild.get = function () { return this.content.lastChild };
+prototypeAccessors$3.lastChild.get = function () { return this.content.lastChild };
 
 // :: (Node) → bool
 // Test whether two nodes represent the same piece of document.
@@ -23763,29 +25610,29 @@ Node.prototype.rangeHasMark = function rangeHasMark (from, to, type) {
 
 // :: bool
 // True when this is a block (non-inline node)
-prototypeAccessors.isBlock.get = function () { return this.type.isBlock };
+prototypeAccessors$3.isBlock.get = function () { return this.type.isBlock };
 
 // :: bool
 // True when this is a textblock node, a block node with inline
 // content.
-prototypeAccessors.isTextblock.get = function () { return this.type.isTextblock };
+prototypeAccessors$3.isTextblock.get = function () { return this.type.isTextblock };
 
 // :: bool
 // True when this node allows inline content.
-prototypeAccessors.inlineContent.get = function () { return this.type.inlineContent };
+prototypeAccessors$3.inlineContent.get = function () { return this.type.inlineContent };
 
 // :: bool
 // True when this is an inline node (a text node or a node that can
 // appear among text).
-prototypeAccessors.isInline.get = function () { return this.type.isInline };
+prototypeAccessors$3.isInline.get = function () { return this.type.isInline };
 
 // :: bool
 // True when this is a text node.
-prototypeAccessors.isText.get = function () { return this.type.isText };
+prototypeAccessors$3.isText.get = function () { return this.type.isText };
 
 // :: bool
 // True when this is a leaf node.
-prototypeAccessors.isLeaf.get = function () { return this.type.isLeaf };
+prototypeAccessors$3.isLeaf.get = function () { return this.type.isLeaf };
 
 // :: bool
 // True when this is an atom, i.e. when it does not have directly
@@ -23793,7 +25640,7 @@ prototypeAccessors.isLeaf.get = function () { return this.type.isLeaf };
 // be configured with the [`atom` property](#model.NodeSpec.atom) on
 // a node's spec (typically used when the node is displayed as an
 // uneditable [node view](#view.NodeView)).
-prototypeAccessors.isAtom.get = function () { return this.type.isAtom };
+prototypeAccessors$3.isAtom.get = function () { return this.type.isAtom };
 
 // :: () → string
 // Return a string representation of this node for debugging
@@ -23821,7 +25668,6 @@ Node.prototype.contentMatchAt = function contentMatchAt (index) {
 // can optionally pass `start` and `end` indices into the
 // replacement fragment.
 Node.prototype.canReplace = function canReplace (from, to, replacement, start, end) {
-    var this$1 = this;
     if ( replacement === void 0 ) replacement = Fragment.empty;
     if ( start === void 0 ) start = 0;
     if ( end === void 0 ) end = replacement.childCount;
@@ -23829,7 +25675,7 @@ Node.prototype.canReplace = function canReplace (from, to, replacement, start, e
   var one = this.contentMatchAt(from).matchFragment(replacement, start, end);
   var two = one && one.matchFragment(this.content, to);
   if (!two || !two.validEnd) { return false }
-  for (var i = start; i < end; i++) { if (!this$1.type.allowsMarks(replacement.child(i).marks)) { return false } }
+  for (var i = start; i < end; i++) { if (!this.type.allowsMarks(replacement.child(i).marks)) { return false } }
   return true
 };
 
@@ -23870,11 +25716,9 @@ Node.prototype.check = function check () {
 // :: () → Object
 // Return a JSON-serializeable representation of this node.
 Node.prototype.toJSON = function toJSON () {
-    var this$1 = this;
-
   var obj = {type: this.type.name};
-  for (var _ in this$1.attrs) {
-    obj.attrs = this$1.attrs;
+  for (var _ in this.attrs) {
+    obj.attrs = this.attrs;
     break
   }
   if (this.content.size)
@@ -23901,9 +25745,9 @@ Node.fromJSON = function fromJSON (schema, json) {
   return schema.nodeType(json.type).create(json.attrs, content, marks)
 };
 
-Object.defineProperties( Node.prototype, prototypeAccessors );
+Object.defineProperties( Node.prototype, prototypeAccessors$3 );
 
-var TextNode = (function (Node) {
+var TextNode = /*@__PURE__*/(function (Node) {
   function TextNode(type, attrs, content, marks) {
     Node.call(this, type, attrs, null, marks);
 
@@ -23916,7 +25760,7 @@ var TextNode = (function (Node) {
   TextNode.prototype = Object.create( Node && Node.prototype );
   TextNode.prototype.constructor = TextNode;
 
-  var prototypeAccessors$1 = { textContent: {},nodeSize: {} };
+  var prototypeAccessors$1 = { textContent: { configurable: true },nodeSize: { configurable: true } };
 
   TextNode.prototype.toString = function toString () {
     if (this.type.spec.toDebugString) { return this.type.spec.toDebugString(this) }
@@ -23979,7 +25823,7 @@ var ContentMatch = function ContentMatch(validEnd) {
   this.wrapCache = [];
 };
 
-var prototypeAccessors$5 = { inlineContent: {},defaultType: {},edgeCount: {} };
+var prototypeAccessors$4 = { inlineContent: { configurable: true },defaultType: { configurable: true },edgeCount: { configurable: true } };
 
 ContentMatch.parse = function parse (string, nodeTypes) {
   var stream = new TokenStream(string, nodeTypes);
@@ -23995,10 +25839,8 @@ ContentMatch.parse = function parse (string, nodeTypes) {
 // Match a node type, returning a match after that node if
 // successful.
 ContentMatch.prototype.matchType = function matchType (type) {
-    var this$1 = this;
-
   for (var i = 0; i < this.next.length; i += 2)
-    { if (this$1.next[i] == type) { return this$1.next[i + 1] } }
+    { if (this.next[i] == type) { return this.next[i + 1] } }
   return null
 };
 
@@ -24015,7 +25857,7 @@ ContentMatch.prototype.matchFragment = function matchFragment (frag, start, end)
   return cur
 };
 
-prototypeAccessors$5.inlineContent.get = function () {
+prototypeAccessors$4.inlineContent.get = function () {
   var first = this.next[0];
   return first ? first.isInline : false
 };
@@ -24023,21 +25865,17 @@ prototypeAccessors$5.inlineContent.get = function () {
 // :: ?NodeType
 // Get the first matching node type at this match position that can
 // be generated.
-prototypeAccessors$5.defaultType.get = function () {
-    var this$1 = this;
-
+prototypeAccessors$4.defaultType.get = function () {
   for (var i = 0; i < this.next.length; i += 2) {
-    var type = this$1.next[i];
+    var type = this.next[i];
     if (!(type.isText || type.hasRequiredAttrs())) { return type }
   }
 };
 
 ContentMatch.prototype.compatible = function compatible (other) {
-    var this$1 = this;
-
   for (var i = 0; i < this.next.length; i += 2)
     { for (var j = 0; j < other.next.length; j += 2)
-      { if (this$1.next[i] == other.next[j]) { return true } } }
+      { if (this.next[i] == other.next[j]) { return true } } }
   return false
 };
 
@@ -24077,10 +25915,8 @@ ContentMatch.prototype.fillBefore = function fillBefore (after, toEnd, startInde
 // (when it fits directly) and will be null when no such wrapping
 // exists.
 ContentMatch.prototype.findWrapping = function findWrapping (target) {
-    var this$1 = this;
-
   for (var i = 0; i < this.wrapCache.length; i += 2)
-    { if (this$1.wrapCache[i] == target) { return this$1.wrapCache[i + 1] } }
+    { if (this.wrapCache[i] == target) { return this.wrapCache[i + 1] } }
   var computed = this.computeWrapping(target);
   this.wrapCache.push(target, computed);
   return computed
@@ -24109,16 +25945,16 @@ ContentMatch.prototype.computeWrapping = function computeWrapping (target) {
 // :: number
 // The number of outgoing edges this node has in the finite
 // automaton that describes the content expression.
-prototypeAccessors$5.edgeCount.get = function () {
+prototypeAccessors$4.edgeCount.get = function () {
   return this.next.length >> 1
 };
 
 // :: (number) → {type: NodeType, next: ContentMatch}
-// Get the _n_th outgoing edge from this node in the finite
+// Get the _n_​th outgoing edge from this node in the finite
 // automaton that describes the content expression.
 ContentMatch.prototype.edge = function edge (n) {
   var i = n << 1;
-  if (i > this.next.length) { throw new RangeError(("There's no " + n + "th edge in this content match")) }
+  if (i >= this.next.length) { throw new RangeError(("There's no " + n + "th edge in this content match")) }
   return {type: this.next[i], next: this.next[i + 1]}
 };
 
@@ -24138,7 +25974,7 @@ ContentMatch.prototype.toString = function toString () {
   }).join("\n")
 };
 
-Object.defineProperties( ContentMatch.prototype, prototypeAccessors$5 );
+Object.defineProperties( ContentMatch.prototype, prototypeAccessors$4 );
 
 ContentMatch.empty = new ContentMatch(true);
 
@@ -24152,15 +25988,15 @@ var TokenStream = function TokenStream(string, nodeTypes) {
   if (this.tokens[0] == "") { this.tokens.unshift(); }
 };
 
-var prototypeAccessors$1$3 = { next: {} };
+var prototypeAccessors$1$2 = { next: { configurable: true } };
 
-prototypeAccessors$1$3.next.get = function () { return this.tokens[this.pos] };
+prototypeAccessors$1$2.next.get = function () { return this.tokens[this.pos] };
 
 TokenStream.prototype.eat = function eat (tok) { return this.next == tok && (this.pos++ || true) };
 
 TokenStream.prototype.err = function err (str) { throw new SyntaxError(str + " (in content expression '" + this.string + "')") };
 
-Object.defineProperties( TokenStream.prototype, prototypeAccessors$1$3 );
+Object.defineProperties( TokenStream.prototype, prototypeAccessors$1$2 );
 
 function parseExpr(stream) {
   var exprs = [];
@@ -24310,7 +26146,7 @@ function nfa(expr) {
   }
 }
 
-function cmp(a, b) { return a - b }
+function cmp(a, b) { return b - a }
 
 // Get the set of nodes reachable by null edges from `node`. Omit
 // nodes with only a single null-out-edge, since they may lead to
@@ -24456,31 +26292,29 @@ var NodeType = function NodeType(name, schema, spec) {
   this.isText = name == "text";
 };
 
-var prototypeAccessors$4 = { isInline: {},isTextblock: {},isLeaf: {},isAtom: {} };
+var prototypeAccessors$5 = { isInline: { configurable: true },isTextblock: { configurable: true },isLeaf: { configurable: true },isAtom: { configurable: true } };
 
 // :: bool
 // True if this is an inline type.
-prototypeAccessors$4.isInline.get = function () { return !this.isBlock };
+prototypeAccessors$5.isInline.get = function () { return !this.isBlock };
 
 // :: bool
 // True if this is a textblock type, a block that contains inline
 // content.
-prototypeAccessors$4.isTextblock.get = function () { return this.isBlock && this.inlineContent };
+prototypeAccessors$5.isTextblock.get = function () { return this.isBlock && this.inlineContent };
 
 // :: bool
 // True for node types that allow no content.
-prototypeAccessors$4.isLeaf.get = function () { return this.contentMatch == ContentMatch.empty };
+prototypeAccessors$5.isLeaf.get = function () { return this.contentMatch == ContentMatch.empty };
 
 // :: bool
 // True when this node is an atom, i.e. when it does not have
 // directly editable content.
-prototypeAccessors$4.isAtom.get = function () { return this.isLeaf || this.spec.atom };
+prototypeAccessors$5.isAtom.get = function () { return this.isLeaf || this.spec.atom };
 
 NodeType.prototype.hasRequiredAttrs = function hasRequiredAttrs (ignore) {
-    var this$1 = this;
-
-  for (var n in this$1.attrs)
-    { if (this$1.attrs[n].isRequired && (!ignore || !(n in ignore))) { return true } }
+  for (var n in this.attrs)
+    { if (this.attrs[n].isRequired && (!ignore || !(n in ignore))) { return true } }
   return false
 };
 
@@ -24540,12 +26374,10 @@ NodeType.prototype.createAndFill = function createAndFill (attrs, content, marks
 // Returns true if the given fragment is valid content for this node
 // type with the given attributes.
 NodeType.prototype.validContent = function validContent (content) {
-    var this$1 = this;
-
   var result = this.contentMatch.matchFragment(content);
   if (!result || !result.validEnd) { return false }
   for (var i = 0; i < content.childCount; i++)
-    { if (!this$1.allowsMarks(content.child(i).marks)) { return false } }
+    { if (!this.allowsMarks(content.child(i).marks)) { return false } }
   return true
 };
 
@@ -24558,22 +26390,18 @@ NodeType.prototype.allowsMarkType = function allowsMarkType (markType) {
 // :: ([Mark]) → bool
 // Test whether the given set of marks are allowed in this node.
 NodeType.prototype.allowsMarks = function allowsMarks (marks) {
-    var this$1 = this;
-
   if (this.markSet == null) { return true }
-  for (var i = 0; i < marks.length; i++) { if (!this$1.allowsMarkType(marks[i].type)) { return false } }
+  for (var i = 0; i < marks.length; i++) { if (!this.allowsMarkType(marks[i].type)) { return false } }
   return true
 };
 
 // :: ([Mark]) → [Mark]
 // Removes the marks that are not allowed in this node from the given set.
 NodeType.prototype.allowedMarks = function allowedMarks (marks) {
-    var this$1 = this;
-
   if (this.markSet == null) { return marks }
   var copy;
   for (var i = 0; i < marks.length; i++) {
-    if (!this$1.allowsMarkType(marks[i].type)) {
+    if (!this.allowsMarkType(marks[i].type)) {
       if (!copy) { copy = marks.slice(0, i); }
     } else if (copy) {
       copy.push(marks[i]);
@@ -24594,7 +26422,7 @@ NodeType.compile = function compile (nodes, schema) {
   return result
 };
 
-Object.defineProperties( NodeType.prototype, prototypeAccessors$4 );
+Object.defineProperties( NodeType.prototype, prototypeAccessors$5 );
 
 // Attribute descriptors
 
@@ -24603,13 +26431,13 @@ var Attribute = function Attribute(options) {
   this.default = options.default;
 };
 
-var prototypeAccessors$1$2 = { isRequired: {} };
+var prototypeAccessors$1$3 = { isRequired: { configurable: true } };
 
-prototypeAccessors$1$2.isRequired.get = function () {
+prototypeAccessors$1$3.isRequired.get = function () {
   return !this.hasDefault
 };
 
-Object.defineProperties( Attribute.prototype, prototypeAccessors$1$2 );
+Object.defineProperties( Attribute.prototype, prototypeAccessors$1$3 );
 
 // Marks
 
@@ -24657,10 +26485,8 @@ MarkType.compile = function compile (marks, schema) {
 // When there is a mark of this type in the given set, a new set
 // without it is returned. Otherwise, the input set is returned.
 MarkType.prototype.removeFromSet = function removeFromSet (set) {
-    var this$1 = this;
-
   for (var i = 0; i < set.length; i++)
-    { if (set[i].type == this$1)
+    { if (set[i].type == this)
       { return set.slice(0, i).concat(set.slice(i + 1)) } }
   return set
 };
@@ -24668,10 +26494,8 @@ MarkType.prototype.removeFromSet = function removeFromSet (set) {
 // :: ([Mark]) → ?Mark
 // Tests whether there is a mark of this type in the given set.
 MarkType.prototype.isInSet = function isInSet (set) {
-    var this$1 = this;
-
   for (var i = 0; i < set.length; i++)
-    { if (set[i].type == this$1) { return set[i] } }
+    { if (set[i].type == this) { return set[i] } }
 };
 
 // :: (MarkType) → bool
@@ -24847,8 +26671,6 @@ MarkType.prototype.excludes = function excludes (other) {
 // occur in conforming documents, and provides functionality for
 // creating and deserializing such documents.
 var Schema = function Schema(spec) {
-  var this$1 = this;
-
   // :: SchemaSpec
   // The [spec](#model.SchemaSpec) on which the schema is based,
   // with the added guarantee that its `nodes` and `marks`
@@ -24856,7 +26678,7 @@ var Schema = function Schema(spec) {
   // [`OrderedMap`](https://github.com/marijnh/orderedmap) instances
   // (not raw objects).
   this.spec = {};
-  for (var prop in spec) { this$1.spec[prop] = spec[prop]; }
+  for (var prop in spec) { this.spec[prop] = spec[prop]; }
   this.spec.nodes = OrderedMap.from(spec.nodes);
   this.spec.marks = OrderedMap.from(spec.marks);
 
@@ -24869,20 +26691,20 @@ var Schema = function Schema(spec) {
   this.marks = MarkType.compile(this.spec.marks, this);
 
   var contentExprCache = Object.create(null);
-  for (var prop$1 in this$1.nodes) {
-    if (prop$1 in this$1.marks)
+  for (var prop$1 in this.nodes) {
+    if (prop$1 in this.marks)
       { throw new RangeError(prop$1 + " can not be both a node and a mark") }
-    var type = this$1.nodes[prop$1], contentExpr = type.spec.content || "", markExpr = type.spec.marks;
+    var type = this.nodes[prop$1], contentExpr = type.spec.content || "", markExpr = type.spec.marks;
     type.contentMatch = contentExprCache[contentExpr] ||
-      (contentExprCache[contentExpr] = ContentMatch.parse(contentExpr, this$1.nodes));
+      (contentExprCache[contentExpr] = ContentMatch.parse(contentExpr, this.nodes));
     type.inlineContent = type.contentMatch.inlineContent;
     type.markSet = markExpr == "_" ? null :
-      markExpr ? gatherMarks(this$1, markExpr.split(" ")) :
+      markExpr ? gatherMarks(this, markExpr.split(" ")) :
       markExpr == "" || !type.inlineContent ? [] : null;
   }
-  for (var prop$2 in this$1.marks) {
-    var type$1 = this$1.marks[prop$2], excl = type$1.spec.excludes;
-    type$1.excluded = excl == null ? [type$1] : excl == "" ? [] : gatherMarks(this$1, excl.split(" "));
+  for (var prop$2 in this.marks) {
+    var type$1 = this.marks[prop$2], excl = type$1.spec.excludes;
+    type$1.excluded = excl == null ? [type$1] : excl == "" ? [] : gatherMarks(this, excl.split(" "));
   }
 
   this.nodeFromJSON = this.nodeFromJSON.bind(this);
@@ -25027,7 +26849,7 @@ function gatherMarks(schema, marks) {
 //   `"property=value"`, in which case the rule only matches if the
 //   propery's value exactly matches the given value. (For more
 //   complicated filters, use [`getAttrs`](#model.ParseRule.getAttrs)
-//   and return undefined to indicate that the match failed.)
+//   and return false to indicate that the match failed.)
 //
 //   priority:: ?number
 //   Can be used to change the order in which the parse rules in a
@@ -25149,10 +26971,8 @@ DOMParser.prototype.parseSlice = function parseSlice (dom, options) {
 };
 
 DOMParser.prototype.matchTag = function matchTag (dom, context) {
-    var this$1 = this;
-
   for (var i = 0; i < this.tags.length; i++) {
-    var rule = this$1.tags[i];
+    var rule = this.tags[i];
     if (matches(dom, rule.tag) &&
         (rule.namespace === undefined || dom.namespaceURI == rule.namespace) &&
         (!rule.context || context.matchesContext(rule.context))) {
@@ -25167,10 +26987,8 @@ DOMParser.prototype.matchTag = function matchTag (dom, context) {
 };
 
 DOMParser.prototype.matchStyle = function matchStyle (prop, value, context) {
-    var this$1 = this;
-
   for (var i = 0; i < this.styles.length; i++) {
-    var rule = this$1.styles[i];
+    var rule = this.styles[i];
     if (rule.style.indexOf(prop) != 0 ||
         rule.context && !context.matchesContext(rule.context) ||
         // Test that the style string either precisely matches the prop,
@@ -25217,7 +27035,7 @@ DOMParser.schemaRules = function schemaRules (schema) {
     }); }
   };
 
-    for (var name$1 in schema.nodes) loop$1( name );
+    for (var name$1 in schema.nodes) loop$1();
   return result
 };
 
@@ -25248,9 +27066,7 @@ var ignoreTags = {
 var listTags = {ol: true, ul: true};
 
 // Using a bitfield for node context options
-var OPT_PRESERVE_WS = 1;
-var OPT_PRESERVE_WS_FULL = 2;
-var OPT_OPEN_LEFT = 4;
+var OPT_PRESERVE_WS = 1, OPT_PRESERVE_WS_FULL = 2, OPT_OPEN_LEFT = 4;
 
 function wsOptionsFor(preserveWhitespace) {
   return (preserveWhitespace ? OPT_PRESERVE_WS : 0) | (preserveWhitespace === "full" ? OPT_PRESERVE_WS_FULL : 0)
@@ -25289,7 +27105,7 @@ NodeContext.prototype.findWrapping = function findWrapping (node) {
 NodeContext.prototype.finish = function finish (openEnd) {
   if (!(this.options & OPT_PRESERVE_WS)) { // Strip trailing whitespace
     var last = this.content[this.content.length - 1], m;
-    if (last && last.isText && (m = /\s+$/.exec(last.text))) {
+    if (last && last.isText && (m = /[ \t\r\n\u000c]+$/.exec(last.text))) {
       if (last.text.length == m[0].length) { this.content.pop(); }
       else { this.content[this.content.length - 1] = last.withText(last.text.slice(0, last.text.length - m[0].length)); }
     }
@@ -25323,7 +27139,7 @@ var ParseContext = function ParseContext(parser, options, open) {
   this.needsBlock = false;
 };
 
-var prototypeAccessors$6 = { top: {},currentPos: {} };
+var prototypeAccessors$6 = { top: { configurable: true },currentPos: { configurable: true } };
 
 prototypeAccessors$6.top.get = function () {
   return this.nodes[this.open]
@@ -25334,34 +27150,32 @@ prototypeAccessors$6.top.get = function () {
 // otherwise, the node is passed to `addElement` or, if it has a
 // `style` attribute, `addElementWithStyles`.
 ParseContext.prototype.addDOM = function addDOM (dom) {
-    var this$1 = this;
-
   if (dom.nodeType == 3) {
     this.addTextNode(dom);
   } else if (dom.nodeType == 1) {
     var style = dom.getAttribute("style");
     var marks = style ? this.readStyles(parseStyles(style)) : null;
-    if (marks != null) { for (var i = 0; i < marks.length; i++) { this$1.addPendingMark(marks[i]); } }
+    if (marks != null) { for (var i = 0; i < marks.length; i++) { this.addPendingMark(marks[i]); } }
     this.addElement(dom);
-    if (marks != null) { for (var i$1 = 0; i$1 < marks.length; i$1++) { this$1.removePendingMark(marks[i$1]); } }
+    if (marks != null) { for (var i$1 = 0; i$1 < marks.length; i$1++) { this.removePendingMark(marks[i$1]); } }
   }
 };
 
 ParseContext.prototype.addTextNode = function addTextNode (dom) {
   var value = dom.nodeValue;
   var top = this.top;
-  if ((top.type ? top.type.inlineContent : top.content.length && top.content[0].isInline) || /\S/.test(value)) {
+  if ((top.type ? top.type.inlineContent : top.content.length && top.content[0].isInline) || /[^ \t\r\n\u000c]/.test(value)) {
     if (!(top.options & OPT_PRESERVE_WS)) {
-      value = value.replace(/\s+/g, " ");
+      value = value.replace(/[ \t\r\n\u000c]+/g, " ");
       // If this starts with whitespace, and there is no node before it, or
       // a hard break, or a text node that ends with whitespace, strip the
       // leading space.
-      if (/^\s/.test(value) && this.open == this.nodes.length - 1) {
+      if (/^[ \t\r\n\u000c]/.test(value) && this.open == this.nodes.length - 1) {
         var nodeBefore = top.content[top.content.length - 1];
         var domNodeBefore = dom.previousSibling;
         if (!nodeBefore ||
             (domNodeBefore && domNodeBefore.nodeName == 'BR') ||
-            (nodeBefore.isText && /\s$/.test(nodeBefore.text)))
+            (nodeBefore.isText && /[ \t\r\n\u000c]$/.test(nodeBefore.text)))
           { value = value.slice(1); }
       }
     } else if (!(top.options & OPT_PRESERVE_WS_FULL)) {
@@ -25389,6 +27203,9 @@ ParseContext.prototype.addElement = function addElement (dom) {
     if (blockTags.hasOwnProperty(name)) {
       sync = true;
       if (!top.type) { this.needsBlock = true; }
+    } else if (!dom.firstChild) {
+      this.leafFallback(dom);
+      return
     }
     this.addAll(dom);
     if (sync) { this.sync(top); }
@@ -25398,18 +27215,22 @@ ParseContext.prototype.addElement = function addElement (dom) {
   }
 };
 
+// Called for leaf DOM nodes that would otherwise be ignored
+ParseContext.prototype.leafFallback = function leafFallback (dom) {
+  if (dom.nodeName == "BR" && this.top.type && this.top.type.inlineContent)
+    { this.addTextNode(dom.ownerDocument.createTextNode("\n")); }
+};
+
 // Run any style parser associated with the node's styles. Either
 // return an array of marks, or null to indicate some of the styles
 // had a rule with `ignore` set.
 ParseContext.prototype.readStyles = function readStyles (styles) {
-    var this$1 = this;
-
   var marks = Mark.none;
   for (var i = 0; i < styles.length; i += 2) {
-    var rule = this$1.parser.matchStyle(styles[i], styles[i + 1], this$1);
+    var rule = this.parser.matchStyle(styles[i], styles[i + 1], this);
     if (!rule) { continue }
     if (rule.ignore) { return null }
-    marks = this$1.parser.schema.marks[rule.mark].create(rule.attrs).addToSet(marks);
+    marks = this.parser.schema.marks[rule.mark].create(rule.attrs).addToSet(marks);
   }
   return marks
 };
@@ -25424,8 +27245,11 @@ ParseContext.prototype.addElementByRule = function addElementByRule (dom, rule) 
   var sync, nodeType, markType, mark;
   if (rule.node) {
     nodeType = this.parser.schema.nodes[rule.node];
-    if (nodeType.isLeaf) { this.insertNode(nodeType.create(rule.attrs)); }
-    else { sync = this.enter(nodeType, rule.attrs, rule.preserveWhitespace); }
+    if (!nodeType.isLeaf) {
+      sync = this.enter(nodeType, rule.attrs, rule.preserveWhitespace);
+    } else if (!this.insertNode(nodeType.create(rule.attrs))) {
+      this.leafFallback(dom);
+    }
   } else {
     markType = this.parser.schema.marks[rule.mark];
     mark = markType.create(rule.attrs);
@@ -25448,7 +27272,6 @@ ParseContext.prototype.addElementByRule = function addElementByRule (dom, rule) 
   }
   if (sync) { this.sync(startIn); this.open--; }
   if (mark) { this.removePendingMark(mark); }
-  return true
 };
 
 // : (dom.Node, ?NodeBuilder, ?number, ?number)
@@ -25456,16 +27279,14 @@ ParseContext.prototype.addElementByRule = function addElementByRule (dom, rule) 
 // whole node, if not given). If `sync` is passed, use it to
 // synchronize after every block element.
 ParseContext.prototype.addAll = function addAll (parent, sync, startIndex, endIndex) {
-    var this$1 = this;
-
   var index = startIndex || 0;
   for (var dom = startIndex ? parent.childNodes[startIndex] : parent.firstChild,
            end = endIndex == null ? null : parent.childNodes[endIndex];
        dom != end; dom = dom.nextSibling, ++index) {
-    this$1.findAtPoint(parent, index);
-    this$1.addDOM(dom);
+    this.findAtPoint(parent, index);
+    this.addDOM(dom);
     if (sync && blockTags.hasOwnProperty(dom.nodeName.toLowerCase()))
-      { this$1.sync(sync); }
+      { this.sync(sync); }
   }
   this.findAtPoint(parent, index);
 };
@@ -25474,11 +27295,9 @@ ParseContext.prototype.addAll = function addAll (parent, sync, startIndex, endIn
 // context. May add intermediate wrappers and/or leave non-solid
 // nodes that we're in.
 ParseContext.prototype.findPlace = function findPlace (node) {
-    var this$1 = this;
-
   var route, sync;
   for (var depth = this.open; depth >= 0; depth--) {
-    var cx = this$1.nodes[depth];
+    var cx = this.nodes[depth];
     var found = cx.findWrapping(node);
     if (found && (!route || route.length > found.length)) {
       route = found;
@@ -25490,7 +27309,7 @@ ParseContext.prototype.findPlace = function findPlace (node) {
   if (!route) { return false }
   this.sync(sync);
   for (var i = 0; i < route.length; i++)
-    { this$1.enterInner(route[i], null, false); }
+    { this.enterInner(route[i], null, false); }
   return true
 };
 
@@ -25511,17 +27330,17 @@ ParseContext.prototype.insertNode = function insertNode (node) {
       { if (!top.type || top.type.allowsMarkType(node.marks[i].type))
         { marks = node.marks[i].addToSet(marks); } }
     top.content.push(node.mark(marks));
+    return true
   }
+  return false
 };
 
 ParseContext.prototype.applyPendingMarks = function applyPendingMarks (top) {
-    var this$1 = this;
-
   for (var i = 0; i < this.pendingMarks.length; i++) {
-    var mark = this$1.pendingMarks[i];
+    var mark = this.pendingMarks[i];
     if ((!top.type || top.type.allowsMarkType(mark.type)) && !mark.isInSet(top.activeMarks)) {
       top.activeMarks = mark.addToSet(top.activeMarks);
-      this$1.pendingMarks.splice(i--, 1);
+      this.pendingMarks.splice(i--, 1);
     }
   }
 };
@@ -25552,11 +27371,9 @@ ParseContext.prototype.enterInner = function enterInner (type, attrs, solid, pre
 // Make sure all nodes above this.open are finished and added to
 // their parents
 ParseContext.prototype.closeExtra = function closeExtra (openEnd) {
-    var this$1 = this;
-
   var i = this.nodes.length - 1;
   if (i > this.open) {
-    for (; i > this.open; i--) { this$1.nodes[i - 1].content.push(this$1.nodes[i].finish(openEnd)); }
+    for (; i > this.open; i--) { this.nodes[i - 1].content.push(this.nodes[i].finish(openEnd)); }
     this.nodes.length = this.open + 1;
   }
 };
@@ -25568,10 +27385,8 @@ ParseContext.prototype.finish = function finish () {
 };
 
 ParseContext.prototype.sync = function sync (to) {
-    var this$1 = this;
-
-  for (var i = this.open; i >= 0; i--) { if (this$1.nodes[i] == to) {
-    this$1.open = i;
+  for (var i = this.open; i >= 0; i--) { if (this.nodes[i] == to) {
+    this.open = i;
     return
   } }
 };
@@ -25591,12 +27406,10 @@ ParseContext.prototype.removePendingMark = function removePendingMark (mark) {
 };
 
 prototypeAccessors$6.currentPos.get = function () {
-    var this$1 = this;
-
   this.closeExtra();
   var pos = 0;
   for (var i = this.open; i >= 0; i--) {
-    var content = this$1.nodes[i].content;
+    var content = this.nodes[i].content;
     for (var j = content.length - 1; j >= 0; j--)
       { pos += content[j].nodeSize; }
     if (i) { pos++; }
@@ -25605,41 +27418,33 @@ prototypeAccessors$6.currentPos.get = function () {
 };
 
 ParseContext.prototype.findAtPoint = function findAtPoint (parent, offset) {
-    var this$1 = this;
-
   if (this.find) { for (var i = 0; i < this.find.length; i++) {
-    if (this$1.find[i].node == parent && this$1.find[i].offset == offset)
-      { this$1.find[i].pos = this$1.currentPos; }
+    if (this.find[i].node == parent && this.find[i].offset == offset)
+      { this.find[i].pos = this.currentPos; }
   } }
 };
 
 ParseContext.prototype.findInside = function findInside (parent) {
-    var this$1 = this;
-
   if (this.find) { for (var i = 0; i < this.find.length; i++) {
-    if (this$1.find[i].pos == null && parent.nodeType == 1 && parent.contains(this$1.find[i].node))
-      { this$1.find[i].pos = this$1.currentPos; }
+    if (this.find[i].pos == null && parent.nodeType == 1 && parent.contains(this.find[i].node))
+      { this.find[i].pos = this.currentPos; }
   } }
 };
 
 ParseContext.prototype.findAround = function findAround (parent, content, before) {
-    var this$1 = this;
-
   if (parent != content && this.find) { for (var i = 0; i < this.find.length; i++) {
-    if (this$1.find[i].pos == null && parent.nodeType == 1 && parent.contains(this$1.find[i].node)) {
-      var pos = content.compareDocumentPosition(this$1.find[i].node);
+    if (this.find[i].pos == null && parent.nodeType == 1 && parent.contains(this.find[i].node)) {
+      var pos = content.compareDocumentPosition(this.find[i].node);
       if (pos & (before ? 2 : 4))
-        { this$1.find[i].pos = this$1.currentPos; }
+        { this.find[i].pos = this.currentPos; }
     }
   } }
 };
 
 ParseContext.prototype.findInText = function findInText (textNode) {
-    var this$1 = this;
-
   if (this.find) { for (var i = 0; i < this.find.length; i++) {
-    if (this$1.find[i].node == textNode)
-      { this$1.find[i].pos = this$1.currentPos - (textNode.nodeValue.length - this$1.find[i].offset); }
+    if (this.find[i].node == textNode)
+      { this.find[i].pos = this.currentPos - (textNode.nodeValue.length - this.find[i].offset); }
   } }
 };
 
@@ -25679,15 +27484,13 @@ ParseContext.prototype.matchesContext = function matchesContext (context) {
 };
 
 ParseContext.prototype.textblockFromContext = function textblockFromContext () {
-    var this$1 = this;
-
   var $context = this.options.context;
   if ($context) { for (var d = $context.depth; d >= 0; d--) {
     var deflt = $context.node(d).contentMatchAt($context.indexAfter(d)).defaultType;
     if (deflt && deflt.isTextblock && deflt.defaultAttrs) { return deflt }
   } }
-  for (var name in this$1.parser.schema.nodes) {
-    var type = this$1.parser.schema.nodes[name];
+  for (var name in this.parser.schema.nodes) {
+    var type = this.parser.schema.nodes[name];
     if (type.isTextblock && type.defaultAttrs) { return type }
   }
 };
@@ -25744,7 +27547,7 @@ function copy(obj) {
 // number zero.
 //
 // The number zero (pronounced “hole”) is used to indicate the place
-// where a node's child nodes should be inserted. It it occurs in an
+// where a node's child nodes should be inserted. If it occurs in an
 // output spec, it should be the only child element in its parent
 // node.
 
@@ -25826,14 +27629,13 @@ DOMSerializer.prototype.serializeNode = function serializeNode (node, options) {
 };
 
 DOMSerializer.prototype.serializeNodeAndMarks = function serializeNodeAndMarks (node, options) {
-    var this$1 = this;
     if ( options === void 0 ) options = {};
 
   var dom = this.serializeNode(node, options);
   for (var i = node.marks.length - 1; i >= 0; i--) {
-    var wrap = this$1.serializeMark(node.marks[i], node.isInline, options);
+    var wrap = this.serializeMark(node.marks[i], node.isInline, options);
     if (wrap) {
-      (wrap.contentDOM || wrap.dom).appendChild(dom);
+(wrap.contentDOM || wrap.dom).appendChild(dom);
       dom = wrap.dom;
     }
   }
@@ -25921,33 +27723,30 @@ function doc(options) {
   return options.document || window.document
 }
 
-exports.Node = Node;
-exports.ResolvedPos = ResolvedPos;
-exports.NodeRange = NodeRange;
-exports.Fragment = Fragment;
-exports.Slice = Slice;
-exports.ReplaceError = ReplaceError;
-exports.Mark = Mark;
-exports.Schema = Schema;
-exports.NodeType = NodeType;
-exports.MarkType = MarkType;
 exports.ContentMatch = ContentMatch;
 exports.DOMParser = DOMParser;
 exports.DOMSerializer = DOMSerializer;
+exports.Fragment = Fragment;
+exports.Mark = Mark;
+exports.MarkType = MarkType;
+exports.Node = Node;
+exports.NodeRange = NodeRange;
+exports.NodeType = NodeType;
+exports.ReplaceError = ReplaceError;
+exports.ResolvedPos = ResolvedPos;
+exports.Schema = Schema;
+exports.Slice = Slice;
 
 
-},{"orderedmap":43}],50:[function(require,module,exports){
+},{"orderedmap":44}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var prosemirrorModel = require('prosemirror-model');
 
-var pDOM = ["p", 0];
-var blockquoteDOM = ["blockquote", 0];
-var hrDOM = ["hr"];
-var preDOM = ["pre", ["code", 0]];
-var brDOM = ["br"];
+var pDOM = ["p", 0], blockquoteDOM = ["blockquote", 0], hrDOM = ["hr"],
+      preDOM = ["pre", ["code", 0]], brDOM = ["br"];
 
 // :: Object
 // [Specs](#model.NodeSpec) for the nodes defined in this schema.
@@ -26052,9 +27851,7 @@ var nodes = {
   }
 };
 
-var emDOM = ["em", 0];
-var strongDOM = ["strong", 0];
-var codeDOM = ["code", 0];
+var emDOM = ["em", 0], strongDOM = ["strong", 0], codeDOM = ["code", 0];
 
 // :: Object [Specs](#model.MarkSpec) for the marks in the schema.
 var marks = {
@@ -26102,7 +27899,7 @@ var marks = {
 };
 
 // :: Schema
-// This schema rougly corresponds to the document schema used by
+// This schema roughly corresponds to the document schema used by
 // [CommonMark](http://commonmark.org/), minus the list elements,
 // which are defined in the [`prosemirror-schema-list`](#schema-list)
 // module.
@@ -26111,12 +27908,268 @@ var marks = {
 // `spec.nodes` and `spec.marks` [properties](#model.Schema.spec).
 var schema = new prosemirrorModel.Schema({nodes: nodes, marks: marks});
 
-exports.nodes = nodes;
 exports.marks = marks;
+exports.nodes = nodes;
 exports.schema = schema;
 
 
-},{"prosemirror-model":49}],51:[function(require,module,exports){
+},{"prosemirror-model":55}],57:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var prosemirrorTransform = require('prosemirror-transform');
+var prosemirrorModel = require('prosemirror-model');
+
+var olDOM = ["ol", 0], ulDOM = ["ul", 0], liDOM = ["li", 0];
+
+// :: NodeSpec
+// An ordered list [node spec](#model.NodeSpec). Has a single
+// attribute, `order`, which determines the number at which the list
+// starts counting, and defaults to 1. Represented as an `<ol>`
+// element.
+var orderedList = {
+  attrs: {order: {default: 1}},
+  parseDOM: [{tag: "ol", getAttrs: function getAttrs(dom) {
+    return {order: dom.hasAttribute("start") ? +dom.getAttribute("start") : 1}
+  }}],
+  toDOM: function toDOM(node) {
+    return node.attrs.order == 1 ? olDOM : ["ol", {start: node.attrs.order}, 0]
+  }
+};
+
+// :: NodeSpec
+// A bullet list node spec, represented in the DOM as `<ul>`.
+var bulletList = {
+  parseDOM: [{tag: "ul"}],
+  toDOM: function toDOM() { return ulDOM }
+};
+
+// :: NodeSpec
+// A list item (`<li>`) spec.
+var listItem = {
+  parseDOM: [{tag: "li"}],
+  toDOM: function toDOM() { return liDOM },
+  defining: true
+};
+
+function add(obj, props) {
+  var copy = {};
+  for (var prop in obj) { copy[prop] = obj[prop]; }
+  for (var prop$1 in props) { copy[prop$1] = props[prop$1]; }
+  return copy
+}
+
+// :: (OrderedMap<NodeSpec>, string, ?string) → OrderedMap<NodeSpec>
+// Convenience function for adding list-related node types to a map
+// specifying the nodes for a schema. Adds
+// [`orderedList`](#schema-list.orderedList) as `"ordered_list"`,
+// [`bulletList`](#schema-list.bulletList) as `"bullet_list"`, and
+// [`listItem`](#schema-list.listItem) as `"list_item"`.
+//
+// `itemContent` determines the content expression for the list items.
+// If you want the commands defined in this module to apply to your
+// list structure, it should have a shape like `"paragraph block*"` or
+// `"paragraph (ordered_list | bullet_list)*"`. `listGroup` can be
+// given to assign a group name to the list node types, for example
+// `"block"`.
+function addListNodes(nodes, itemContent, listGroup) {
+  return nodes.append({
+    ordered_list: add(orderedList, {content: "list_item+", group: listGroup}),
+    bullet_list: add(bulletList, {content: "list_item+", group: listGroup}),
+    list_item: add(listItem, {content: itemContent})
+  })
+}
+
+// :: (NodeType, ?Object) → (state: EditorState, dispatch: ?(tr: Transaction)) → bool
+// Returns a command function that wraps the selection in a list with
+// the given type an attributes. If `dispatch` is null, only return a
+// value to indicate whether this is possible, but don't actually
+// perform the change.
+function wrapInList(listType, attrs) {
+  return function(state, dispatch) {
+    var ref = state.selection;
+    var $from = ref.$from;
+    var $to = ref.$to;
+    var range = $from.blockRange($to), doJoin = false, outerRange = range;
+    if (!range) { return false }
+    // This is at the top of an existing list item
+    if (range.depth >= 2 && $from.node(range.depth - 1).type.compatibleContent(listType) && range.startIndex == 0) {
+      // Don't do anything if this is the top of the list
+      if ($from.index(range.depth - 1) == 0) { return false }
+      var $insert = state.doc.resolve(range.start - 2);
+      outerRange = new prosemirrorModel.NodeRange($insert, $insert, range.depth);
+      if (range.endIndex < range.parent.childCount)
+        { range = new prosemirrorModel.NodeRange($from, state.doc.resolve($to.end(range.depth)), range.depth); }
+      doJoin = true;
+    }
+    var wrap = prosemirrorTransform.findWrapping(outerRange, listType, attrs, range);
+    if (!wrap) { return false }
+    if (dispatch) { dispatch(doWrapInList(state.tr, range, wrap, doJoin, listType).scrollIntoView()); }
+    return true
+  }
+}
+
+function doWrapInList(tr, range, wrappers, joinBefore, listType) {
+  var content = prosemirrorModel.Fragment.empty;
+  for (var i = wrappers.length - 1; i >= 0; i--)
+    { content = prosemirrorModel.Fragment.from(wrappers[i].type.create(wrappers[i].attrs, content)); }
+
+  tr.step(new prosemirrorTransform.ReplaceAroundStep(range.start - (joinBefore ? 2 : 0), range.end, range.start, range.end,
+                                new prosemirrorModel.Slice(content, 0, 0), wrappers.length, true));
+
+  var found = 0;
+  for (var i$1 = 0; i$1 < wrappers.length; i$1++) { if (wrappers[i$1].type == listType) { found = i$1 + 1; } }
+  var splitDepth = wrappers.length - found;
+
+  var splitPos = range.start + wrappers.length - (joinBefore ? 2 : 0), parent = range.parent;
+  for (var i$2 = range.startIndex, e = range.endIndex, first = true; i$2 < e; i$2++, first = false) {
+    if (!first && prosemirrorTransform.canSplit(tr.doc, splitPos, splitDepth)) {
+      tr.split(splitPos, splitDepth);
+      splitPos += 2 * splitDepth;
+    }
+    splitPos += parent.child(i$2).nodeSize;
+  }
+  return tr
+}
+
+// :: (NodeType) → (state: EditorState, dispatch: ?(tr: Transaction)) → bool
+// Build a command that splits a non-empty textblock at the top level
+// of a list item by also splitting that list item.
+function splitListItem(itemType) {
+  return function(state, dispatch) {
+    var ref = state.selection;
+    var $from = ref.$from;
+    var $to = ref.$to;
+    var node = ref.node;
+    if ((node && node.isBlock) || $from.depth < 2 || !$from.sameParent($to)) { return false }
+    var grandParent = $from.node(-1);
+    if (grandParent.type != itemType) { return false }
+    if ($from.parent.content.size == 0) {
+      // In an empty block. If this is a nested list, the wrapping
+      // list item should be split. Otherwise, bail out and let next
+      // command handle lifting.
+      if ($from.depth == 2 || $from.node(-3).type != itemType ||
+          $from.index(-2) != $from.node(-2).childCount - 1) { return false }
+      if (dispatch) {
+        var wrap = prosemirrorModel.Fragment.empty, keepItem = $from.index(-1) > 0;
+        // Build a fragment containing empty versions of the structure
+        // from the outer list item to the parent node of the cursor
+        for (var d = $from.depth - (keepItem ? 1 : 2); d >= $from.depth - 3; d--)
+          { wrap = prosemirrorModel.Fragment.from($from.node(d).copy(wrap)); }
+        // Add a second list item with an empty default start node
+        wrap = wrap.append(prosemirrorModel.Fragment.from(itemType.createAndFill()));
+        var tr$1 = state.tr.replace($from.before(keepItem ? null : -1), $from.after(-3), new prosemirrorModel.Slice(wrap, keepItem ? 3 : 2, 2));
+        tr$1.setSelection(state.selection.constructor.near(tr$1.doc.resolve($from.pos + (keepItem ? 3 : 2))));
+        dispatch(tr$1.scrollIntoView());
+      }
+      return true
+    }
+    var nextType = $to.pos == $from.end() ? grandParent.contentMatchAt(0).defaultType : null;
+    var tr = state.tr.delete($from.pos, $to.pos);
+    var types = nextType && [null, {type: nextType}];
+    if (!prosemirrorTransform.canSplit(tr.doc, $from.pos, 2, types)) { return false }
+    if (dispatch) { dispatch(tr.split($from.pos, 2, types).scrollIntoView()); }
+    return true
+  }
+}
+
+// :: (NodeType) → (state: EditorState, dispatch: ?(tr: Transaction)) → bool
+// Create a command to lift the list item around the selection up into
+// a wrapping list.
+function liftListItem(itemType) {
+  return function(state, dispatch) {
+    var ref = state.selection;
+    var $from = ref.$from;
+    var $to = ref.$to;
+    var range = $from.blockRange($to, function (node) { return node.childCount && node.firstChild.type == itemType; });
+    if (!range) { return false }
+    if (!dispatch) { return true }
+    if ($from.node(range.depth - 1).type == itemType) // Inside a parent list
+      { return liftToOuterList(state, dispatch, itemType, range) }
+    else // Outer list node
+      { return liftOutOfList(state, dispatch, range) }
+  }
+}
+
+function liftToOuterList(state, dispatch, itemType, range) {
+  var tr = state.tr, end = range.end, endOfList = range.$to.end(range.depth);
+  if (end < endOfList) {
+    // There are siblings after the lifted items, which must become
+    // children of the last item
+    tr.step(new prosemirrorTransform.ReplaceAroundStep(end - 1, endOfList, end, endOfList,
+                                  new prosemirrorModel.Slice(prosemirrorModel.Fragment.from(itemType.create(null, range.parent.copy())), 1, 0), 1, true));
+    range = new prosemirrorModel.NodeRange(tr.doc.resolve(range.$from.pos), tr.doc.resolve(endOfList), range.depth);
+  }
+  dispatch(tr.lift(range, prosemirrorTransform.liftTarget(range)).scrollIntoView());
+  return true
+}
+
+function liftOutOfList(state, dispatch, range) {
+  var tr = state.tr, list = range.parent;
+  // Merge the list items into a single big item
+  for (var pos = range.end, i = range.endIndex - 1, e = range.startIndex; i > e; i--) {
+    pos -= list.child(i).nodeSize;
+    tr.delete(pos - 1, pos + 1);
+  }
+  var $start = tr.doc.resolve(range.start), item = $start.nodeAfter;
+  var atStart = range.startIndex == 0, atEnd = range.endIndex == list.childCount;
+  var parent = $start.node(-1), indexBefore = $start.index(-1);
+  if (!parent.canReplace(indexBefore + (atStart ? 0 : 1), indexBefore + 1,
+                         item.content.append(atEnd ? prosemirrorModel.Fragment.empty : prosemirrorModel.Fragment.from(list))))
+    { return false }
+  var start = $start.pos, end = start + item.nodeSize;
+  // Strip off the surrounding list. At the sides where we're not at
+  // the end of the list, the existing list is closed. At sides where
+  // this is the end, it is overwritten to its end.
+  tr.step(new prosemirrorTransform.ReplaceAroundStep(start - (atStart ? 1 : 0), end + (atEnd ? 1 : 0), start + 1, end - 1,
+                                new prosemirrorModel.Slice((atStart ? prosemirrorModel.Fragment.empty : prosemirrorModel.Fragment.from(list.copy(prosemirrorModel.Fragment.empty)))
+                                          .append(atEnd ? prosemirrorModel.Fragment.empty : prosemirrorModel.Fragment.from(list.copy(prosemirrorModel.Fragment.empty))),
+                                          atStart ? 0 : 1, atEnd ? 0 : 1), atStart ? 0 : 1));
+  dispatch(tr.scrollIntoView());
+  return true
+}
+
+// :: (NodeType) → (state: EditorState, dispatch: ?(tr: Transaction)) → bool
+// Create a command to sink the list item around the selection down
+// into an inner list.
+function sinkListItem(itemType) {
+  return function(state, dispatch) {
+    var ref = state.selection;
+    var $from = ref.$from;
+    var $to = ref.$to;
+    var range = $from.blockRange($to, function (node) { return node.childCount && node.firstChild.type == itemType; });
+    if (!range) { return false }
+    var startIndex = range.startIndex;
+    if (startIndex == 0) { return false }
+    var parent = range.parent, nodeBefore = parent.child(startIndex - 1);
+    if (nodeBefore.type != itemType) { return false }
+
+    if (dispatch) {
+      var nestedBefore = nodeBefore.lastChild && nodeBefore.lastChild.type == parent.type;
+      var inner = prosemirrorModel.Fragment.from(nestedBefore ? itemType.create() : null);
+      var slice = new prosemirrorModel.Slice(prosemirrorModel.Fragment.from(itemType.create(null, prosemirrorModel.Fragment.from(parent.type.create(null, inner)))),
+                            nestedBefore ? 3 : 1, 0);
+      var before = range.start, after = range.end;
+      dispatch(state.tr.step(new prosemirrorTransform.ReplaceAroundStep(before - (nestedBefore ? 3 : 1), after,
+                                                   before, after, slice, 1, true))
+               .scrollIntoView());
+    }
+    return true
+  }
+}
+
+exports.addListNodes = addListNodes;
+exports.bulletList = bulletList;
+exports.liftListItem = liftListItem;
+exports.listItem = listItem;
+exports.orderedList = orderedList;
+exports.sinkListItem = sinkListItem;
+exports.splitListItem = splitListItem;
+exports.wrapInList = wrapInList;
+
+
+},{"prosemirror-model":55,"prosemirror-transform":59}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -26142,7 +28195,7 @@ var Selection = function Selection($anchor, $head, ranges) {
   this.$head = $head;
 };
 
-var prototypeAccessors = { anchor: {},head: {},from: {},to: {},$from: {},$to: {},empty: {} };
+var prototypeAccessors = { anchor: { configurable: true },head: { configurable: true },from: { configurable: true },to: { configurable: true },$from: { configurable: true },$to: { configurable: true },empty: { configurable: true } };
 
 // :: number
 // The selection's anchor, as an unresolved position.
@@ -26362,7 +28415,7 @@ var SelectionRange = function SelectionRange($from, $to) {
 // a head (the moving side) and anchor (immobile side), both of which
 // point into textblock nodes. It can be empty (a regular cursor
 // position).
-var TextSelection = (function (Selection) {
+var TextSelection = /*@__PURE__*/(function (Selection) {
   function TextSelection($anchor, $head) {
     if ( $head === void 0 ) $head = $anchor;
 
@@ -26373,7 +28426,7 @@ var TextSelection = (function (Selection) {
   TextSelection.prototype = Object.create( Selection && Selection.prototype );
   TextSelection.prototype.constructor = TextSelection;
 
-  var prototypeAccessors$1 = { $cursor: {} };
+  var prototypeAccessors$1 = { $cursor: { configurable: true } };
 
   // :: ?ResolvedPos
   // Returns a resolved position if this is a cursor selection (an
@@ -26473,7 +28526,7 @@ TextBookmark.prototype.resolve = function resolve (doc) {
 // the target of a node selection. In such a selection, `from` and
 // `to` point directly before and after the selected node, `anchor`
 // equals `from`, and `head` equals `to`..
-var NodeSelection = (function (Selection) {
+var NodeSelection = /*@__PURE__*/(function (Selection) {
   function NodeSelection($pos) {
     var node = $pos.nodeAfter;
     var $end = $pos.node(0).resolve($pos.pos + node.nodeSize);
@@ -26554,7 +28607,7 @@ NodeBookmark.prototype.resolve = function resolve (doc) {
 // (which can not necessarily be expressed with a text selection, when
 // there are for example leaf block nodes at the start or end of the
 // document).
-var AllSelection = (function (Selection) {
+var AllSelection = /*@__PURE__*/(function (Selection) {
   function AllSelection(doc) {
     Selection.call(this, doc.resolve(0), doc.resolve(doc.content.size));
   }
@@ -26612,9 +28665,7 @@ function selectionToInsertionEnd(tr, startLen, bias) {
   tr.setSelection(Selection.near(tr.doc.resolve(end), bias));
 }
 
-var UPDATED_SEL = 1;
-var UPDATED_MARKS = 2;
-var UPDATED_SCROLL = 4;
+var UPDATED_SEL = 1, UPDATED_MARKS = 2, UPDATED_SCROLL = 4;
 
 // ::- An editor state transaction, which can be applied to a state to
 // create an updated state. Use
@@ -26633,9 +28684,9 @@ var UPDATED_SCROLL = 4;
 // it will attach a property `"pointer"` with the value `true` to
 // selection transactions directly caused by mouse or touch input, and
 // a `"uiEvent"` property of that may be `"paste"`, `"cut"`, or `"drop"`.
-var Transaction = (function (Transform$$1) {
+var Transaction = /*@__PURE__*/(function (Transform) {
   function Transaction(state) {
-    Transform$$1.call(this, state.doc);
+    Transform.call(this, state.doc);
     // :: number
     // The timestamp associated with this transaction, in the same
     // format as `Date.now()`.
@@ -26653,11 +28704,11 @@ var Transaction = (function (Transform$$1) {
     this.meta = Object.create(null);
   }
 
-  if ( Transform$$1 ) Transaction.__proto__ = Transform$$1;
-  Transaction.prototype = Object.create( Transform$$1 && Transform$$1.prototype );
+  if ( Transform ) Transaction.__proto__ = Transform;
+  Transaction.prototype = Object.create( Transform && Transform.prototype );
   Transaction.prototype.constructor = Transaction;
 
-  var prototypeAccessors = { selection: {},selectionSet: {},storedMarksSet: {},isGeneric: {},scrolledIntoView: {} };
+  var prototypeAccessors = { selection: { configurable: true },selectionSet: { configurable: true },storedMarksSet: { configurable: true },isGeneric: { configurable: true },scrolledIntoView: { configurable: true } };
 
   // :: Selection
   // The transaction's current selection. This defaults to the editor
@@ -26676,6 +28727,8 @@ var Transaction = (function (Transform$$1) {
   // Update the transaction's current selection. Will determine the
   // selection that the editor gets when the transaction is applied.
   Transaction.prototype.setSelection = function setSelection (selection) {
+    if (selection.$from.doc != this.doc)
+      { throw new RangeError("Selection passed to setSelection must point at the current document") }
     this.curSelection = selection;
     this.curSelectionFor = this.steps.length;
     this.updated = (this.updated | UPDATED_SEL) & ~UPDATED_MARKS;
@@ -26726,7 +28779,7 @@ var Transaction = (function (Transform$$1) {
   };
 
   Transaction.prototype.addStep = function addStep (step, doc) {
-    Transform$$1.prototype.addStep.call(this, step, doc);
+    Transform.prototype.addStep.call(this, step, doc);
     this.updated = this.updated & ~UPDATED_MARKS;
     this.storedMarks = null;
   };
@@ -26805,9 +28858,7 @@ var Transaction = (function (Transform$$1) {
   // Returns true if this transaction doesn't contain any metadata,
   // and can thus safely be extended.
   prototypeAccessors.isGeneric.get = function () {
-    var this$1 = this;
-
-    for (var _ in this$1.meta) { return false }
+    for (var _ in this.meta) { return false }
     return true
   };
 
@@ -26890,7 +28941,7 @@ var EditorState = function EditorState(config) {
   this.config = config;
 };
 
-var prototypeAccessors$1 = { schema: {},plugins: {},tr: {} };
+var prototypeAccessors$1 = { schema: { configurable: true },plugins: { configurable: true },tr: { configurable: true } };
 
 // doc:: Node
 // The current document.
@@ -26922,12 +28973,11 @@ EditorState.prototype.apply = function apply (tr) {
 
 // : (Transaction) → bool
 EditorState.prototype.filterTransaction = function filterTransaction (tr, ignore) {
-    var this$1 = this;
     if ( ignore === void 0 ) ignore = -1;
 
   for (var i = 0; i < this.config.plugins.length; i++) { if (i != ignore) {
-    var plugin = this$1.config.plugins[i];
-    if (plugin.spec.filterTransaction && !plugin.spec.filterTransaction.call(plugin, tr, this$1))
+    var plugin = this.config.plugins[i];
+    if (plugin.spec.filterTransaction && !plugin.spec.filterTransaction.call(plugin, tr, this))
       { return false }
   } }
   return true
@@ -26940,20 +28990,18 @@ EditorState.prototype.filterTransaction = function filterTransaction (tr, ignore
 // hooks](#state.PluginSpec.filterTransaction) of
 // plugins) along with the new state.
 EditorState.prototype.applyTransaction = function applyTransaction (rootTr) {
-    var this$1 = this;
-
   if (!this.filterTransaction(rootTr)) { return {state: this, transactions: []} }
 
   var trs = [rootTr], newState = this.applyInner(rootTr), seen = null;
   // This loop repeatedly gives plugins a chance to respond to
   // transactions as new transactions are added, making sure to only
   // pass the transactions the plugin did not see before.
-  outer: for (;;) {
+   for (;;) {
     var haveNew = false;
     for (var i = 0; i < this.config.plugins.length; i++) {
-      var plugin = this$1.config.plugins[i];
+      var plugin = this.config.plugins[i];
       if (plugin.spec.appendTransaction) {
-        var n = seen ? seen[i].n : 0, oldState = seen ? seen[i].state : this$1;
+        var n = seen ? seen[i].n : 0, oldState = seen ? seen[i].state : this;
         var tr = n < trs.length &&
             plugin.spec.appendTransaction.call(plugin, n ? trs.slice(n) : trs, oldState, newState);
         if (tr && newState.filterTransaction(tr, i)) {
@@ -26961,7 +29009,7 @@ EditorState.prototype.applyTransaction = function applyTransaction (rootTr) {
           if (!seen) {
             seen = [];
             for (var j = 0; j < this.config.plugins.length; j++)
-              { seen.push(j < i ? {state: newState, n: trs.length} : {state: this$1, n: 0}); }
+              { seen.push(j < i ? {state: newState, n: trs.length} : {state: this, n: 0}); }
           }
           trs.push(tr);
           newState = newState.applyInner(tr);
@@ -26976,15 +29024,13 @@ EditorState.prototype.applyTransaction = function applyTransaction (rootTr) {
 
 // : (Transaction) → EditorState
 EditorState.prototype.applyInner = function applyInner (tr) {
-    var this$1 = this;
-
   if (!tr.before.eq(this.doc)) { throw new RangeError("Applying a mismatched transaction") }
   var newInstance = new EditorState(this.config), fields = this.config.fields;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    newInstance[field.name] = field.apply(tr, this$1[field.name], this$1, newInstance);
+    newInstance[field.name] = field.apply(tr, this[field.name], this, newInstance);
   }
-  for (var i$1 = 0; i$1 < applyListeners.length; i$1++) { applyListeners[i$1](this$1, tr, newInstance); }
+  for (var i$1 = 0; i$1 < applyListeners.length; i$1++) { applyListeners[i$1](this, tr, newInstance); }
   return newInstance
 };
 
@@ -27035,13 +29081,11 @@ EditorState.create = function create (config) {
 //   plugins:: ?[Plugin]
 //   New set of active plugins.
 EditorState.prototype.reconfigure = function reconfigure (config) {
-    var this$1 = this;
-
   var $config = new Configuration(config.schema || this.schema, config.plugins);
   var fields = $config.fields, instance = new EditorState($config);
   for (var i = 0; i < fields.length; i++) {
     var name = fields[i].name;
-    instance[name] = this$1.hasOwnProperty(name) ? this$1[name] : fields[i].init(config, instance);
+    instance[name] = this.hasOwnProperty(name) ? this[name] : fields[i].init(config, instance);
   }
   return instance
 };
@@ -27053,15 +29097,13 @@ EditorState.prototype.reconfigure = function reconfigure (config) {
 // a string or number, in which case it is ignored, to support the
 // way `JSON.stringify` calls `toString` methods.
 EditorState.prototype.toJSON = function toJSON (pluginFields) {
-    var this$1 = this;
-
   var result = {doc: this.doc.toJSON(), selection: this.selection.toJSON()};
   if (this.storedMarks) { result.storedMarks = this.storedMarks.map(function (m) { return m.toJSON(); }); }
   if (pluginFields && typeof pluginFields == 'object') { for (var prop in pluginFields) {
     if (prop == "doc" || prop == "selection")
       { throw new RangeError("The JSON fields `doc` and `selection` are reserved") }
     var plugin = pluginFields[prop], state = plugin.spec.state;
-    if (state && state.toJSON) { result[prop] = state.toJSON.call(plugin, this$1[plugin.key]); }
+    if (state && state.toJSON) { result[prop] = state.toJSON.call(plugin, this[plugin.key]); }
   } }
   return result
 };
@@ -27255,18 +29297,18 @@ PluginKey.prototype.get = function get (state) { return state.config.pluginsByKe
 // Get the plugin's state from an editor state.
 PluginKey.prototype.getState = function getState (state) { return state[this.key] };
 
+exports.AllSelection = AllSelection;
+exports.EditorState = EditorState;
+exports.NodeSelection = NodeSelection;
+exports.Plugin = Plugin;
+exports.PluginKey = PluginKey;
 exports.Selection = Selection;
 exports.SelectionRange = SelectionRange;
 exports.TextSelection = TextSelection;
-exports.NodeSelection = NodeSelection;
-exports.AllSelection = AllSelection;
 exports.Transaction = Transaction;
-exports.EditorState = EditorState;
-exports.Plugin = Plugin;
-exports.PluginKey = PluginKey;
 
 
-},{"prosemirror-model":49,"prosemirror-transform":52}],52:[function(require,module,exports){
+},{"prosemirror-model":55,"prosemirror-transform":59}],59:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -27335,11 +29377,9 @@ var StepMap = function StepMap(ranges, inverted) {
 };
 
 StepMap.prototype.recover = function recover (value) {
-    var this$1 = this;
-
   var diff = 0, index = recoverIndex(value);
   if (!this.inverted) { for (var i = 0; i < index; i++)
-    { diff += this$1.ranges[i * 3 + 2] - this$1.ranges[i * 3 + 1]; } }
+    { diff += this.ranges[i * 3 + 2] - this.ranges[i * 3 + 1]; } }
   return this.ranges[index * 3] + diff + recoverOffset(value)
 };
 
@@ -27354,13 +29394,11 @@ StepMap.prototype.map = function map (pos, assoc) {
  return this._map(pos, assoc, true) };
 
 StepMap.prototype._map = function _map (pos, assoc, simple) {
-    var this$1 = this;
-
   var diff = 0, oldIndex = this.inverted ? 2 : 1, newIndex = this.inverted ? 1 : 2;
   for (var i = 0; i < this.ranges.length; i += 3) {
-    var start = this$1.ranges[i] - (this$1.inverted ? diff : 0);
+    var start = this.ranges[i] - (this.inverted ? diff : 0);
     if (start > pos) { break }
-    var oldSize = this$1.ranges[i + oldIndex], newSize = this$1.ranges[i + newIndex], end = start + oldSize;
+    var oldSize = this.ranges[i + oldIndex], newSize = this.ranges[i + newIndex], end = start + oldSize;
     if (pos <= end) {
       var side = !oldSize ? assoc : pos == start ? -1 : pos == end ? 1 : assoc;
       var result = start + diff + (side < 0 ? 0 : newSize);
@@ -27374,16 +29412,14 @@ StepMap.prototype._map = function _map (pos, assoc, simple) {
 };
 
 StepMap.prototype.touches = function touches (pos, recover) {
-    var this$1 = this;
-
   var diff = 0, index = recoverIndex(recover);
   var oldIndex = this.inverted ? 2 : 1, newIndex = this.inverted ? 1 : 2;
   for (var i = 0; i < this.ranges.length; i += 3) {
-    var start = this$1.ranges[i] - (this$1.inverted ? diff : 0);
+    var start = this.ranges[i] - (this.inverted ? diff : 0);
     if (start > pos) { break }
-    var oldSize = this$1.ranges[i + oldIndex], end = start + oldSize;
+    var oldSize = this.ranges[i + oldIndex], end = start + oldSize;
     if (pos <= end && i == index * 3) { return true }
-    diff += this$1.ranges[i + newIndex] - oldSize;
+    diff += this.ranges[i + newIndex] - oldSize;
   }
   return false
 };
@@ -27392,12 +29428,10 @@ StepMap.prototype.touches = function touches (pos, recover) {
 // Calls the given function on each of the changed ranges included in
 // this map.
 StepMap.prototype.forEach = function forEach (f) {
-    var this$1 = this;
-
   var oldIndex = this.inverted ? 2 : 1, newIndex = this.inverted ? 1 : 2;
   for (var i = 0, diff = 0; i < this.ranges.length; i += 3) {
-    var start = this$1.ranges[i], oldStart = start - (this$1.inverted ? diff : 0), newStart = start + (this$1.inverted ? 0 : diff);
-    var oldSize = this$1.ranges[i + oldIndex], newSize = this$1.ranges[i + newIndex];
+    var start = this.ranges[i], oldStart = start - (this.inverted ? diff : 0), newStart = start + (this.inverted ? 0 : diff);
+    var oldSize = this.ranges[i + oldIndex], newSize = this.ranges[i + newIndex];
     f(oldStart, oldStart + oldSize, newStart, newStart + newSize);
     diff += newSize - oldSize;
   }
@@ -27471,11 +29505,9 @@ Mapping.prototype.appendMap = function appendMap (map, mirrors) {
 // Add all the step maps in a given mapping to this one (preserving
 // mirroring information).
 Mapping.prototype.appendMapping = function appendMapping (mapping) {
-    var this$1 = this;
-
   for (var i = 0, startSize = this.maps.length; i < mapping.maps.length; i++) {
     var mirr = mapping.getMirror(i);
-    this$1.appendMap(mapping.maps[i], mirr != null && mirr < i ? startSize + mirr : null);
+    this.appendMap(mapping.maps[i], mirr != null && mirr < i ? startSize + mirr : null);
   }
 };
 
@@ -27484,10 +29516,8 @@ Mapping.prototype.appendMapping = function appendMapping (mapping) {
 // given offset, in this mapping (as per the second argument to
 // `appendMap`).
 Mapping.prototype.getMirror = function getMirror (n) {
-    var this$1 = this;
-
   if (this.mirror) { for (var i = 0; i < this.mirror.length; i++)
-    { if (this$1.mirror[i] == n) { return this$1.mirror[i + (i % 2 ? -1 : 1)] } } }
+    { if (this.mirror[i] == n) { return this.mirror[i + (i % 2 ? -1 : 1)] } } }
 };
 
 Mapping.prototype.setMirror = function setMirror (n, m) {
@@ -27498,15 +29528,13 @@ Mapping.prototype.setMirror = function setMirror (n, m) {
 // :: (Mapping)
 // Append the inverse of the given mapping to this one.
 Mapping.prototype.appendMappingInverted = function appendMappingInverted (mapping) {
-    var this$1 = this;
-
   for (var i = mapping.maps.length - 1, totalSize = this.maps.length + mapping.maps.length; i >= 0; i--) {
     var mirr = mapping.getMirror(i);
-    this$1.appendMap(mapping.maps[i].invert(), mirr != null && mirr > i ? totalSize - mirr - 1 : null);
+    this.appendMap(mapping.maps[i].invert(), mirr != null && mirr > i ? totalSize - mirr - 1 : null);
   }
 };
 
-// () → Mapping
+// :: () → Mapping
 // Create an inverted version of this mapping.
 Mapping.prototype.invert = function invert () {
   var inverse = new Mapping;
@@ -27517,12 +29545,11 @@ Mapping.prototype.invert = function invert () {
 // : (number, ?number) → number
 // Map a position through this mapping.
 Mapping.prototype.map = function map (pos, assoc) {
-    var this$1 = this;
     if ( assoc === void 0 ) assoc = 1;
 
   if (this.mirror) { return this._map(pos, assoc, true) }
   for (var i = this.from; i < this.to; i++)
-    { pos = this$1.maps[i].map(pos, assoc); }
+    { pos = this.maps[i].map(pos, assoc); }
   return pos
 };
 
@@ -27534,12 +29561,10 @@ Mapping.prototype.mapResult = function mapResult (pos, assoc) {
  return this._map(pos, assoc, false) };
 
 Mapping.prototype._map = function _map (pos, assoc, simple) {
-    var this$1 = this;
-
   var deleted = false, recoverables = null;
 
   for (var i = this.from; i < this.to; i++) {
-    var map = this$1.maps[i], rec = recoverables && recoverables[i];
+    var map = this.maps[i], rec = recoverables && recoverables[i];
     if (rec != null && map.touches(pos, rec)) {
       pos = map.recover(rec);
       continue
@@ -27547,14 +29572,14 @@ Mapping.prototype._map = function _map (pos, assoc, simple) {
 
     var result = map.mapResult(pos, assoc);
     if (result.recover != null) {
-      var corr = this$1.getMirror(i);
-      if (corr != null && corr > i && corr < this$1.to) {
+      var corr = this.getMirror(i);
+      if (corr != null && corr > i && corr < this.to) {
         if (result.deleted) {
           i = corr;
-          pos = this$1.maps[corr].recover(result.recover);
+          pos = this.maps[corr].recover(result.recover);
           continue
         } else {
-          (recoverables || (recoverables = Object.create(null)))[corr] = result.recover;
+(recoverables || (recoverables = Object.create(null)))[corr] = result.recover;
         }
       }
     }
@@ -27597,7 +29622,7 @@ var Transform = function Transform(doc) {
   this.mapping = new Mapping;
 };
 
-var prototypeAccessors = { before: {},docChanged: {} };
+var prototypeAccessors = { before: { configurable: true },docChanged: { configurable: true } };
 
 // :: Node The starting document.
 prototypeAccessors.before.get = function () { return this.docs.length ? this.docs[0] : this.doc };
@@ -27736,17 +29761,17 @@ StepResult.fromReplace = function fromReplace (doc, from, to, slice) {
 };
 
 // ::- Replace a part of the document with a slice of new content.
-var ReplaceStep = (function (Step$$1) {
+var ReplaceStep = /*@__PURE__*/(function (Step) {
   function ReplaceStep(from, to, slice, structure) {
-    Step$$1.call(this);
+    Step.call(this);
     this.from = from;
     this.to = to;
     this.slice = slice;
     this.structure = !!structure;
   }
 
-  if ( Step$$1 ) ReplaceStep.__proto__ = Step$$1;
-  ReplaceStep.prototype = Object.create( Step$$1 && Step$$1.prototype );
+  if ( Step ) ReplaceStep.__proto__ = Step;
+  ReplaceStep.prototype = Object.create( Step && Step.prototype );
   ReplaceStep.prototype.constructor = ReplaceStep;
 
   ReplaceStep.prototype.apply = function apply (doc) {
@@ -27806,9 +29831,9 @@ Step.jsonID("replace", ReplaceStep);
 // ::- Replace a part of the document with a slice of content, but
 // preserve a range of the replaced content by moving it into the
 // slice.
-var ReplaceAroundStep = (function (Step$$1) {
+var ReplaceAroundStep = /*@__PURE__*/(function (Step) {
   function ReplaceAroundStep(from, to, gapFrom, gapTo, slice, insert, structure) {
-    Step$$1.call(this);
+    Step.call(this);
     this.from = from;
     this.to = to;
     this.gapFrom = gapFrom;
@@ -27818,8 +29843,8 @@ var ReplaceAroundStep = (function (Step$$1) {
     this.structure = !!structure;
   }
 
-  if ( Step$$1 ) ReplaceAroundStep.__proto__ = Step$$1;
-  ReplaceAroundStep.prototype = Object.create( Step$$1 && Step$$1.prototype );
+  if ( Step ) ReplaceAroundStep.__proto__ = Step;
+  ReplaceAroundStep.prototype = Object.create( Step && Step.prototype );
   ReplaceAroundStep.prototype.constructor = ReplaceAroundStep;
 
   ReplaceAroundStep.prototype.apply = function apply (doc) {
@@ -28094,7 +30119,7 @@ Transform.prototype.split = function(pos, depth, typesAfter) {
     var typeAfter = typesAfter && typesAfter[i];
     after = prosemirrorModel.Fragment.from(typeAfter ? typeAfter.type.create(typeAfter.attrs, after) : $pos.node(d).copy(after));
   }
-  return this.step(new ReplaceStep(pos, pos, new prosemirrorModel.Slice(before.append(after), depth, depth, true)))
+  return this.step(new ReplaceStep(pos, pos, new prosemirrorModel.Slice(before.append(after), depth, depth), true))
 };
 
 // :: (Node, number) → bool
@@ -28204,16 +30229,16 @@ function mapFragment(fragment, f, parent) {
 }
 
 // ::- Add a mark to all inline content between two positions.
-var AddMarkStep = (function (Step$$1) {
+var AddMarkStep = /*@__PURE__*/(function (Step) {
   function AddMarkStep(from, to, mark) {
-    Step$$1.call(this);
+    Step.call(this);
     this.from = from;
     this.to = to;
     this.mark = mark;
   }
 
-  if ( Step$$1 ) AddMarkStep.__proto__ = Step$$1;
-  AddMarkStep.prototype = Object.create( Step$$1 && Step$$1.prototype );
+  if ( Step ) AddMarkStep.__proto__ = Step;
+  AddMarkStep.prototype = Object.create( Step && Step.prototype );
   AddMarkStep.prototype.constructor = AddMarkStep;
 
   AddMarkStep.prototype.apply = function apply (doc) {
@@ -28263,16 +30288,16 @@ var AddMarkStep = (function (Step$$1) {
 Step.jsonID("addMark", AddMarkStep);
 
 // ::- Remove a mark from all inline content between two positions.
-var RemoveMarkStep = (function (Step$$1) {
+var RemoveMarkStep = /*@__PURE__*/(function (Step) {
   function RemoveMarkStep(from, to, mark) {
-    Step$$1.call(this);
+    Step.call(this);
     this.from = from;
     this.to = to;
     this.mark = mark;
   }
 
-  if ( Step$$1 ) RemoveMarkStep.__proto__ = Step$$1;
-  RemoveMarkStep.prototype = Object.create( Step$$1 && Step$$1.prototype );
+  if ( Step ) RemoveMarkStep.__proto__ = Step;
+  RemoveMarkStep.prototype = Object.create( Step && Step.prototype );
   RemoveMarkStep.prototype.constructor = RemoveMarkStep;
 
   RemoveMarkStep.prototype.apply = function apply (doc) {
@@ -28402,7 +30427,6 @@ Transform.prototype.removeMark = function(from, to, mark) {
 // optional starting [content match](#model.ContentMatch) as third
 // argument.
 Transform.prototype.clearIncompatible = function(pos, parentType, match) {
-  var this$1 = this;
   if ( match === void 0 ) match = parentType.contentMatch;
 
   var node = this.doc.nodeAt(pos);
@@ -28415,7 +30439,7 @@ Transform.prototype.clearIncompatible = function(pos, parentType, match) {
     } else {
       match = allowed;
       for (var j = 0; j < child.marks.length; j++) { if (!parentType.allowsMarkType(child.marks[j].type))
-        { this$1.step(new RemoveMarkStep(cur, end, child.marks[j])); } }
+        { this.step(new RemoveMarkStep(cur, end, child.marks[j])); } }
     }
     cur = end;
   }
@@ -28423,7 +30447,7 @@ Transform.prototype.clearIncompatible = function(pos, parentType, match) {
     var fill = match.fillBefore(prosemirrorModel.Fragment.empty, true);
     this.replace(cur, cur, new prosemirrorModel.Slice(fill, 0, 0));
   }
-  for (var i$1 = delSteps.length - 1; i$1 >= 0; i$1--) { this$1.step(delSteps[i$1]); }
+  for (var i$1 = delSteps.length - 1; i$1 >= 0; i$1--) { this.step(delSteps[i$1]); }
   return this
 };
 
@@ -28655,8 +30679,11 @@ function nodeRight(content, depth) {
 // : (ResolvedPos, Slice) → [{content: Fragment, openEnd: number, depth: number}]
 function placeSlice($from, slice) {
   var frontier = new Frontier($from);
-  for (var pass = 1; slice.size && pass <= 3; pass++)
-    { slice = frontier.placeSlice(slice.content, slice.openStart, slice.openEnd, pass); }
+  for (var pass = 1; slice.size && pass <= 3; pass++) {
+    var value = frontier.placeSlice(slice.content, slice.openStart, slice.openEnd, pass);
+    if (pass == 3 && value != slice && value.size) { pass = 0; } // Restart if the 3rd pass made progress but left content
+    slice = value;
+  }
   while (frontier.open.length) { frontier.closeNode(); }
   return frontier.placed
 }
@@ -28665,13 +30692,11 @@ function placeSlice($from, slice) {
 // keeping track of the content match and already inserted content
 // at each depth.
 var Frontier = function Frontier($pos) {
-  var this$1 = this;
-
   // : [{parent: Node, match: ContentMatch, content: Fragment, wrapper: bool, openEnd: number, depth: number}]
   this.open = [];
   for (var d = 0; d <= $pos.depth; d++) {
     var parent = $pos.node(d), match = parent.contentMatchAt($pos.indexAfter(d));
-    this$1.open.push({parent: parent, match: match, content: prosemirrorModel.Fragment.empty, wrapper: false, openEnd: 0, depth: d});
+    this.open.push({parent: parent, match: match, content: prosemirrorModel.Fragment.empty, wrapper: false, openEnd: 0, depth: d});
   }
   this.placed = [];
 };
@@ -28684,8 +30709,6 @@ var Frontier = function Frontier($pos) {
 // pass 2: allow wrapper nodes to be introduced
 // pass 3: allow unwrapping of nodes that aren't open
 Frontier.prototype.placeSlice = function placeSlice (fragment, openStart, openEnd, pass, parent) {
-    var this$1 = this;
-
   if (openStart > 0) {
     var first = fragment.firstChild;
     var inner = this.placeSlice(first.content, Math.max(0, openStart - 1),
@@ -28704,41 +30727,35 @@ Frontier.prototype.placeSlice = function placeSlice (fragment, openStart, openEn
   }
   var result = this.placeContent(fragment, openStart, openEnd, pass, parent);
   if (pass > 2 && result.size && openStart == 0) {
-    for (var i = 0; i < result.content.childCount; i++) {
-      var child = result.content.child(i);
-      this$1.placeContent(child.content, 0,
-                        openEnd && i == result.content.childCount.length - 1 ? openEnd - 1 : 0,
-                        pass, child);
-    }
-    result = prosemirrorModel.Fragment.empty;
+    var child = result.content.firstChild, single = result.content.childCount == 1;
+    this.placeContent(child.content, 0, openEnd && single ? openEnd - 1 : 0, pass, child);
+    result = single ? prosemirrorModel.Fragment.empty : new prosemirrorModel.Slice(result.content.cutByIndex(1), 0, openEnd);
   }
   return result
 };
 
 Frontier.prototype.placeContent = function placeContent (fragment, openStart, openEnd, pass, parent) {
-    var this$1 = this;
-
   var i = 0;
   // Go over the fragment's children
   for (; i < fragment.childCount; i++) {
     var child = fragment.child(i), placed = false, last = i == fragment.childCount - 1;
     // Try each open node in turn, starting from the innermost
     for (var d = this.open.length - 1; d >= 0; d--) {
-      var open = this$1.open[d], wrap = (void 0);
+      var open = this.open[d], wrap = (void 0);
 
       // If pass > 1, it is allowed to wrap the node to help find a
-      // fit, so if findWrappeing returns something, we add open
+      // fit, so if findWrapping returns something, we add open
       // nodes to the frontier for that wrapping.
       if (pass > 1 && (wrap = open.match.findWrapping(child.type)) &&
           !(parent && wrap.length && wrap[wrap.length - 1] == parent.type)) {
-        while (this.open.length - 1 > d) { this$1.closeNode(); }
+        while (this.open.length - 1 > d) { this.closeNode(); }
         for (var w = 0; w < wrap.length; w++) {
           open.match = open.match.matchType(wrap[w]);
           d++;
           open = {parent: wrap[w].create(),
                   match: wrap[w].contentMatch,
                   content: prosemirrorModel.Fragment.empty, wrapper: true, openEnd: 0, depth: d + w};
-          this$1.open.push(open);
+          this.open.push(open);
         }
       }
 
@@ -28749,7 +30766,7 @@ Frontier.prototype.placeContent = function placeContent (fragment, openStart, op
         if (fill) {
           for (var j = 0; j < fill.childCount; j++) {
             var ch = fill.child(j);
-            this$1.addNode(open, ch, 0);
+            this.addNode(open, ch, 0);
             match = open.match.matchFragment(ch);
           }
         } else if (parent && open.match.matchType(parent.type)) {
@@ -28763,7 +30780,7 @@ Frontier.prototype.placeContent = function placeContent (fragment, openStart, op
 
       // Close open nodes above this one, since we're starting to
       // add to this.
-      while (this.open.length - 1 > d) { this$1.closeNode(); }
+      while (this.open.length - 1 > d) { this.closeNode(); }
       // Strip marks from the child or close its start when necessary
       child = child.mark(open.parent.type.allowedMarks(child.marks));
       if (openStart) {
@@ -28771,7 +30788,7 @@ Frontier.prototype.placeContent = function placeContent (fragment, openStart, op
         openStart = 0;
       }
       // Add the child to this open node and adjust its metadata
-      this$1.addNode(open, child, last ? openEnd : 0);
+      this.addNode(open, child, last ? openEnd : 0);
       open.match = match;
       if (last) { openEnd = 0; }
       placed = true;
@@ -28799,9 +30816,7 @@ Frontier.prototype.addNode = function addNode (open, node, openEnd) {
 
 Frontier.prototype.closeNode = function closeNode () {
   var open = this.open.pop();
-  if (open.content.size == 0) {
-    // Nothing here
-  } else if (open.wrapper) {
+  if (open.content.size == 0) ; else if (open.wrapper) {
     this.addNode(this.open[this.open.length - 1], open.parent.copy(open.content), open.openEnd + 1);
   } else {
     this.placed[open.depth] = {depth: open.depth, content: open.content, openEnd: open.openEnd};
@@ -28849,8 +30864,6 @@ function closeFragmentEnd(fragment, depth) {
 // range, and is useful in situations where you need more precise
 // control over what happens.
 Transform.prototype.replaceRange = function(from, to, slice) {
-  var this$1 = this;
-
   if (!slice.size) { return this.deleteRange(from, to) }
 
   var $from = this.doc.resolve(from), $to = this.doc.resolve(to);
@@ -28905,13 +30918,21 @@ Transform.prototype.replaceRange = function(from, to, slice) {
       if (targetDepth < 0) { expand = false; targetDepth = -targetDepth; }
       var parent = $from.node(targetDepth - 1), index = $from.index(targetDepth - 1);
       if (parent.canReplaceWith(index, index, insert.type, insert.marks))
-        { return this$1.replace($from.before(targetDepth), expand ? $to.after(targetDepth) : to,
+        { return this.replace($from.before(targetDepth), expand ? $to.after(targetDepth) : to,
                             new prosemirrorModel.Slice(closeFragment(slice.content, 0, slice.openStart, openDepth),
                                       openDepth, slice.openEnd)) }
     }
   }
 
-  return this.replace(from, to, slice)
+  var startSteps = this.steps.length;
+  for (var i$2 = targetDepths.length - 1; i$2 >= 0; i$2--) {
+    this.replace(from, to, slice);
+    if (this.steps.length > startSteps) { break }
+    var depth = targetDepths[i$2];
+    if (i$2 < 0) { continue }
+    from = $from.before(depth); to = $to.after(depth);
+  }
+  return this
 };
 
 function closeFragment(fragment, depth, oldOpen, newOpen, parent) {
@@ -28919,8 +30940,11 @@ function closeFragment(fragment, depth, oldOpen, newOpen, parent) {
     var first = fragment.firstChild;
     fragment = fragment.replaceChild(0, first.copy(closeFragment(first.content, depth + 1, oldOpen, newOpen, first)));
   }
-  if (depth > newOpen)
-    { fragment = parent.contentMatchAt(0).fillBefore(fragment, true).append(fragment); }
+  if (depth > newOpen) {
+    var match = parent.contentMatchAt(0);
+    var start = match.fillBefore(fragment).append(fragment);
+    fragment = start.append(match.matchFragment(start).fillBefore(prosemirrorModel.Fragment.empty, true));
+  }
   return fragment
 }
 
@@ -28944,20 +30968,18 @@ Transform.prototype.replaceRangeWith = function(from, to, node) {
 // Delete the given range, expanding it to cover fully covered
 // parent nodes until a valid replace is found.
 Transform.prototype.deleteRange = function(from, to) {
-  var this$1 = this;
-
   var $from = this.doc.resolve(from), $to = this.doc.resolve(to);
   var covered = coveredDepths($from, $to);
   for (var i = 0; i < covered.length; i++) {
     var depth = covered[i], last = i == covered.length - 1;
     if ((last && depth == 0) || $from.node(depth).type.contentMatch.validEnd)
-      { return this$1.delete($from.start(depth), $to.end(depth)) }
+      { return this.delete($from.start(depth), $to.end(depth)) }
     if (depth > 0 && (last || $from.node(depth - 1).canReplace($from.index(depth - 1), $to.indexAfter(depth - 1))))
-      { return this$1.delete($from.before(depth), $to.after(depth)) }
+      { return this.delete($from.before(depth), $to.after(depth)) }
   }
   for (var d = 1; d <= $from.depth; d++) {
-    if (from - $from.start(d) == $from.depth - d && to > $from.end(d))
-      { return this$1.delete($from.before(d), to) }
+    if (from - $from.start(d) == $from.depth - d && to > $from.end(d) && $to.end(d) - to != $to.depth - d)
+      { return this.delete($from.before(d), to) }
   }
   return this.delete(from, to)
 };
@@ -28978,37 +31000,38 @@ function coveredDepths($from, $to) {
   return result
 }
 
-exports.Transform = Transform;
-exports.TransformError = TransformError;
-exports.Step = Step;
-exports.StepResult = StepResult;
-exports.joinPoint = joinPoint;
-exports.canJoin = canJoin;
-exports.canSplit = canSplit;
-exports.insertPoint = insertPoint;
-exports.dropPoint = dropPoint;
-exports.liftTarget = liftTarget;
-exports.findWrapping = findWrapping;
-exports.StepMap = StepMap;
+exports.AddMarkStep = AddMarkStep;
 exports.MapResult = MapResult;
 exports.Mapping = Mapping;
-exports.AddMarkStep = AddMarkStep;
 exports.RemoveMarkStep = RemoveMarkStep;
-exports.ReplaceStep = ReplaceStep;
 exports.ReplaceAroundStep = ReplaceAroundStep;
+exports.ReplaceStep = ReplaceStep;
+exports.Step = Step;
+exports.StepMap = StepMap;
+exports.StepResult = StepResult;
+exports.Transform = Transform;
+exports.TransformError = TransformError;
+exports.canJoin = canJoin;
+exports.canSplit = canSplit;
+exports.dropPoint = dropPoint;
+exports.findWrapping = findWrapping;
+exports.insertPoint = insertPoint;
+exports.joinPoint = joinPoint;
+exports.liftTarget = liftTarget;
 exports.replaceStep = replaceStep;
 
 
-},{"prosemirror-model":49}],53:[function(require,module,exports){
+},{"prosemirror-model":55}],60:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var prosemirrorModel = require('prosemirror-model');
 var prosemirrorState = require('prosemirror-state');
+var prosemirrorModel = require('prosemirror-model');
 var prosemirrorTransform = require('prosemirror-transform');
 
 var result = {};
+
 if (typeof navigator != "undefined" && typeof document != "undefined") {
   var ie_edge = /Edge\/(\d+)/.exec(navigator.userAgent);
   var ie_upto10 = /MSIE \d/.test(navigator.userAgent);
@@ -29061,7 +31084,7 @@ var atomElements = /^(img|br|input|textarea|hr)$/i;
 function scanFor(node, off, targetNode, targetOff, dir) {
   for (;;) {
     if (node == targetNode && off == targetOff) { return true }
-    if (off == (dir < 0 ? 0 : nodeSize(node)) || node.nodeType == 3 && node.nodeValue == "\ufeff") {
+    if (off == (dir < 0 ? 0 : nodeSize(node))) {
       var parent = node.parentNode;
       if (parent.nodeType != 1 || hasBlockDesc(node) || atomElements.test(node.nodeName) || node.contentEditable == "false")
         { return false }
@@ -29081,8 +31104,9 @@ function nodeSize(node) {
 }
 
 function hasBlockDesc(dom) {
-  var desc = dom.pmViewDesc;
-  return desc && desc.node && desc.node.isBlock
+  var desc;
+  for (var cur = dom; cur; cur = cur.parentNode) { if (desc = cur.pmViewDesc) { break } }
+  return desc && desc.node && desc.node.isBlock && (desc.dom == dom || desc.contentDOM == dom)
 }
 
 // Work around Chrome issue https://bugs.chromium.org/p/chromium/issues/detail?id=447523
@@ -29146,7 +31170,6 @@ function scrollRectIntoView(view, rect, startDOM) {
 // when the size of the content above changes.
 function storeScrollPos(view) {
   var rect = view.dom.getBoundingClientRect(), startY = Math.max(0, rect.top);
-  var doc = view.dom.ownerDocument;
   var refDOM, refTop;
   for (var x = (rect.left + rect.right) / 2, y = startY + 1;
        y < Math.min(innerHeight, rect.bottom); y += 5) {
@@ -29159,12 +31182,16 @@ function storeScrollPos(view) {
       break
     }
   }
-  var stack = [];
-  for (var dom$1 = view.dom; dom$1; dom$1 = parentNode(dom$1)) {
-    stack.push({dom: dom$1, top: dom$1.scrollTop, left: dom$1.scrollLeft});
-    if (dom$1 == doc.body) { break }
+  return {refDOM: refDOM, refTop: refTop, stack: scrollStack(view.dom)}
+}
+
+function scrollStack(dom) {
+  var stack = [], doc = dom.ownerDocument;
+  for (; dom; dom = parentNode(dom)) {
+    stack.push({dom: dom, top: dom.scrollTop, left: dom.scrollLeft});
+    if (dom == doc) { break }
   }
-  return {refDOM: refDOM, refTop: refTop, stack: stack}
+  return stack
 }
 
 // Reset the scroll position of the editor's parent nodes to that what
@@ -29175,14 +31202,37 @@ function resetScrollPos(ref) {
   var stack = ref.stack;
 
   var newRefTop = refDOM ? refDOM.getBoundingClientRect().top : 0;
-  var dTop = newRefTop == 0 ? 0 : newRefTop - refTop;
+  restoreScrollStack(stack, newRefTop == 0 ? 0 : newRefTop - refTop);
+}
+
+function restoreScrollStack(stack, dTop) {
   for (var i = 0; i < stack.length; i++) {
-    var ref$1 = stack[i];
-    var dom = ref$1.dom;
-    var top = ref$1.top;
-    var left = ref$1.left;
+    var ref = stack[i];
+    var dom = ref.dom;
+    var top = ref.top;
+    var left = ref.left;
     if (dom.scrollTop != top + dTop) { dom.scrollTop = top + dTop; }
     if (dom.scrollLeft != left) { dom.scrollLeft = left; }
+  }
+}
+
+var preventScrollSupported = null;
+// Feature-detects support for .focus({preventScroll: true}), and uses
+// a fallback kludge when not supported.
+function focusPreventScroll(dom) {
+  if (dom.setActive) { return dom.setActive() } // in IE
+  if (preventScrollSupported) { return dom.focus(preventScrollSupported) }
+
+  var stored = scrollStack(dom);
+  dom.focus(preventScrollSupported == null ? {
+    get preventScroll() {
+      preventScrollSupported = {preventScroll: true};
+      return true
+    }
+  } : undefined);
+  if (!preventScrollSupported) {
+    preventScrollSupported = false;
+    restoreScrollStack(stored, 0);
   }
 }
 
@@ -29285,7 +31335,7 @@ function posFromCaret(view, node, offset, coords) {
 function elementFromPoint(element, coords, box) {
   var len = element.childNodes.length;
   if (len && box.top < box.bottom) {
-    for (var startI = Math.max(0, Math.floor(len * (coords.top - box.top) / (box.bottom - box.top)) - 2), i = startI;;) {
+    for (var startI = Math.max(0, Math.min(len - 1, Math.floor(len * (coords.top - box.top) / (box.bottom - box.top)) - 2)), i = startI;;) {
       var child = element.childNodes[i];
       if (child.nodeType == 1) {
         var rects = child.getClientRects();
@@ -29302,16 +31352,18 @@ function elementFromPoint(element, coords, box) {
 
 // Given an x,y position on the editor, get the position in the document.
 function posAtCoords(view, coords) {
+  var assign, assign$1;
+
   var root = view.root, node, offset;
   if (root.caretPositionFromPoint) {
-    var pos$1 = root.caretPositionFromPoint(coords.left, coords.top);
-    if (pos$1) { var assign;
-      ((assign = pos$1, node = assign.offsetNode, offset = assign.offset)); }
+    try { // Firefox throws for this call in hard-to-predict circumstances (#994)
+      var pos$1 = root.caretPositionFromPoint(coords.left, coords.top);
+      if (pos$1) { ((assign = pos$1, node = assign.offsetNode, offset = assign.offset)); }
+    } catch (_) {}
   }
   if (!node && root.caretRangeFromPoint) {
     var range = root.caretRangeFromPoint(coords.left, coords.top);
-    if (range) { var assign$1;
-      ((assign$1 = range, node = assign$1.startContainer, offset = assign$1.startOffset)); }
+    if (range) { ((assign$1 = range, node = assign$1.startContainer, offset = assign$1.startOffset)); }
   }
 
   var elt = root.elementFromPoint(coords.left, coords.top + 1), pos;
@@ -29323,6 +31375,19 @@ function posAtCoords(view, coords) {
   }
   elt = targetKludge(elt, coords);
   if (node) {
+    if (result.gecko && node.nodeType == 1) {
+      // Firefox will sometimes return offsets into <input> nodes, which
+      // have no actual children, from caretPositionFromPoint (#953)
+      offset = Math.min(offset, node.childNodes.length);
+      // It'll also move the returned position before image nodes,
+      // even if those are behind it.
+      if (offset < node.childNodes.length) {
+        var next = node.childNodes[offset], box$1;
+        if (next.nodeName == "IMG" && (box$1 = next.getBoundingClientRect()).right <= coords.left &&
+            box$1.bottom > coords.top)
+          { offset++; }
+      }
+    }
     // Suspiciously specific kludge to work around caret*FromPoint
     // never returning a position at the end of the document
     if (node == view.dom && offset == node.childNodes.length - 1 && node.lastChild.nodeType == 1 &&
@@ -29487,20 +31552,20 @@ function endOfTextblockHorizontal(view, state, dir) {
     // textblock (or doesn't move it at all, when at the start/end of
     // the document).
     var oldRange = sel.getRangeAt(0), oldNode = sel.focusNode, oldOff = sel.focusOffset;
+    var oldBidiLevel = sel.caretBidiLevel; // Only for Firefox
     sel.modify("move", dir, "character");
     var parentDOM = $head.depth ? view.docView.domAfterPos($head.before()) : view.dom;
-    var result$$1 = !parentDOM.contains(sel.focusNode.nodeType == 1 ? sel.focusNode : sel.focusNode.parentNode) ||
+    var result = !parentDOM.contains(sel.focusNode.nodeType == 1 ? sel.focusNode : sel.focusNode.parentNode) ||
         (oldNode == sel.focusNode && oldOff == sel.focusOffset);
     // Restore the previous selection
     sel.removeAllRanges();
     sel.addRange(oldRange);
-    return result$$1
+    if (oldBidiLevel != null) { sel.caretBidiLevel = oldBidiLevel; }
+    return result
   })
 }
 
-var cachedState = null;
-var cachedDir = null;
-var cachedResult = false;
+var cachedState = null, cachedDir = null, cachedResult = false;
 function endOfTextblock(view, state, dir) {
   if (cachedState == state && cachedDir == dir) { return cachedResult }
   cachedState = state; cachedDir = dir;
@@ -29565,7 +31630,10 @@ function endOfTextblock(view, state, dir) {
 //   ignoreMutation:: ?(dom.MutationRecord) → bool
 //   Called when a DOM
 //   [mutation](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver)
-//   happens within the view. Return false if the editor should
+//   or a selection change happens within the view. When the change is
+//   a selection change, the record will have a `type` property of
+//   `"selection"` (which doesn't occur for native mutation records).
+//   Return false if the editor should re-read the selection or
 //   re-parse the range around the mutation, true if it can safely be
 //   ignored.
 //
@@ -29586,10 +31654,7 @@ function endOfTextblock(view, state, dir) {
 //
 // They form a doubly-linked mutable tree, starting at `view.docView`.
 
-var NOT_DIRTY = 0;
-var CHILD_DIRTY = 1;
-var CONTENT_DIRTY = 2;
-var NODE_DIRTY = 3;
+var NOT_DIRTY = 0, CHILD_DIRTY = 1, CONTENT_DIRTY = 2, NODE_DIRTY = 3;
 
 // Superclass for the various kinds of descriptions. Defines their
 // basic structure and shared methods.
@@ -29606,7 +31671,7 @@ var ViewDesc = function ViewDesc(parent, children, dom, contentDOM) {
   this.dirty = NOT_DIRTY;
 };
 
-var prototypeAccessors$1 = { beforePosition: {},size: {},border: {},posBefore: {},posAtStart: {},posAfter: {},posAtEnd: {},contentLost: {} };
+var prototypeAccessors = { beforePosition: { configurable: true },size: { configurable: true },border: { configurable: true },posBefore: { configurable: true },posAtStart: { configurable: true },posAfter: { configurable: true },posAtEnd: { configurable: true },contentLost: { configurable: true } };
 
 // Used to check whether a given description corresponds to a
 // widget/mark/node.
@@ -29615,7 +31680,7 @@ ViewDesc.prototype.matchesMark = function matchesMark () { return false };
 ViewDesc.prototype.matchesNode = function matchesNode () { return false };
 ViewDesc.prototype.matchesHack = function matchesHack () { return false };
 
-prototypeAccessors$1.beforePosition.get = function () { return false };
+prototypeAccessors.beforePosition.get = function () { return false };
 
 // : () → ?ParseRule
 // When parsing in-editor content (in domchange.js), we allow
@@ -29629,57 +31694,49 @@ ViewDesc.prototype.parseRule = function parseRule () { return null };
 ViewDesc.prototype.stopEvent = function stopEvent () { return false };
 
 // The size of the content represented by this desc.
-prototypeAccessors$1.size.get = function () {
-    var this$1 = this;
-
+prototypeAccessors.size.get = function () {
   var size = 0;
-  for (var i = 0; i < this.children.length; i++) { size += this$1.children[i].size; }
+  for (var i = 0; i < this.children.length; i++) { size += this.children[i].size; }
   return size
 };
 
 // For block nodes, this represents the space taken up by their
 // start/end tokens.
-prototypeAccessors$1.border.get = function () { return 0 };
+prototypeAccessors.border.get = function () { return 0 };
 
 ViewDesc.prototype.destroy = function destroy () {
-    var this$1 = this;
-
   this.parent = null;
   if (this.dom.pmViewDesc == this) { this.dom.pmViewDesc = null; }
   for (var i = 0; i < this.children.length; i++)
-    { this$1.children[i].destroy(); }
+    { this.children[i].destroy(); }
 };
 
 ViewDesc.prototype.posBeforeChild = function posBeforeChild (child) {
-    var this$1 = this;
-
   for (var i = 0, pos = this.posAtStart; i < this.children.length; i++) {
-    var cur = this$1.children[i];
+    var cur = this.children[i];
     if (cur == child) { return pos }
     pos += cur.size;
   }
 };
 
-prototypeAccessors$1.posBefore.get = function () {
+prototypeAccessors.posBefore.get = function () {
   return this.parent.posBeforeChild(this)
 };
 
-prototypeAccessors$1.posAtStart.get = function () {
+prototypeAccessors.posAtStart.get = function () {
   return this.parent ? this.parent.posBeforeChild(this) + this.border : 0
 };
 
-prototypeAccessors$1.posAfter.get = function () {
+prototypeAccessors.posAfter.get = function () {
   return this.posBefore + this.size
 };
 
-prototypeAccessors$1.posAtEnd.get = function () {
+prototypeAccessors.posAtEnd.get = function () {
   return this.posAtStart + this.size - 2 * this.border
 };
 
 // : (dom.Node, number, ?number) → number
 ViewDesc.prototype.localPosFromDOM = function localPosFromDOM (dom, offset, bias) {
-    var this$1 = this;
-
   // If the DOM position is in the content, use the child desc after
   // it to figure out a position.
   if (this.contentDOM && this.contentDOM.contains(dom.nodeType == 1 ? dom : dom.parentNode)) {
@@ -29713,11 +31770,11 @@ ViewDesc.prototype.localPosFromDOM = function localPosFromDOM (dom, offset, bias
     atEnd = dom.compareDocumentPosition(this.contentDOM) & 2;
   } else if (this.dom.firstChild) {
     if (offset == 0) { for (var search = dom;; search = search.parentNode) {
-      if (search == this$1.dom) { atEnd = false; break }
+      if (search == this.dom) { atEnd = false; break }
       if (search.parentNode.firstChild != search) { break }
     } }
     if (atEnd == null && offset == dom.childNodes.length) { for (var search$1 = dom;; search$1 = search$1.parentNode) {
-      if (search$1 == this$1.dom) { atEnd = true; break }
+      if (search$1 == this.dom) { atEnd = true; break }
       if (search$1.parentNode.lastChild != search$1) { break }
     } }
   }
@@ -29727,10 +31784,8 @@ ViewDesc.prototype.localPosFromDOM = function localPosFromDOM (dom, offset, bias
 // Scan up the dom finding the first desc that is a descendant of
 // this one.
 ViewDesc.prototype.nearestDesc = function nearestDesc (dom, onlyNodes) {
-    var this$1 = this;
-
   for (var first = true, cur = dom; cur; cur = cur.parentNode) {
-    var desc = this$1.getDesc(cur);
+    var desc = this.getDesc(cur);
     if (desc && (!onlyNodes || desc.node)) {
       // If dom is outside of this desc's nodeDOM, don't count it.
       if (first && desc.nodeDOM && !(desc.nodeDOM.nodeType == 1 ? desc.nodeDOM.contains(dom) : desc.nodeDOM == dom)) { first = false; }
@@ -29740,17 +31795,13 @@ ViewDesc.prototype.nearestDesc = function nearestDesc (dom, onlyNodes) {
 };
 
 ViewDesc.prototype.getDesc = function getDesc (dom) {
-    var this$1 = this;
-
   var desc = dom.pmViewDesc;
-  for (var cur = desc; cur; cur = cur.parent) { if (cur == this$1) { return desc } }
+  for (var cur = desc; cur; cur = cur.parent) { if (cur == this) { return desc } }
 };
 
 ViewDesc.prototype.posFromDOM = function posFromDOM (dom, offset, bias) {
-    var this$1 = this;
-
   for (var scan = dom;; scan = scan.parentNode) {
-    var desc = this$1.getDesc(scan);
+    var desc = this.getDesc(scan);
     if (desc) { return desc.localPosFromDOM(dom, offset, bias) }
   }
 };
@@ -29759,10 +31810,8 @@ ViewDesc.prototype.posFromDOM = function posFromDOM (dom, offset, bias) {
 // Find the desc for the node after the given pos, if any. (When a
 // parent node overrode rendering, there might not be one.)
 ViewDesc.prototype.descAt = function descAt (pos) {
-    var this$1 = this;
-
   for (var i = 0, offset = 0; i < this.children.length; i++) {
-    var child = this$1.children[i], end = offset + child.size;
+    var child = this.children[i], end = offset + child.size;
     if (offset == pos && end != offset) {
       while (!child.border && child.children.length) { child = child.children[0]; }
       return child
@@ -29774,17 +31823,15 @@ ViewDesc.prototype.descAt = function descAt (pos) {
 
 // : (number) → {node: dom.Node, offset: number}
 ViewDesc.prototype.domFromPos = function domFromPos (pos) {
-    var this$1 = this;
-
   if (!this.contentDOM) { return {node: this.dom, offset: 0} }
   for (var offset = 0, i = 0;; i++) {
     if (offset == pos) {
       while (i < this.children.length && (this.children[i].beforePosition || this.children[i].dom.parentNode != this.contentDOM)) { i++; }
-      return {node: this$1.contentDOM,
-              offset: i == this$1.children.length ? this$1.contentDOM.childNodes.length : domIndex(this$1.children[i].dom)}
+      return {node: this.contentDOM,
+              offset: i == this.children.length ? this.contentDOM.childNodes.length : domIndex(this.children[i].dom)}
     }
-    if (i == this$1.children.length) { throw new Error("Invalid position " + pos) }
-    var child = this$1.children[i], end = offset + child.size;
+    if (i == this.children.length) { throw new Error("Invalid position " + pos) }
+    var child = this.children[i], end = offset + child.size;
     if (pos < end) { return child.domFromPos(pos - offset - child.border) }
     offset = end;
   }
@@ -29793,7 +31840,6 @@ ViewDesc.prototype.domFromPos = function domFromPos (pos) {
 // Used to find a DOM range in a single parent for a given changed
 // range.
 ViewDesc.prototype.parseRange = function parseRange (from, to, base) {
-    var this$1 = this;
     if ( base === void 0 ) base = 0;
 
   if (this.children.length == 0)
@@ -29801,18 +31847,18 @@ ViewDesc.prototype.parseRange = function parseRange (from, to, base) {
 
   var fromOffset = -1, toOffset = -1;
   for (var offset = base, i = 0;; i++) {
-    var child = this$1.children[i], end = offset + child.size;
+    var child = this.children[i], end = offset + child.size;
     if (fromOffset == -1 && from <= end) {
       var childBase = offset + child.border;
       // FIXME maybe descend mark views to parse a narrower range?
       if (from >= childBase && to <= end - child.border && child.node &&
-          child.contentDOM && this$1.contentDOM.contains(child.contentDOM))
+          child.contentDOM && this.contentDOM.contains(child.contentDOM))
         { return child.parseRange(from, to, childBase) }
 
       from = offset;
       for (var j = i; j > 0; j--) {
-        var prev = this$1.children[j - 1];
-        if (prev.size && prev.dom.parentNode == this$1.contentDOM && !prev.emptyChildAt(1)) {
+        var prev = this.children[j - 1];
+        if (prev.size && prev.dom.parentNode == this.contentDOM && !prev.emptyChildAt(1)) {
           fromOffset = domIndex(prev.dom) + 1;
           break
         }
@@ -29823,14 +31869,14 @@ ViewDesc.prototype.parseRange = function parseRange (from, to, base) {
     if (fromOffset > -1 && to <= end) {
       to = end;
       for (var j$1 = i + 1; j$1 < this.children.length; j$1++) {
-        var next = this$1.children[j$1];
-        if (next.size && next.dom.parentNode == this$1.contentDOM && !next.emptyChildAt(-1)) {
+        var next = this.children[j$1];
+        if (next.size && next.dom.parentNode == this.contentDOM && !next.emptyChildAt(-1)) {
           toOffset = domIndex(next.dom);
           break
         }
         to += next.size;
       }
-      if (toOffset == -1) { toOffset = this$1.contentDOM.childNodes.length; }
+      if (toOffset == -1) { toOffset = this.contentDOM.childNodes.length; }
       break
     }
     offset = end;
@@ -29861,12 +31907,10 @@ ViewDesc.prototype.domAfterPos = function domAfterPos (pos) {
 // a selection starts in such a node and ends in another, in which
 // case we just use whatever domFromPos produces as a best effort.
 ViewDesc.prototype.setSelection = function setSelection (anchor, head, root, force) {
-    var this$1 = this;
-
   // If the selection falls entirely in a child, give it to that child
   var from = Math.min(anchor, head), to = Math.max(anchor, head);
   for (var i = 0, offset = 0; i < this.children.length; i++) {
-    var child = this$1.children[i], end = offset + child.size;
+    var child = this.children[i], end = offset + child.size;
     if (from > offset && to < end)
       { return child.setSelection(anchor - offset - child.border, head - offset - child.border, root, force) }
     offset = end;
@@ -29901,22 +31945,21 @@ ViewDesc.prototype.ignoreMutation = function ignoreMutation (_mutation) {
   return !this.contentDOM
 };
 
-prototypeAccessors$1.contentLost.get = function () {
+prototypeAccessors.contentLost.get = function () {
   return this.contentDOM && this.contentDOM != this.dom && !this.dom.contains(this.contentDOM)
 };
 
 // Remove a subtree of the element tree that has been touched
 // by a DOM change, so that the next update will redraw it.
 ViewDesc.prototype.markDirty = function markDirty (from, to) {
-    var this$1 = this;
-
   for (var offset = 0, i = 0; i < this.children.length; i++) {
-    var child = this$1.children[i], end = offset + child.size;
+    var child = this.children[i], end = offset + child.size;
     if (offset == end ? from <= end && to >= offset : from < end && to > offset) {
       var startInside = offset + child.border, endInside = end - child.border;
       if (from >= startInside && to <= endInside) {
-        this$1.dirty = from == offset || to == end ? CONTENT_DIRTY : CHILD_DIRTY;
-        if (from == startInside && to == endInside && child.contentLost) { child.dirty = NODE_DIRTY; }
+        this.dirty = from == offset || to == end ? CONTENT_DIRTY : CHILD_DIRTY;
+        if (from == startInside && to == endInside &&
+            (child.contentLost || child.dom.parentNode != this.contentDOM)) { child.dirty = NODE_DIRTY; }
         else { child.markDirty(from - startInside, to - startInside); }
         return
       } else {
@@ -29929,14 +31972,13 @@ ViewDesc.prototype.markDirty = function markDirty (from, to) {
 };
 
 ViewDesc.prototype.markParentsDirty = function markParentsDirty () {
-  var level = 1;
   for (var node = this.parent; node; node = node.parent) {
-    var dirty = level == 1 ? CONTENT_DIRTY : CHILD_DIRTY;
+    var dirty =  CONTENT_DIRTY ;
     if (node.dirty < dirty) { node.dirty = dirty; }
   }
 };
 
-Object.defineProperties( ViewDesc.prototype, prototypeAccessors$1 );
+Object.defineProperties( ViewDesc.prototype, prototypeAccessors );
 
 // Reused array to avoid allocating fresh arrays for things that will
 // stay empty anyway.
@@ -29944,7 +31986,7 @@ var nothing = [];
 
 // A widget desc represents a widget decoration, which is a DOM node
 // drawn between the document nodes.
-var WidgetViewDesc = (function (ViewDesc) {
+var WidgetViewDesc = /*@__PURE__*/(function (ViewDesc) {
   function WidgetViewDesc(parent, widget, view, pos) {
     var self, dom = widget.type.toDOM;
     if (typeof dom == "function") { dom = dom(view, function () {
@@ -29969,7 +32011,7 @@ var WidgetViewDesc = (function (ViewDesc) {
   WidgetViewDesc.prototype = Object.create( ViewDesc && ViewDesc.prototype );
   WidgetViewDesc.prototype.constructor = WidgetViewDesc;
 
-  var prototypeAccessors$1 = { beforePosition: {} };
+  var prototypeAccessors$1 = { beforePosition: { configurable: true } };
 
   prototypeAccessors$1.beforePosition.get = function () {
     return this.widget.type.side < 0
@@ -29991,27 +32033,7 @@ var WidgetViewDesc = (function (ViewDesc) {
   return WidgetViewDesc;
 }(ViewDesc));
 
-// A cursor wrapper is used to put the cursor in when newly typed text
-// needs to be styled differently from its surrounding text (for
-// example through storedMarks), so that the style of the text doesn't
-// visually 'pop' between typing it and actually updating the view.
-var CursorWrapperDesc = (function (WidgetViewDesc) {
-  function CursorWrapperDesc () {
-    WidgetViewDesc.apply(this, arguments);
-  }
-
-  if ( WidgetViewDesc ) CursorWrapperDesc.__proto__ = WidgetViewDesc;
-  CursorWrapperDesc.prototype = Object.create( WidgetViewDesc && WidgetViewDesc.prototype );
-  CursorWrapperDesc.prototype.constructor = CursorWrapperDesc;
-
-  CursorWrapperDesc.prototype.parseRule = function parseRule () { return {skip: withoutZeroWidthSpaces(this.dom)} };
-
-  CursorWrapperDesc.prototype.ignoreMutation = function ignoreMutation () { return false };
-
-  return CursorWrapperDesc;
-}(WidgetViewDesc));
-
-var CompositionViewDesc = (function (ViewDesc) {
+var CompositionViewDesc = /*@__PURE__*/(function (ViewDesc) {
   function CompositionViewDesc(parent, dom, textDOM, text) {
     ViewDesc.call(this, parent, nothing, dom, null);
     this.textDOM = textDOM;
@@ -30022,24 +32044,22 @@ var CompositionViewDesc = (function (ViewDesc) {
   CompositionViewDesc.prototype = Object.create( ViewDesc && ViewDesc.prototype );
   CompositionViewDesc.prototype.constructor = CompositionViewDesc;
 
-  var prototypeAccessors$2 = { size: {} };
+  var prototypeAccessors$2 = { size: { configurable: true } };
 
   prototypeAccessors$2.size.get = function () { return this.text.length };
 
-  CompositionViewDesc.prototype.parseRule = function parseRule () { return {skip: withoutZeroWidthSpaces(this.dom)} };
-
   CompositionViewDesc.prototype.localPosFromDOM = function localPosFromDOM (dom, offset) {
     if (dom != this.textDOM) { return this.posAtStart + (offset ? this.size : 0) }
-    var zwsp = this.textDOM.nodeValue.indexOf("\ufeff");
-    return this.posAtStart + offset - (zwsp > -1 && zwsp < offset ? 1 : 0)
+    return this.posAtStart + offset
   };
 
   CompositionViewDesc.prototype.domFromPos = function domFromPos (pos) {
-    var zwsp = this.textDOM.nodeValue.indexOf("\ufeff");
-    return {node: this.textDOM, offset: pos + (zwsp > -1 && zwsp <= pos ? 1 : 0)}
+    return {node: this.textDOM, offset: pos}
   };
 
-  CompositionViewDesc.prototype.ignoreMutation = function ignoreMutation () { return false };
+  CompositionViewDesc.prototype.ignoreMutation = function ignoreMutation (mut) {
+    return mut.type === 'characterData' && mut.target.nodeValue == mut.oldValue
+   };
 
   Object.defineProperties( CompositionViewDesc.prototype, prototypeAccessors$2 );
 
@@ -30051,7 +32071,7 @@ var CompositionViewDesc = (function (ViewDesc) {
 // a fixed nesting order, for simplicity and predictability, so in
 // some cases they will be split more often than would appear
 // necessary.
-var MarkViewDesc = (function (ViewDesc) {
+var MarkViewDesc = /*@__PURE__*/(function (ViewDesc) {
   function MarkViewDesc(parent, mark, dom, contentDOM) {
     ViewDesc.call(this, parent, [], dom, contentDOM);
     this.mark = mark;
@@ -30100,7 +32120,7 @@ var MarkViewDesc = (function (ViewDesc) {
 // Node view descs are the main, most common type of view desc, and
 // correspond to an actual node in the document. Unlike mark descs,
 // they populate their child array themselves.
-var NodeViewDesc = (function (ViewDesc) {
+var NodeViewDesc = /*@__PURE__*/(function (ViewDesc) {
   function NodeViewDesc(parent, node, outerDeco, innerDeco, dom, contentDOM, nodeDOM, view, pos) {
     ViewDesc.call(this, parent, node.isLeaf ? nothing : [], dom, contentDOM);
     this.nodeDOM = nodeDOM;
@@ -30114,7 +32134,7 @@ var NodeViewDesc = (function (ViewDesc) {
   NodeViewDesc.prototype = Object.create( ViewDesc && ViewDesc.prototype );
   NodeViewDesc.prototype.constructor = NodeViewDesc;
 
-  var prototypeAccessors$3 = { size: {},border: {} };
+  var prototypeAccessors$3 = { size: { configurable: true },border: { configurable: true } };
 
   // By default, a node is rendered using the `toDOM` method from the
   // node type spec. But client code can use the `nodeViews` spec to
@@ -30126,6 +32146,8 @@ var NodeViewDesc = (function (ViewDesc) {
   // implementation details to the user code that they probably will
   // never need.)
   NodeViewDesc.create = function create (parent, node, outerDeco, innerDeco, view, pos) {
+    var assign;
+
     var custom = view.nodeViews[node.type.name], descObj;
     var spec = custom && custom(node, view, function () {
       // (This is a function that allows the custom view to find its
@@ -30139,8 +32161,7 @@ var NodeViewDesc = (function (ViewDesc) {
       if (!dom) { dom = document.createTextNode(node.text); }
       else if (dom.nodeType != 3) { throw new RangeError("Text must be rendered as a DOM text node") }
     } else if (!dom) {
-      var assign;
-      ((assign = prosemirrorModel.DOMSerializer.renderSpec(document, node.type.spec.toDOM(node)), dom = assign.dom, contentDOM = assign.contentDOM));
+((assign = prosemirrorModel.DOMSerializer.renderSpec(document, node.type.spec.toDOM(node)), dom = assign.dom, contentDOM = assign.contentDOM));
     }
     if (!contentDOM && !node.isText && dom.nodeName != "BR") { // Chrome gets confused by <br contenteditable=false>
       if (!dom.hasAttribute("contenteditable")) { dom.contentEditable = false; }
@@ -30228,7 +32249,7 @@ var NodeViewDesc = (function (ViewDesc) {
   };
 
   NodeViewDesc.prototype.renderChildren = function renderChildren () {
-    renderDescs(this.contentDOM, this.children, NodeViewDesc.is);
+    renderDescs(this.contentDOM, this.children);
     if (result.ios) { iosHacks(this.dom); }
   };
 
@@ -30247,14 +32268,13 @@ var NodeViewDesc = (function (ViewDesc) {
     // Find the text in the focused node in the node, stop if it's not
     // there (may have been modified through other means, in which
     // case it should overwritten)
-    var text = textNode.nodeValue.replace(/\ufeff/g, "");
+    var text = textNode.nodeValue;
     var textPos = findTextInFragment(this.node.content, text, from - pos, to - pos);
 
     return textPos < 0 ? null : {node: textNode, pos: textPos, text: text}
   };
 
   NodeViewDesc.prototype.protectLocalComposition = function protectLocalComposition (view, ref) {
-    var this$1 = this;
     var node = ref.node;
     var pos = ref.pos;
     var text = ref.text;
@@ -30265,7 +32285,7 @@ var NodeViewDesc = (function (ViewDesc) {
     // Create a composition view for the orphaned nodes
     var topNode = node;
     for (;; topNode = topNode.parentNode) {
-      if (topNode.parentNode == this$1.contentDOM) { break }
+      if (topNode.parentNode == this.contentDOM) { break }
       while (topNode.previousSibling) { topNode.parentNode.removeChild(topNode.previousSibling); }
       while (topNode.nextSibling) { topNode.parentNode.removeChild(topNode.nextSibling); }
       if (topNode.pmViewDesc) { topNode.pmViewDesc = null; }
@@ -30333,7 +32353,7 @@ function docViewDesc(doc, outerDeco, innerDeco, dom, view) {
   return new NodeViewDesc(null, doc, outerDeco, innerDeco, dom, dom, dom, view, 0)
 }
 
-var TextViewDesc = (function (NodeViewDesc) {
+var TextViewDesc = /*@__PURE__*/(function (NodeViewDesc) {
   function TextViewDesc(parent, node, outerDeco, innerDeco, dom, nodeDOM, view) {
     NodeViewDesc.call(this, parent, node, outerDeco, innerDeco, dom, null, nodeDOM, view);
   }
@@ -30343,8 +32363,7 @@ var TextViewDesc = (function (NodeViewDesc) {
   TextViewDesc.prototype.constructor = TextViewDesc;
 
   TextViewDesc.prototype.parseRule = function parseRule () {
-    var parent = this.nodeDOM.parentNode;
-    return parent ? {skip: parent} : {ignore: true}
+    return {skip: this.nodeDOM.parentNode || true}
   };
 
   TextViewDesc.prototype.update = function update (node, outerDeco) {
@@ -30374,7 +32393,7 @@ var TextViewDesc = (function (NodeViewDesc) {
   };
 
   TextViewDesc.prototype.ignoreMutation = function ignoreMutation (mutation) {
-    return mutation.type != "characterData"
+    return mutation.type != "characterData" && mutation.type != "selection"
   };
 
   TextViewDesc.prototype.slice = function slice (from, to, view) {
@@ -30387,7 +32406,7 @@ var TextViewDesc = (function (NodeViewDesc) {
 
 // A dummy desc used to tag trailing BR or span nodes created to work
 // around contentEditable terribleness.
-var BRHackViewDesc = (function (ViewDesc) {
+var BRHackViewDesc = /*@__PURE__*/(function (ViewDesc) {
   function BRHackViewDesc () {
     ViewDesc.apply(this, arguments);
   }
@@ -30405,7 +32424,7 @@ var BRHackViewDesc = (function (ViewDesc) {
 // A separate subclass is used for customized node views, so that the
 // extra checks only have to be made for nodes that are actually
 // customized.
-var CustomNodeViewDesc = (function (NodeViewDesc) {
+var CustomNodeViewDesc = /*@__PURE__*/(function (NodeViewDesc) {
   function CustomNodeViewDesc(parent, node, outerDeco, innerDeco, dom, contentDOM, nodeDOM, spec, view, pos) {
     NodeViewDesc.call(this, parent, node, outerDeco, innerDeco, dom, contentDOM, nodeDOM, view, pos);
     this.spec = spec;
@@ -30421,9 +32440,9 @@ var CustomNodeViewDesc = (function (NodeViewDesc) {
   CustomNodeViewDesc.prototype.update = function update (node, outerDeco, innerDeco, view) {
     if (this.dirty == NODE_DIRTY) { return false }
     if (this.spec.update) {
-      var result$$1 = this.spec.update(node, outerDeco);
-      if (result$$1) { this.updateInner(node, outerDeco, innerDeco, view); }
-      return result$$1
+      var result = this.spec.update(node, outerDeco);
+      if (result) { this.updateInner(node, outerDeco, innerDeco, view); }
+      return result
     } else if (!this.contentDOM && !node.isLeaf) {
       return false
     } else {
@@ -30493,26 +32512,26 @@ var noDeco = [new OuterDecoLevel];
 function computeOuterDeco(outerDeco, node, needsWrap) {
   if (outerDeco.length == 0) { return noDeco }
 
-  var top = needsWrap ? noDeco[0] : new OuterDecoLevel, result$$1 = [top];
+  var top = needsWrap ? noDeco[0] : new OuterDecoLevel, result = [top];
 
   for (var i = 0; i < outerDeco.length; i++) {
     var attrs = outerDeco[i].type.attrs, cur = top;
     if (!attrs) { continue }
     if (attrs.nodeName)
-      { result$$1.push(cur = new OuterDecoLevel(attrs.nodeName)); }
+      { result.push(cur = new OuterDecoLevel(attrs.nodeName)); }
 
     for (var name in attrs) {
       var val = attrs[name];
       if (val == null) { continue }
-      if (needsWrap && result$$1.length == 1)
-        { result$$1.push(cur = top = new OuterDecoLevel(node.isInline ? "span" : "div")); }
+      if (needsWrap && result.length == 1)
+        { result.push(cur = top = new OuterDecoLevel(node.isInline ? "span" : "div")); }
       if (name == "class") { cur.class = (cur.class ? cur.class + " " : "") + val; }
       else if (name == "style") { cur.style = (cur.style ? cur.style + ";" : "") + val; }
       else if (name != "nodeName") { cur[name] = val; }
     }
   }
 
-  return result$$1
+  return result
 }
 
 function patchOuterDeco(outerDOM, nodeDOM, prevComputed, curComputed) {
@@ -30608,10 +32627,8 @@ ViewTreeUpdater.prototype.getPreMatch = function getPreMatch (index) {
 // Destroy and remove the children between the given indices in
 // `this.top`.
 ViewTreeUpdater.prototype.destroyBetween = function destroyBetween (start, end) {
-    var this$1 = this;
-
   if (start == end) { return }
-  for (var i = start; i < end; i++) { this$1.top.children[i].destroy(); }
+  for (var i = start; i < end; i++) { this.top.children[i].destroy(); }
   this.top.children.splice(start, end - start);
   this.changed = true;
 };
@@ -30625,8 +32642,6 @@ ViewTreeUpdater.prototype.destroyRest = function destroyRest () {
 // Sync the current stack of mark descs with the given array of
 // marks, reusing existing mark descs when possible.
 ViewTreeUpdater.prototype.syncToMarks = function syncToMarks (marks, inline, view) {
-    var this$1 = this;
-
   var keep = 0, depth = this.stack.length >> 1;
   var maxKeep = Math.min(depth, marks.length);
   while (keep < maxKeep &&
@@ -30634,31 +32649,31 @@ ViewTreeUpdater.prototype.syncToMarks = function syncToMarks (marks, inline, vie
     { keep++; }
 
   while (keep < depth) {
-    this$1.destroyRest();
-    this$1.top.dirty = NOT_DIRTY;
-    this$1.index = this$1.stack.pop();
-    this$1.top = this$1.stack.pop();
+    this.destroyRest();
+    this.top.dirty = NOT_DIRTY;
+    this.index = this.stack.pop();
+    this.top = this.stack.pop();
     depth--;
   }
   while (depth < marks.length) {
-    this$1.stack.push(this$1.top, this$1.index + 1);
+    this.stack.push(this.top, this.index + 1);
     var found = -1;
     for (var i = this.index; i < Math.min(this.index + 3, this.top.children.length); i++) {
-      if (this$1.top.children[i].matchesMark(marks[depth])) { found = i; break }
+      if (this.top.children[i].matchesMark(marks[depth])) { found = i; break }
     }
     if (found > -1) {
-      if (found > this$1.index) {
-        this$1.changed = true;
-        this$1.top.children.splice(this$1.index, found - this$1.index);
+      if (found > this.index) {
+        this.changed = true;
+        this.destroyBetween(this.index, found);
       }
-      this$1.top = this$1.top.children[this$1.index];
+      this.top = this.top.children[this.index];
     } else {
-      var markDesc = MarkViewDesc.create(this$1.top, marks[depth], inline, view);
-      this$1.top.children.splice(this$1.index, 0, markDesc);
-      this$1.top = markDesc;
-      this$1.changed = true;
+      var markDesc = MarkViewDesc.create(this.top, marks[depth], inline, view);
+      this.top.children.splice(this.index, 0, markDesc);
+      this.top = markDesc;
+      this.changed = true;
     }
-    this$1.index = 0;
+    this.index = 0;
     depth++;
   }
 };
@@ -30667,15 +32682,13 @@ ViewTreeUpdater.prototype.syncToMarks = function syncToMarks (marks, inline, vie
 // Try to find a node desc matching the given data. Skip over it and
 // return true when successful.
 ViewTreeUpdater.prototype.findNodeMatch = function findNodeMatch (node, outerDeco, innerDeco, index) {
-    var this$1 = this;
-
   var found = -1, preMatch = index < 0 ? undefined : this.getPreMatch(index), children = this.top.children;
   if (preMatch && preMatch.matchesNode(node, outerDeco, innerDeco)) {
     found = children.indexOf(preMatch);
   } else {
     for (var i = this.index, e = Math.min(children.length, i + 5); i < e; i++) {
       var child = children[i];
-      if (child.matchesNode(node, outerDeco, innerDeco) && this$1.preMatched.indexOf(child) < 0) {
+      if (child.matchesNode(node, outerDeco, innerDeco) && this.preMatched.indexOf(child) < 0) {
         found = i;
         break
       }
@@ -30724,16 +32737,10 @@ ViewTreeUpdater.prototype.placeWidget = function placeWidget (widget, view, pos)
   if (this.index < this.top.children.length && this.top.children[this.index].matchesWidget(widget)) {
     this.index++;
   } else {
-    var desc = new (widget.spec.isCursorWrapper ? CursorWrapperDesc : WidgetViewDesc)(this.top, widget, view, pos);
+    var desc = new WidgetViewDesc(this.top, widget, view, pos);
     this.top.children.splice(this.index++, 0, desc);
     this.changed = true;
   }
-};
-
-ViewTreeUpdater.prototype.placeComposition = function placeComposition (view, desc) {
-  this.syncToMarks(nothing, true, view);
-  if (this.top.children[this.index] == desc) { this.index++; }
-  else { this.top.children.splice(this.index++, 0, desc); this.changed = true; }
 };
 
 // Make sure a textblock looks and behaves correctly in
@@ -30762,15 +32769,15 @@ ViewTreeUpdater.prototype.addTextblockHacks = function addTextblockHacks () {
 // to node positions in the fragment, and whose elements are either
 // descs matched to the child at that index, or empty.
 function preMatch(frag, descs) {
-  var result$$1 = [], end = frag.childCount;
+  var result = [], end = frag.childCount;
   for (var i = descs.length - 1; end > 0 && i >= 0; i--) {
     var desc = descs[i], node = desc.node;
     if (!node) { continue }
     if (node != frag.child(end - 1)) { break }
-    result$$1.push(desc);
+    result.push(desc);
     --end;
   }
-  return {nodes: result$$1.reverse(), offset: end}
+  return {nodes: result.reverse(), offset: end}
 }
 
 function compareSide(a, b) { return a.type.side - b.type.side }
@@ -30854,6 +32861,8 @@ function nearbyTextNode(node, offset) {
   for (;;) {
     if (node.nodeType == 3) { return node }
     if (node.nodeType == 1 && offset > 0) {
+      if (node.childNodes.length > offset && node.childNodes[offset].nodeType == 3)
+        { return node.childNodes[offset] }
       node = node.childNodes[offset - 1];
       offset = nodeSize(node);
     } else if (node.nodeType == 1 && offset < node.childNodes.length) {
@@ -30876,7 +32885,7 @@ function findTextInFragment(frag, text, from, to) {
         while (found > -1 && strStart + found > from) { found = str.lastIndexOf(text, found - 1); }
         if (found > -1 && strStart + found + text.length >= to) {
           return strStart + found
-        } else if (end > to - text.length) {
+        } else if (end > to) {
           break
         }
       }
@@ -30894,33 +32903,21 @@ function findTextInFragment(frag, text, from, to) {
 // right shape in one go, rather than messing with them after
 // creation, but is necessary in the composition hack.
 function replaceNodes(nodes, from, to, view, replacement) {
-  var result$$1 = [];
+  var result = [];
   for (var i = 0, off = 0; i < nodes.length; i++) {
     var child = nodes[i], start = off, end = off += child.size;
     if (start >= to || end <= from) {
-      result$$1.push(child);
+      result.push(child);
     } else {
-      if (start < from) { result$$1.push(child.slice(0, from - start, view)); }
+      if (start < from) { result.push(child.slice(0, from - start, view)); }
       if (replacement) {
-        result$$1.push(replacement);
+        result.push(replacement);
         replacement = null;
       }
-      if (end > to) { result$$1.push(child.slice(to - start, child.size, view)); }
+      if (end > to) { result.push(child.slice(to - start, child.size, view)); }
     }
   }
-  return result$$1
-}
-
-function withoutZeroWidthSpaces(dom) {
-  var clone = dom.cloneNode(true);
-  function scan(node) {
-    if (node.nodeType == 1)
-      { for (var child = node.firstChild; child; child = child.nextSibling) { scan(child); } }
-    else if (node.nodeType == 3)
-      { node.nodeValue = node.nodeValue.replace(/\ufeff/g, ""); }
-  }
-  scan(clone);
-  return clone
+  return result
 }
 
 function moveSelectionBlock(state, dir) {
@@ -30994,13 +32991,7 @@ function skipIgnoredNodesLeft(view) {
   for (;;) {
     if (offset > 0) {
       if (node.nodeType != 1) {
-        if (node.nodeType == 3 && node.nodeValue.charAt(offset - 1) == "\ufeff") {
-          // IE11's cursor will still be stuck when placed at the
-          // beginning of the cursor wrapper text node (#807)
-          if (result.ie && result.ie_version <= 11) { force = true; }
-          moveNode = node;
-          moveOffset = --offset;
-        } else { break }
+        break
       } else {
         var before = node.childNodes[offset - 1];
         if (isIgnorable(before)) {
@@ -31165,12 +33156,12 @@ function chromeDownArrowBug(view) {
 // block selections.
 
 function getMods(event) {
-  var result$$1 = "";
-  if (event.ctrlKey) { result$$1 += "c"; }
-  if (event.metaKey) { result$$1 += "m"; }
-  if (event.altKey) { result$$1 += "a"; }
-  if (event.shiftKey) { result$$1 += "s"; }
-  return result$$1
+  var result = "";
+  if (event.ctrlKey) { result += "c"; }
+  if (event.metaKey) { result += "m"; }
+  if (event.altKey) { result += "a"; }
+  if (event.shiftKey) { result += "s"; }
+  return result
 }
 
 function captureKeyDown(view, event) {
@@ -31219,21 +33210,11 @@ function selectionFromDOM(view, origin) {
   return selection
 }
 
-function selectionToDOM(view, takeFocus, force) {
+function selectionToDOM(view, force) {
   var sel = view.state.selection;
   syncNodeSelection(view, sel);
 
-  if (view.editable && !view.hasFocus()) {
-    if (!takeFocus) { return }
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=921444
-    if (result.gecko && result.gecko_version <= 55) {
-      view.domObserver.disconnectSelection();
-      view.dom.focus();
-      view.domObserver.connectSelection();
-    }
-  } else if (!view.editable && !hasSelection(view) && !takeFocus) {
-    return
-  }
+  if (view.editable ? !view.hasFocus() : !(hasSelection(view) && document.activeElement.contains(view.dom))) { return }
 
   view.domObserver.disconnectSelection();
 
@@ -31304,8 +33285,9 @@ function removeClassOnSelectionChange(view) {
 
 function selectCursorWrapper(view) {
   var domSel = view.root.getSelection(), range = document.createRange();
-  var node = view.cursorWrapper.dom;
-  range.setEnd(node, node.childNodes.length);
+  var node = view.cursorWrapper.dom, img = node.nodeName == "IMG";
+  if (img) { range.setEnd(node.parentNode, domIndex(node) + 1); }
+  else { range.setEnd(node, 0); }
   range.collapse(false);
   domSel.removeAllRanges();
   domSel.addRange(range);
@@ -31314,7 +33296,7 @@ function selectCursorWrapper(view) {
   // resize handles and a selection that considers the absolutely
   // positioned wrapper, rather than the root editable node, the
   // focused element.
-  if (!view.state.selection.visible && result.ie && result.ie_version <= 11) {
+  if (!img && !view.state.selection.visible && result.ie && result.ie_version <= 11) {
     node.disabled = true;
     node.disabled = false;
   }
@@ -31366,23 +33348,6 @@ function hasSelection(view) {
   }
 }
 
-function nonInclusiveMark(mark) {
-  return mark.type.spec.inclusive === false
-}
-
-function needsCursorWrapper(state) {
-  var ref = state.selection;
-  var $head = ref.$head;
-  var $anchor = ref.$anchor;
-  var visible = ref.visible;
-  var $pos = $head.pos == $anchor.pos && (!visible || $head.parent.inlineContent) ? $head : null;
-  if ($pos && (!visible || state.storedMarks || $pos.parent.content.length == 0 ||
-               $pos.parentOffset && !$pos.textOffset && $pos.nodeBefore.marks.some(nonInclusiveMark)))
-    { return $pos }
-  else
-    { return null }
-}
-
 function anchorInRightPlace(view) {
   var anchorDOM = view.docView.domFromPos(view.state.selection.anchor);
   var domSel = view.root.getSelection();
@@ -31421,6 +33386,7 @@ function parseBetween(view, from_, to_) {
   var startDoc = view.state.doc;
   var parser = view.someProp("domParser") || prosemirrorModel.DOMParser.fromSchema(view.state.schema);
   var $from = startDoc.resolve(from);
+
   var sel = null, doc = parser.parse(parent, {
     topNode: $from.parent,
     topMatch: $from.parent.contentMatchAt($from.index()),
@@ -31454,6 +33420,8 @@ function ruleFromNode(parser, context) {
         { return parser.matchTag(document.createElement("li"), context) }
       else if (dom.parentNode.lastChild == dom || result.safari && /^(tr|table)$/i.test(dom.parentNode.nodeName))
         { return {ignore: true} }
+    } else if (dom.nodeName == "IMG" && dom.getAttribute("mark-placeholder")) {
+      return {ignore: true}
     }
   }
 }
@@ -31495,13 +33463,14 @@ function readDOMChange(view, from, to, typeOver) {
   if (!change) {
     if (typeOver && sel instanceof prosemirrorState.TextSelection && !sel.empty && sel.$head.sameParent(sel.$anchor) &&
         !view.composing && !(parse.sel && parse.sel.anchor != parse.sel.head)) {
-      var state = view.state, sel$1 = state.selection;
-      view.dispatch(state.tr.replaceSelectionWith(state.schema.text(state.doc.textBetween(sel$1.from, sel$1.to)), true).scrollIntoView());
-    } else if (parse.sel) {
-      var sel$2 = resolveSelection(view, view.state.doc, parse.sel);
-      if (sel$2 && !sel$2.eq(view.state.selection)) { view.dispatch(view.state.tr.setSelection(sel$2)); }
+      change = {start: sel.from, endA: sel.to, endB: sel.to};
+    } else {
+      if (parse.sel) {
+        var sel$1 = resolveSelection(view, view.state.doc, parse.sel);
+        if (sel$1 && !sel$1.eq(view.state.selection)) { view.dispatch(view.state.tr.setSelection(sel$1)); }
+      }
+      return
     }
-    return
   }
   view.domChangeCount++;
   // Handle the case where overwriting a selection by typing matches
@@ -31516,6 +33485,17 @@ function readDOMChange(view, from, to, typeOver) {
       change.endB += (view.state.selection.to - change.endA);
       change.endA = view.state.selection.to;
     }
+  }
+
+  // IE11 will insert a non-breaking space _ahead_ of the space after
+  // the cursor space when adding a space before another space. When
+  // that happened, adjust the change to cover the space instead.
+  if (result.ie && result.ie_version <= 11 && change.endB == change.start + 1 &&
+      change.endA == change.start && change.start > parse.from &&
+      parse.doc.textBetween(change.start - parse.from - 1, change.start - parse.from + 1) == " \u00a0") {
+    change.start--;
+    change.endA--;
+    change.endB--;
   }
 
   var $from = parse.doc.resolveNoCache(change.start - parse.from);
@@ -31568,8 +33548,15 @@ function readDOMChange(view, from, to, typeOver) {
   if (!tr)
     { tr = view.state.tr.replace(chFrom, chTo, parse.doc.slice(change.start - parse.from, change.endB - parse.from)); }
   if (parse.sel) {
-    var sel$3 = resolveSelection(view, tr.doc, parse.sel);
-    if (sel$3) { tr.setSelection(sel$3); }
+    var sel$2 = resolveSelection(view, tr.doc, parse.sel);
+    // Chrome Android will sometimes, during composition, report the
+    // selection in the wrong place. If it looks like that is
+    // happening, don't update the selection.
+    // Edge just doesn't move the cursor forward when you start typing
+    // in an empty block or between br nodes.
+    if (sel$2 && !(result.chrome && result.android && view.composing && sel$2.empty && sel$2.head == chFrom ||
+                 result.ie && sel$2.empty && sel$2.head == chFrom))
+      { tr.setSelection(sel$2); }
   }
   if (storedMarks) { tr.ensureMarks(storedMarks); }
   view.dispatch(tr.scrollIntoView());
@@ -31682,13 +33669,13 @@ function serializeForClipboard(view, slice) {
   }
 
   var serializer = view.someProp("clipboardSerializer") || prosemirrorModel.DOMSerializer.fromSchema(view.state.schema);
-  var wrap = document.createElement("div");
-  wrap.appendChild(serializer.serializeFragment(content));
+  var doc = detachedDoc(), wrap = doc.createElement("div");
+  wrap.appendChild(serializer.serializeFragment(content, {document: doc}));
 
   var firstChild = wrap.firstChild, needsWrap;
   while (firstChild && firstChild.nodeType == 1 && (needsWrap = wrapMap[firstChild.nodeName.toLowerCase()])) {
     for (var i = needsWrap.length - 1; i >= 0; i--) {
-      var wrapper = document.createElement(needsWrap[i]);
+      var wrapper = doc.createElement(needsWrap[i]);
       while (wrap.firstChild) { wrapper.appendChild(wrap.firstChild); }
       wrap.appendChild(wrapper);
     }
@@ -31734,10 +33721,10 @@ function parseFromClipboard(view, text, html, plainText, $context) {
     slice = parser.parseSlice(dom, {preserveWhitespace: !!(asText || sliceData), context: $context});
   }
   if (sliceData)
-    { slice = addContext(new prosemirrorModel.Slice(slice.content, Math.min(slice.openStart, +sliceData[1]),
-                                 Math.min(slice.openEnd, +sliceData[2])), sliceData[3]); }
+    { slice = addContext(closeSlice(slice, +sliceData[1], +sliceData[2]), sliceData[3]); }
   else // HTML wasn't created by ProseMirror. Make sure top-level siblings are coherent
     { slice = prosemirrorModel.Slice.maxOpen(normalizeSiblings(slice.content, $context), false); }
+
   view.someProp("transformPasted", function (f) { slice = f(slice); });
   return slice
 }
@@ -31808,17 +33795,38 @@ function closeRight(node, depth) {
   return node.copy(fragment.append(fill))
 }
 
+function closeRange(fragment, side, from, to, depth, openEnd) {
+  var node = side < 0 ? fragment.firstChild : fragment.lastChild, inner = node.content;
+  if (depth < to - 1) { inner = closeRange(inner, side, from, to, depth + 1, openEnd); }
+  if (depth >= from)
+    { inner = side < 0 ? node.contentMatchAt(0).fillBefore(inner, fragment.childCount > 1 || openEnd <= depth).append(inner)
+      : inner.append(node.contentMatchAt(node.childCount).fillBefore(prosemirrorModel.Fragment.empty, true)); }
+  return fragment.replaceChild(side < 0 ? 0 : fragment.childCount - 1, node.copy(inner))
+}
+
+function closeSlice(slice, openStart, openEnd) {
+  if (openStart < slice.openStart)
+    { slice = new prosemirrorModel.Slice(closeRange(slice.content, -1, openStart, slice.openStart, 0, slice.openEnd), openStart, slice.openEnd); }
+  if (openEnd < slice.openEnd)
+    { slice = new prosemirrorModel.Slice(closeRange(slice.content, 1, openEnd, slice.openEnd, 0, 0), slice.openStart, openEnd); }
+  return slice
+}
+
 // Trick from jQuery -- some elements must be wrapped in other
 // elements for innerHTML to work. I.e. if you do `div.innerHTML =
 // "<td>..</td>"` the table cells are ignored.
 var wrapMap = {thead: ["table"], colgroup: ["table"], col: ["table", "colgroup"],
                  tr: ["table", "tbody"], td: ["table", "tbody", "tr"], th: ["table", "tbody", "tr"]};
-var detachedDoc = null;
+
+var _detachedDoc = null;
+function detachedDoc() {
+  return _detachedDoc || (_detachedDoc = document.implementation.createHTMLDocument("title"))
+}
+
 function readHTML(html) {
   var metas = /(\s*<meta [^>]*>)*/.exec(html);
   if (metas) { html = html.slice(metas[0].length); }
-  var doc = detachedDoc || (detachedDoc = document.implementation.createHTMLDocument("title"));
-  var elt = doc.createElement("div");
+  var elt = detachedDoc().createElement("div");
   var firstTag = /(?:<meta [^>]*>)*<([a-z][^>\s]+)/i.exec(html), wrap, depth = 0;
   if (wrap = firstTag && wrapMap[firstTag[1].toLowerCase()]) {
     html = wrap.map(function (n) { return "<" + n + ">"; }).join("") + html + wrap.map(function (n) { return "</" + n + ">"; }).reverse().join("");
@@ -31846,7 +33854,14 @@ function addContext(slice, context) {
   return new prosemirrorModel.Slice(content, openStart, openEnd)
 }
 
-var observeOptions = {childList: true, characterData: true, attributes: true, subtree: true, characterDataOldValue: true};
+var observeOptions = {
+  childList: true,
+  characterData: true,
+  characterDataOldValue: true,
+  attributes: true,
+  attributeOldValue: true,
+  subtree: true
+};
 // IE11 has very broken mutation observers, so we also listen to DOMCharacterDataModified
 var useCharData = result.ie && result.ie_version <= 11;
 
@@ -31869,18 +33884,40 @@ var DOMObserver = function DOMObserver(view, handleDOMChange) {
 
   this.view = view;
   this.handleDOMChange = handleDOMChange;
-  this.observer = window.MutationObserver &&
-    new window.MutationObserver(function (mutations) { return this$1.flush(mutations); });
-  this.currentSelection = new SelectionState;
   this.queue = [];
+  this.flushingSoon = false;
+  this.observer = window.MutationObserver &&
+    new window.MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) { this$1.queue.push(mutations[i]); }
+      // IE11 will sometimes (on backspacing out a single character
+      // text node after a BR node) call the observer callback
+      // before actually updating the DOM, which will cause
+      // ProseMirror to miss the change (see #930)
+      if (result.ie && result.ie_version <= 11 && mutations.some(
+        function (m) { return m.type == "childList" && m.removedNodes.length ||
+             m.type == "characterData" && m.oldValue.length > m.target.nodeValue.length; }))
+        { this$1.flushSoon(); }
+      else
+        { this$1.flush(); }
+    });
+  this.currentSelection = new SelectionState;
   if (useCharData) {
     this.onCharData = function (e) {
       this$1.queue.push({target: e.target, type: "characterData", oldValue: e.prevValue});
-      window.setTimeout(function () { return this$1.flush(); }, 20);
+      this$1.flushSoon();
     };
   }
   this.onSelectionChange = this.onSelectionChange.bind(this);
   this.suppressingSelectionUpdates = false;
+};
+
+DOMObserver.prototype.flushSoon = function flushSoon () {
+    var this$1 = this;
+
+  if (!this.flushingSoon) {
+    this.flushingSoon = true;
+    window.setTimeout(function () { this$1.flushingSoon = false; this$1.flush(); }, 20);
+  }
 };
 
 DOMObserver.prototype.start = function start () {
@@ -31894,12 +33931,14 @@ DOMObserver.prototype.start = function start () {
 DOMObserver.prototype.stop = function stop () {
     var this$1 = this;
 
-  var take = this.observer.takeRecords();
-  if (take.length) {
-    for (var i = 0; i < take.length; i++) { this$1.queue.push(take[i]); }
-    window.setTimeout(function () { return this$1.flush(); }, 20);
+  if (this.observer) {
+    var take = this.observer.takeRecords();
+    if (take.length) {
+      for (var i = 0; i < take.length; i++) { this.queue.push(take[i]); }
+      window.setTimeout(function () { return this$1.flush(); }, 20);
+    }
+    this.observer.disconnect();
   }
-  if (this.observer) { this.observer.disconnect(); }
   if (useCharData) { this.view.dom.removeEventListener("DOMCharacterDataModified", this.onCharData); }
   this.disconnectSelection();
 };
@@ -31922,6 +33961,15 @@ DOMObserver.prototype.suppressSelectionUpdates = function suppressSelectionUpdat
 DOMObserver.prototype.onSelectionChange = function onSelectionChange () {
   if (!hasFocusAndSelection(this.view)) { return }
   if (this.suppressingSelectionUpdates) { return selectionToDOM(this.view) }
+  // Deletions on IE11 fire their events in the wrong order, giving
+  // us a selection change event before the DOM changes are
+  // reported.
+  if (result.ie && result.ie_version <= 11 && !this.view.state.selection.empty) {
+    var sel = this.view.root.getSelection();
+    // Selection.isCollapsed isn't reliable on IE
+    if (sel.focusNode && isEquivalentPosition(sel.focusNode, sel.focusOffset, sel.anchorNode, sel.anchorOffset))
+      { return this.flushSoon() }
+  }
   this.flush();
 };
 
@@ -31929,50 +33977,76 @@ DOMObserver.prototype.setCurSelection = function setCurSelection () {
   this.currentSelection.set(this.view.root.getSelection());
 };
 
-DOMObserver.prototype.flush = function flush (mutations) {
-    var this$1 = this;
+DOMObserver.prototype.ignoreSelectionChange = function ignoreSelectionChange (sel) {
+  if (sel.rangeCount == 0) { return true }
+  var container = sel.getRangeAt(0).commonAncestorContainer;
+  var desc = this.view.docView.nearestDesc(container);
+  return desc && desc.ignoreMutation({type: "selection", target: container.nodeType == 3 ? container.parentNode : container})
+};
 
-  if (!this.view.docView) { return }
-  if (!mutations) { mutations = this.observer.takeRecords(); }
+DOMObserver.prototype.flush = function flush () {
+  if (!this.view.docView || this.flushingSoon) { return }
+  var mutations = this.observer ? this.observer.takeRecords() : [];
   if (this.queue.length) {
     mutations = this.queue.concat(mutations);
     this.queue.length = 0;
   }
 
   var sel = this.view.root.getSelection();
-  var newSel = !this.suppressingSelectionUpdates && !this.currentSelection.eq(sel) && hasSelection(this.view);
+  var newSel = !this.suppressingSelectionUpdates && !this.currentSelection.eq(sel) && hasSelection(this.view) && !this.ignoreSelectionChange(sel);
 
-  var from = -1, to = -1, typeOver = false;
+  var from = -1, to = -1, typeOver = false, added = [];
   if (this.view.editable) {
     for (var i = 0; i < mutations.length; i++) {
-      var result$$1 = this$1.registerMutation(mutations[i]);
-      if (result$$1) {
-        from = from < 0 ? result$$1.from : Math.min(result$$1.from, from);
-        to = to < 0 ? result$$1.to : Math.max(result$$1.to, to);
-        if (result$$1.typeOver) { typeOver = true; }
+      var result = this.registerMutation(mutations[i], added);
+      if (result) {
+        from = from < 0 ? result.from : Math.min(result.from, from);
+        to = to < 0 ? result.to : Math.max(result.to, to);
+        if (result.typeOver && !this.view.composing) { typeOver = true; }
       }
     }
   }
   if (from > -1 || newSel) {
-    if (from > -1) { this.view.docView.markDirty(from, to); }
+    if (from > -1) {
+      this.view.docView.markDirty(from, to);
+      checkCSS(this.view);
+    }
     this.handleDOMChange(from, to, typeOver);
     if (this.view.docView.dirty) { this.view.updateState(this.view.state); }
     else if (!this.currentSelection.eq(sel)) { selectionToDOM(this.view); }
   }
 };
 
-DOMObserver.prototype.registerMutation = function registerMutation (mut) {
+DOMObserver.prototype.registerMutation = function registerMutation (mut, added) {
+  // Ignore mutations inside nodes that were already noted as inserted
+  if (added.indexOf(mut.target) > -1) { return null }
   var desc = this.view.docView.nearestDesc(mut.target);
   if (mut.type == "attributes" &&
-      (desc == this.view.docView || mut.attributeName == "contenteditable")) { return null }
+      (desc == this.view.docView || mut.attributeName == "contenteditable" ||
+       // Firefox sometimes fires spurious events for null/empty styles
+       (mut.attributeName == "style" && !mut.oldValue && !mut.target.getAttribute("style"))))
+    { return null }
   if (!desc || desc.ignoreMutation(mut)) { return null }
 
   if (mut.type == "childList") {
-    var fromOffset = mut.previousSibling && mut.previousSibling.parentNode == mut.target
-        ? domIndex(mut.previousSibling) + 1 : 0;
+    var prev = mut.previousSibling, next = mut.nextSibling;
+    if (result.ie && result.ie_version <= 11 && mut.addedNodes.length) {
+      // IE11 gives us incorrect next/prev siblings for some
+      // insertions, so if there are added nodes, recompute those
+      for (var i = 0; i < mut.addedNodes.length; i++) {
+        var ref = mut.addedNodes[i];
+          var previousSibling = ref.previousSibling;
+          var nextSibling = ref.nextSibling;
+        if (!previousSibling || Array.prototype.indexOf.call(mut.addedNodes, previousSibling) < 0) { prev = previousSibling; }
+        if (!nextSibling || Array.prototype.indexOf.call(mut.addedNodes, nextSibling) < 0) { next = nextSibling; }
+      }
+    }
+    var fromOffset = prev && prev.parentNode == mut.target
+        ? domIndex(prev) + 1 : 0;
     var from = desc.localPosFromDOM(mut.target, fromOffset, -1);
-    var toOffset = mut.nextSibling && mut.nextSibling.parentNode == mut.target
-        ? domIndex(mut.nextSibling) : mut.target.childNodes.length;
+    var toOffset = next && next.parentNode == mut.target
+        ? domIndex(next) : mut.target.childNodes.length;
+    for (var i$1 = 0; i$1 < mut.addedNodes.length; i$1++) { added.push(mut.addedNodes[i$1]); }
     var to = desc.localPosFromDOM(mut.target, toOffset, 1);
     return {from: from, to: to}
   } else if (mut.type == "attributes") {
@@ -31990,10 +34064,18 @@ DOMObserver.prototype.registerMutation = function registerMutation (mut) {
   }
 };
 
+var cssChecked = false;
+
+function checkCSS(view) {
+  if (cssChecked) { return }
+  cssChecked = true;
+  if (getComputedStyle(view.dom).whiteSpace == "normal")
+    { console["warn"]("ProseMirror expects the CSS white-space property to be set, preferably to 'pre-wrap'. It is recommended to load style/prosemirror.css from the prosemirror-view package."); }
+}
+
 // A collection of DOM events that occur within the editor, and callback functions
 // to invoke when the event fires.
-var handlers = {};
-var editHandlers = {};
+var handlers = {}, editHandlers = {};
 
 function initInput(view) {
   view.shiftKey = false;
@@ -32312,8 +34394,6 @@ MouseDown.prototype.up = function up (event) {
   if (this.view.state.doc != this.startDoc) { pos = this.view.posAtCoords(eventCoords(event)); }
 
   if (this.allowDefault || !pos) {
-    // Force a cursor wrapper redraw if this was suppressed (to avoid an issue with IE drag-selection)
-    if (result.ie && needsCursorWrapper(this.view.state)) { this.view.updateState(this.view.state); }
     setSelectionOrigin(this.view, "pointer");
   } else if (handleSingleClick(this.view, pos.pos, pos.inside, event, this.selectNode)) {
     event.preventDefault();
@@ -32373,7 +34453,33 @@ var timeoutComposition = result.android ? 5000 : -1;
 editHandlers.compositionstart = editHandlers.compositionupdate = function (view) {
   if (!view.composing) {
     view.domObserver.flush();
-    endComposition(view);
+    var state = view.state;
+    var $pos = state.selection.$from;
+    if (state.selection.empty &&
+        (state.storedMarks || (!$pos.textOffset && $pos.parentOffset && $pos.nodeBefore.marks.some(function (m) { return m.type.spec.inclusive === false; })))) {
+      // Need to wrap the cursor in mark nodes different from the ones in the DOM context
+      view.markCursor = view.state.storedMarks || $pos.marks();
+      endComposition(view, true);
+      view.markCursor = null;
+    } else {
+      endComposition(view);
+      // In firefox, if the cursor is after but outside a marked node,
+      // the inserted text won't inherit the marks. So this moves it
+      // inside if necessary.
+      if (result.gecko && state.selection.empty && $pos.parentOffset && !$pos.textOffset && $pos.nodeBefore.marks.length) {
+        var sel = view.root.getSelection();
+        for (var node = sel.focusNode, offset = sel.focusOffset; node && node.nodeType == 1 && offset != 0;) {
+          var before = offset < 0 ? node.lastChild : node.childNodes[offset - 1];
+          if (before.nodeType == 3) {
+            sel.collapse(before, before.nodeValue.length);
+            break
+          } else {
+            node = before;
+            offset = -1;
+          }
+        }
+      }
+    }
     view.composing = true;
   }
   scheduleComposeEnd(view, timeoutComposition);
@@ -32392,10 +34498,10 @@ function scheduleComposeEnd(view, delay) {
   if (delay > -1) { view.composingTimeout = setTimeout(function () { return endComposition(view); }, delay); }
 }
 
-function endComposition(view) {
+function endComposition(view, forceUpdate) {
   view.composing = false;
   while (view.compositionNodes.length > 0) { view.compositionNodes.pop().markParentsDirty(); }
-  if (view.docView.dirty) {
+  if (forceUpdate || view.docView.dirty) {
     view.updateState(view.state);
     return true
   }
@@ -32405,7 +34511,7 @@ function endComposition(view) {
 function captureCopy(view, dom) {
   // The extra wrapper is somehow necessary on IE/Edge to prevent the
   // content from being mangled when it is put onto the clipboard
-  var doc = dom.ownerDocument;
+  var doc = view.dom.ownerDocument;
   var wrap = doc.body.appendChild(doc.createElement("div"));
   wrap.appendChild(dom);
   wrap.style.cssText = "position: fixed; left: -10000px; top: 10px";
@@ -32471,20 +34577,22 @@ function capturePaste(view, e) {
 
 function doPaste(view, text, html, e) {
   var slice = parseFromClipboard(view, text, html, view.shiftKey, view.state.selection.$from);
-  if (view.someProp("handlePaste", function (f) { return f(view, e, slice || prosemirrorModel.Slice.empty); }) || !slice) { return true }
+  if (view.someProp("handlePaste", function (f) { return f(view, e, slice || prosemirrorModel.Slice.empty); }) || !slice) { return }
 
   var singleNode = sliceSingleNode(slice);
   var tr = singleNode ? view.state.tr.replaceSelectionWith(singleNode, view.shiftKey) : view.state.tr.replaceSelection(slice);
   view.dispatch(tr.scrollIntoView().setMeta("paste", true).setMeta("uiEvent", "paste"));
-  return true
 }
 
 editHandlers.paste = function (view, e) {
   var data = brokenClipboardAPI ? null : e.clipboardData;
-  if (data && (doPaste(view, data.getData("text/plain"), data.getData("text/html"), e) || data.files.length > 0))
-    { e.preventDefault(); }
-  else
-    { capturePaste(view, e); }
+  var html = data && data.getData("text/html"), text = data && data.getData("text/plain");
+  if (data && (html || text || data.files.length)) {
+    doPaste(view, text, html, e);
+    e.preventDefault();
+  } else {
+    capturePaste(view, e);
+  }
 };
 
 var Dragging = function Dragging(slice, move) {
@@ -32501,9 +34609,7 @@ handlers.dragstart = function (view, e) {
 
   var sel = view.state.selection;
   var pos = sel.empty ? null : view.posAtCoords(eventCoords(e));
-  if (pos && pos.pos >= sel.from && pos.pos <= (sel instanceof prosemirrorState.NodeSelection ? sel.to - 1: sel.to)) {
-    // In selection
-  } else if (mouseDown && mouseDown.mightDrag) {
+  if (pos && pos.pos >= sel.from && pos.pos <= (sel instanceof prosemirrorState.NodeSelection ? sel.to - 1: sel.to)) ; else if (mouseDown && mouseDown.mightDrag) {
     view.dispatch(view.state.tr.setSelection(prosemirrorState.NodeSelection.create(view.state.doc, mouseDown.mightDrag.pos)));
   } else if (e.target && e.target.nodeType == 1) {
     var desc = view.docView.nearestDesc(e.target, true);
@@ -32701,7 +34807,7 @@ var Decoration = function Decoration(from, to, type) {
   this.type = type;
 };
 
-var prototypeAccessors$2 = { spec: {} };
+var prototypeAccessors$1 = { spec: { configurable: true } };
 
 Decoration.prototype.copy = function copy (from, to) {
   return new Decoration(from, to, this.type)
@@ -32788,6 +34894,11 @@ Decoration.inline = function inline (from, to, attrs, spec) {
 // Creates a node decoration. `from` and `to` should point precisely
 // before and after a node in the document. That node, and only that
 // node, will receive the given attributes.
+//
+// spec::-
+//
+// Optional information to store with the decoration. It
+// is also used when comparing decorators for equality.
 Decoration.node = function node (from, to, attrs, spec) {
   return new Decoration(from, to, new NodeType(attrs, spec))
 };
@@ -32795,9 +34906,9 @@ Decoration.node = function node (from, to, attrs, spec) {
 // :: Object
 // The spec provided when creating this decoration. Can be useful
 // if you've stored extra information in that object.
-prototypeAccessors$2.spec.get = function () { return this.type.spec };
+prototypeAccessors$1.spec.get = function () { return this.type.spec };
 
-Object.defineProperties( Decoration.prototype, prototypeAccessors$2 );
+Object.defineProperties( Decoration.prototype, prototypeAccessors$1 );
 
 // DecorationAttrs:: interface
 // A set of attributes to add to a decorated node. Most properties
@@ -32815,8 +34926,7 @@ Object.defineProperties( Decoration.prototype, prototypeAccessors$2 );
 //   When non-null, the target node is wrapped in a DOM element of
 //   this type (and the other attributes are applied to this element).
 
-var none = [];
-var noSpec = {};
+var none = [], noSpec = {};
 
 // ::- A collection of [decorations](#view.Decoration), organized in
 // such a way that the drawing algorithm can efficiently use and
@@ -32840,7 +34950,7 @@ DecorationSet.create = function create (doc, decorations) {
 // boundaries) and match the given predicate on their spec. When
 // `start` and `end` are omitted, all decorations in the set are
 // considered. When `predicate` isn't given, all decorations are
-// asssumed to match.
+// assumed to match.
 DecorationSet.prototype.find = function find (start, end, predicate) {
   var result = [];
   this.findInner(start == null ? 0 : start, end == null ? 1e9 : end, result, 0, predicate);
@@ -32848,17 +34958,15 @@ DecorationSet.prototype.find = function find (start, end, predicate) {
 };
 
 DecorationSet.prototype.findInner = function findInner (start, end, result, offset, predicate) {
-    var this$1 = this;
-
   for (var i = 0; i < this.local.length; i++) {
-    var span = this$1.local[i];
+    var span = this.local[i];
     if (span.from <= end && span.to >= start && (!predicate || predicate(span.spec)))
       { result.push(span.copy(span.from + offset, span.to + offset)); }
   }
   for (var i$1 = 0; i$1 < this.children.length; i$1 += 3) {
-    if (this$1.children[i$1] < end && this$1.children[i$1 + 1] > start) {
-      var childOff = this$1.children[i$1] + 1;
-      this$1.children[i$1 + 2].findInner(start - childOff, end - childOff, result, offset + childOff, predicate);
+    if (this.children[i$1] < end && this.children[i$1 + 1] > start) {
+      var childOff = this.children[i$1] + 1;
+      this.children[i$1 + 2].findInner(start - childOff, end - childOff, result, offset + childOff, predicate);
     }
   }
 };
@@ -32879,13 +34987,11 @@ DecorationSet.prototype.map = function map (mapping, doc, options) {
 };
 
 DecorationSet.prototype.mapInner = function mapInner (mapping, node, offset, oldOffset, options) {
-    var this$1 = this;
-
   var newLocal;
   for (var i = 0; i < this.local.length; i++) {
-    var mapped = this$1.local[i].map(mapping, offset, oldOffset);
+    var mapped = this.local[i].map(mapping, offset, oldOffset);
     if (mapped && mapped.type.valid(node, mapped)) { (newLocal || (newLocal = [])).push(mapped); }
-    else if (options.onRemove) { options.onRemove(this$1.local[i].spec); }
+    else if (options.onRemove) { options.onRemove(this.local[i].spec); }
   }
 
   if (this.children.length)
@@ -32935,8 +35041,6 @@ DecorationSet.prototype.remove = function remove (decorations) {
 };
 
 DecorationSet.prototype.removeInner = function removeInner (decorations, offset) {
-    var this$1 = this;
-
   var children = this.children, local = this.local;
   for (var i = 0; i < children.length; i += 3) {
     var found = (void 0), from = children[i] + offset, to = children[i + 1] + offset;
@@ -32947,7 +35051,7 @@ DecorationSet.prototype.removeInner = function removeInner (decorations, offset)
       }
     } }
     if (!found) { continue }
-    if (children == this$1.children) { children = this$1.children.slice(); }
+    if (children == this.children) { children = this.children.slice(); }
     var removed = children[i + 2].removeInner(found, from + 1);
     if (removed != empty) {
       children[i + 2] = removed;
@@ -32958,7 +35062,7 @@ DecorationSet.prototype.removeInner = function removeInner (decorations, offset)
   }
   if (local.length) { for (var i$1 = 0, span$1 = (void 0); i$1 < decorations.length; i$1++) { if (span$1 = decorations[i$1]) {
     for (var j$1 = 0; j$1 < local.length; j$1++) { if (local[j$1].type.eq(span$1.type)) {
-      if (local == this$1.local) { local = this$1.local.slice(); }
+      if (local == this.local) { local = this.local.slice(); }
       local.splice(j$1--, 1);
     } }
   } } }
@@ -32967,19 +35071,17 @@ DecorationSet.prototype.removeInner = function removeInner (decorations, offset)
 };
 
 DecorationSet.prototype.forChild = function forChild (offset, node) {
-    var this$1 = this;
-
   if (this == empty) { return this }
   if (node.isLeaf) { return DecorationSet.empty }
 
   var child, local;
-  for (var i = 0; i < this.children.length; i += 3) { if (this$1.children[i] >= offset) {
-    if (this$1.children[i] == offset) { child = this$1.children[i + 2]; }
+  for (var i = 0; i < this.children.length; i += 3) { if (this.children[i] >= offset) {
+    if (this.children[i] == offset) { child = this.children[i + 2]; }
     break
   } }
   var start = offset + 1, end = start + node.content.size;
   for (var i$1 = 0; i$1 < this.local.length; i$1++) {
-    var dec = this$1.local[i$1];
+    var dec = this.local[i$1];
     if (dec.from < end && dec.to > start && (dec.type instanceof InlineType)) {
       var from = Math.max(start, dec.from) - start, to = Math.min(end, dec.to) - start;
       if (from < to) { (local || (local = [])).push(dec.copy(from, to)); }
@@ -32993,19 +35095,17 @@ DecorationSet.prototype.forChild = function forChild (offset, node) {
 };
 
 DecorationSet.prototype.eq = function eq (other) {
-    var this$1 = this;
-
   if (this == other) { return true }
   if (!(other instanceof DecorationSet) ||
       this.local.length != other.local.length ||
       this.children.length != other.children.length) { return false }
   for (var i = 0; i < this.local.length; i++)
-    { if (!this$1.local[i].eq(other.local[i])) { return false } }
+    { if (!this.local[i].eq(other.local[i])) { return false } }
   for (var i$1 = 0; i$1 < this.children.length; i$1 += 3)
-    { if (this$1.children[i$1] != other.children[i$1] ||
-        this$1.children[i$1 + 1] != other.children[i$1 + 1] ||
-        !this$1.children[i$1 + 2].eq(other.children[i$1 + 2])) { return false } }
-  return false
+    { if (this.children[i$1] != other.children[i$1] ||
+        this.children[i$1 + 1] != other.children[i$1 + 1] ||
+        !this.children[i$1 + 2].eq(other.children[i$1 + 2])) { return false } }
+  return true
 };
 
 DecorationSet.prototype.locals = function locals (node) {
@@ -33013,14 +35113,12 @@ DecorationSet.prototype.locals = function locals (node) {
 };
 
 DecorationSet.prototype.localsInner = function localsInner (node) {
-    var this$1 = this;
-
   if (this == empty) { return none }
   if (node.inlineContent || !this.local.some(InlineType.is)) { return this.local }
   var result = [];
   for (var i = 0; i < this.local.length; i++) {
-    if (!(this$1.local[i].type instanceof InlineType))
-      { result.push(this$1.local[i]); }
+    if (!(this.local[i].type instanceof InlineType))
+      { result.push(this.local[i]); }
   }
   return result
 };
@@ -33041,12 +35139,10 @@ var DecorationGroup = function DecorationGroup(members) {
 };
 
 DecorationGroup.prototype.forChild = function forChild (offset, child) {
-    var this$1 = this;
-
   if (child.isLeaf) { return DecorationSet.empty }
   var found = [];
   for (var i = 0; i < this.members.length; i++) {
-    var result = this$1.members[i].forChild(offset, child);
+    var result = this.members[i].forChild(offset, child);
     if (result == empty) { continue }
     if (result instanceof DecorationGroup) { found = found.concat(result.members); }
     else { found.push(result); }
@@ -33055,21 +35151,17 @@ DecorationGroup.prototype.forChild = function forChild (offset, child) {
 };
 
 DecorationGroup.prototype.eq = function eq (other) {
-    var this$1 = this;
-
   if (!(other instanceof DecorationGroup) ||
       other.members.length != this.members.length) { return false }
   for (var i = 0; i < this.members.length; i++)
-    { if (!this$1.members[i].eq(other.members[i])) { return false } }
+    { if (!this.members[i].eq(other.members[i])) { return false } }
   return true
 };
 
 DecorationGroup.prototype.locals = function locals (node) {
-    var this$1 = this;
-
   var result, sorted = true;
   for (var i = 0; i < this.members.length; i++) {
-    var locals = this$1.members[i].localsInner(node);
+    var locals = this.members[i].localsInner(node);
     if (!locals.length) { continue }
     if (!result) {
       result = locals;
@@ -33196,7 +35288,7 @@ function takeSpansForNode(spans, node, offset) {
   var end = offset + node.nodeSize, found = null;
   for (var i = 0, span = (void 0); i < spans.length; i++) {
     if ((span = spans[i]) && span.from > offset && span.to < end) {
-      (found || (found = [])).push(span);
+(found || (found = [])).push(span);
       spans[i] = null;
     }
   }
@@ -33319,7 +35411,10 @@ var EditorView = function EditorView(place, props) {
     else if (place.mount) { this.mounted = true; }
   }
 
+  // :: bool
+  // Indicates whether the editor is currently [editable](#view.EditorProps.editable).
   this.editable = getEditable(this);
+  this.markCursor = null;
   this.cursorWrapper = null;
   updateCursorWrapper(this);
   this.nodeViews = buildNodeViews(this);
@@ -33338,7 +35433,7 @@ var EditorView = function EditorView(place, props) {
   this.updatePluginViews();
 };
 
-var prototypeAccessors = { props: {},root: {} };
+var prototypeAccessors$2 = { props: { configurable: true },root: { configurable: true } };
 
 // composing:: boolean
 // Holds `true` when a
@@ -33347,13 +35442,11 @@ var prototypeAccessors = { props: {},root: {} };
 
 // :: DirectEditorProps
 // The view's current [props](#view.EditorProps).
-prototypeAccessors.props.get = function () {
-    var this$1 = this;
-
+prototypeAccessors$2.props.get = function () {
   if (this._props.state != this.state) {
     var prev = this._props;
     this._props = {};
-    for (var name in prev) { this$1._props[name] = prev[name]; }
+    for (var name in prev) { this._props[name] = prev[name]; }
     this._props.state = this.state;
   }
   return this._props
@@ -33373,10 +35466,8 @@ EditorView.prototype.update = function update (props) {
 // given as argument. Equivalent to `view.update(Object.assign({},
 // view.props, props))`.
 EditorView.prototype.setProps = function setProps (props) {
-    var this$1 = this;
-
   var updated = {};
-  for (var name in this$1._props) { updated[name] = this$1._props[name]; }
+  for (var name in this._props) { updated[name] = this._props[name]; }
   updated.state = this.state;
   for (var name$1 in props) { updated[name$1] = props[name$1]; }
   this.update(updated);
@@ -33427,7 +35518,13 @@ EditorView.prototype.updateStateInner = function updateStateInner (state, reconf
         this.docView = docViewDesc(state.doc, outerDeco, innerDeco, this.dom, this);
       }
       if (startSelContext)
-        { forceSelUpdate = needChromeSelectionForce(startSelContext, this.root); }
+        { forceSelUpdate = !this.composing && needChromeSelectionForce(startSelContext, this.root); }
+      // IE11 will sometimes _report_ the selection as being in the
+      // right place but actually draw/use a different selection
+      // after a deletion (#973).
+      if (result.ie && result.ie_version <= 11 && !prev.selection.empty && state.selection.empty &&
+          state.doc.content.size < prev.doc.content.size)
+        { forceSelUpdate = true; }
     }
     // Work around for an issue where an update arriving right between
     // a DOM selection change and the "selectionchange" event for it
@@ -33435,7 +35532,7 @@ EditorView.prototype.updateStateInner = function updateStateInner (state, reconf
     // drag selection.
     if (forceSelUpdate ||
         !(this.mouseDown && this.domObserver.currentSelection.eq(this.root.getSelection()) && anchorInRightPlace(this))) {
-      selectionToDOM(this, false, forceSelUpdate);
+      selectionToDOM(this, forceSelUpdate);
     } else {
       syncNodeSelection(this, state.selection);
       this.domObserver.setCurSelection();
@@ -33450,7 +35547,7 @@ EditorView.prototype.updateStateInner = function updateStateInner (state, reconf
   } else if (scroll == "to selection") {
     var startDOM = this.root.getSelection().focusNode;
     if (this.someProp("handleScrollToSelection", function (f) { return f(this$1); }))
-      {} // Handled
+      ; // Handled
     else if (state.selection instanceof prosemirrorState.NodeSelection)
       { scrollRectIntoView(this, this.docView.domAfterPos(state.selection.from).getBoundingClientRect(), startDOM); }
     else
@@ -33466,18 +35563,16 @@ EditorView.prototype.destroyPluginViews = function destroyPluginViews () {
 };
 
 EditorView.prototype.updatePluginViews = function updatePluginViews (prevState) {
-    var this$1 = this;
-
   if (!prevState || prevState.plugins != this.state.plugins) {
     this.destroyPluginViews();
     for (var i = 0; i < this.state.plugins.length; i++) {
-      var plugin = this$1.state.plugins[i];
-      if (plugin.spec.view) { this$1.pluginViews.push(plugin.spec.view(this$1)); }
+      var plugin = this.state.plugins[i];
+      if (plugin.spec.view) { this.pluginViews.push(plugin.spec.view(this)); }
     }
   } else {
     for (var i$1 = 0; i$1 < this.pluginViews.length; i$1++) {
-      var pluginView = this$1.pluginViews[i$1];
-      if (pluginView.update) { pluginView.update(this$1, prevState); }
+      var pluginView = this.pluginViews[i$1];
+      if (pluginView.update) { pluginView.update(this, prevState); }
     }
   }
 };
@@ -33509,9 +35604,9 @@ EditorView.prototype.hasFocus = function hasFocus () {
 // Focus the editor.
 EditorView.prototype.focus = function focus () {
   this.domObserver.stop();
-  selectionToDOM(this, true);
+  if (this.editable) { focusPreventScroll(this.dom); }
+  selectionToDOM(this);
   this.domObserver.start();
-  if (this.editable) { this.dom.focus(); }
 };
 
 // :: union<dom.Document, dom.DocumentFragment>
@@ -33519,13 +35614,11 @@ EditorView.prototype.focus = function focus () {
 // usually be the top-level `document`, but might be a [shadow
 // DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)
 // root if the editor is inside one.
-prototypeAccessors.root.get = function () {
-    var this$1 = this;
-
+prototypeAccessors$2.root.get = function () {
   var cached = this._root;
   if (cached == null) { for (var search = this.dom.parentNode; search; search = search.parentNode) {
     if (search.nodeType == 9 || (search.nodeType == 11 && search.host))
-      { return this$1._root = search }
+      { return this._root = search }
   } }
   return cached || document
 };
@@ -33637,7 +35730,7 @@ EditorView.prototype.dispatch = function dispatch (tr) {
   else { this.updateState(this.state.apply(tr)); }
 };
 
-Object.defineProperties( EditorView.prototype, prototypeAccessors );
+Object.defineProperties( EditorView.prototype, prototypeAccessors$2 );
 
 function computeDocDeco(view) {
   var attrs = Object.create(null);
@@ -33657,34 +35750,28 @@ function computeDocDeco(view) {
   return [Decoration.node(0, view.state.doc.content.size, attrs)]
 }
 
-function cursorWrapperDOM(visible) {
-  var span = document.createElement("span");
-  span.textContent = "\ufeff"; // zero-width non-breaking space
-  if (!visible) {
-    span.style.position = "absolute";
-    span.style.left = "-100000px";
-  }
-  return span
-}
-
 function updateCursorWrapper(view) {
-  var $pos = needsCursorWrapper(view.state);
-  // On IE/Edge, moving the DOM selection will abort a mouse drag, so
-  // there we delay the creation of the wrapper when the mouse is down.
-  if ($pos && !(result.ie && view.mouseDown)) {
-    var visible = view.state.selection.visible;
-    // Needs a cursor wrapper
-    var marks = view.state.storedMarks || $pos.marks(), dom;
-    if (!view.cursorWrapper || !prosemirrorModel.Mark.sameSet(view.cursorWrapper.deco.spec.marks, marks) ||
-        view.cursorWrapper.dom.textContent != "\ufeff" ||
-        view.cursorWrapper.deco.spec.visible != visible)
-      { dom = cursorWrapperDOM(visible); }
-    else if (view.cursorWrapper.deco.pos != $pos.pos)
-      { dom = view.cursorWrapper.dom; }
-    if (dom)
-      { view.cursorWrapper = {dom: dom, deco: Decoration.widget($pos.pos, dom, {isCursorWrapper: true, marks: marks, raw: true, visible: visible})}; }
-  } else {
+  var ref = view.state.selection;
+  var $head = ref.$head;
+  var $anchor = ref.$anchor;
+  var visible = ref.visible;
+  if (view.markCursor) {
+    var dom = document.createElement("img");
+    dom.setAttribute("mark-placeholder", "true");
+    view.cursorWrapper = {dom: dom, deco: Decoration.widget($head.pos, dom, {raw: true, marks: view.markCursor})};
+  } else if (visible || $head.pos != $anchor.pos) {
     view.cursorWrapper = null;
+  } else {
+    var dom$1;
+    if (!view.cursorWrapper || view.cursorWrapper.dom.childNodes.length) {
+      dom$1 = document.createElement("div");
+      dom$1.style.position = "absolute";
+      dom$1.style.left = "-100000px";
+    } else if (view.cursorWrapper.deco.pos != $head.pos) {
+      dom$1 = view.cursorWrapper.dom;
+    }
+    if (dom$1)
+      { view.cursorWrapper = {dom: dom$1, deco: Decoration.widget($head.pos, dom$1, {raw: true})}; }
   }
 }
 
@@ -33710,12 +35797,12 @@ function needChromeSelectionForce(context, root) {
 }
 
 function buildNodeViews(view) {
-  var result$$1 = {};
+  var result = {};
   view.someProp("nodeViews", function (obj) {
-    for (var prop in obj) { if (!Object.prototype.hasOwnProperty.call(result$$1, prop))
-      { result$$1[prop] = obj[prop]; } }
+    for (var prop in obj) { if (!Object.prototype.hasOwnProperty.call(result, prop))
+      { result[prop] = obj[prop]; } }
   });
-  return result$$1
+  return result
 }
 
 function changedNodeViews(a, b) {
@@ -33906,15 +35993,15 @@ function changedNodeViews(a, b) {
 //   [applied](#state.EditorState.apply). The callback will be bound to have
 //   the view instance as its `this` binding.
 
-exports.EditorView = EditorView;
 exports.Decoration = Decoration;
 exports.DecorationSet = DecorationSet;
-exports.__serializeForClipboard = serializeForClipboard;
-exports.__parseFromClipboard = parseFromClipboard;
+exports.EditorView = EditorView;
 exports.__endComposition = endComposition;
+exports.__parseFromClipboard = parseFromClipboard;
+exports.__serializeForClipboard = serializeForClipboard;
 
 
-},{"prosemirror-model":49,"prosemirror-state":51,"prosemirror-transform":52}],54:[function(require,module,exports){
+},{"prosemirror-model":55,"prosemirror-state":58,"prosemirror-transform":59}],61:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -34451,7 +36538,7 @@ exports.__endComposition = endComposition;
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],55:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34537,7 +36624,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],56:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -34624,13 +36711,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],57:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":55,"./encode":56}],58:[function(require,module,exports){
+},{"./decode":62,"./encode":63}],65:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34667,7 +36754,7 @@ var AutoFocusUtils = {
 };
 
 module.exports = AutoFocusUtils;
-},{"./ReactMount":122,"./findDOMNode":165,"fbjs/lib/focusNode":19}],59:[function(require,module,exports){
+},{"./ReactMount":129,"./findDOMNode":172,"fbjs/lib/focusNode":20}],66:[function(require,module,exports){
 /**
  * Copyright 2013-2015 Facebook, Inc.
  * All rights reserved.
@@ -35073,7 +37160,7 @@ var BeforeInputEventPlugin = {
 };
 
 module.exports = BeforeInputEventPlugin;
-},{"./EventConstants":71,"./EventPropagators":75,"./FallbackCompositionState":76,"./SyntheticCompositionEvent":147,"./SyntheticInputEvent":151,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/keyOf":29}],60:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPropagators":82,"./FallbackCompositionState":83,"./SyntheticCompositionEvent":154,"./SyntheticInputEvent":158,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/keyOf":30}],67:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35213,7 +37300,7 @@ var CSSProperty = {
 };
 
 module.exports = CSSProperty;
-},{}],61:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -35391,7 +37478,7 @@ ReactPerf.measureMethods(CSSPropertyOperations, 'CSSPropertyOperations', {
 
 module.exports = CSSPropertyOperations;
 }).call(this,require('_process'))
-},{"./CSSProperty":60,"./ReactPerf":128,"./dangerousStyleValue":162,"_process":45,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/camelizeStyleName":13,"fbjs/lib/hyphenateStyleName":24,"fbjs/lib/memoizeStringOnly":31,"fbjs/lib/warning":36}],62:[function(require,module,exports){
+},{"./CSSProperty":67,"./ReactPerf":135,"./dangerousStyleValue":169,"_process":46,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/camelizeStyleName":14,"fbjs/lib/hyphenateStyleName":25,"fbjs/lib/memoizeStringOnly":32,"fbjs/lib/warning":37}],69:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -35487,7 +37574,7 @@ PooledClass.addPoolingTo(CallbackQueue);
 
 module.exports = CallbackQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./PooledClass":80,"_process":45,"fbjs/lib/invariant":25}],63:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"_process":46,"fbjs/lib/invariant":26}],70:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35809,7 +37896,7 @@ var ChangeEventPlugin = {
 };
 
 module.exports = ChangeEventPlugin;
-},{"./EventConstants":71,"./EventPluginHub":72,"./EventPropagators":75,"./ReactUpdates":140,"./SyntheticEvent":149,"./getEventTarget":171,"./isEventSupported":176,"./isTextInputElement":177,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/keyOf":29}],64:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPluginHub":79,"./EventPropagators":82,"./ReactUpdates":147,"./SyntheticEvent":156,"./getEventTarget":178,"./isEventSupported":183,"./isTextInputElement":184,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/keyOf":30}],71:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35833,7 +37920,7 @@ var ClientReactRootIndex = {
 };
 
 module.exports = ClientReactRootIndex;
-},{}],65:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -35965,7 +38052,7 @@ ReactPerf.measureMethods(DOMChildrenOperations, 'DOMChildrenOperations', {
 
 module.exports = DOMChildrenOperations;
 }).call(this,require('_process'))
-},{"./Danger":68,"./ReactMultiChildUpdateTypes":124,"./ReactPerf":128,"./setInnerHTML":181,"./setTextContent":182,"_process":45,"fbjs/lib/invariant":25}],66:[function(require,module,exports){
+},{"./Danger":75,"./ReactMultiChildUpdateTypes":131,"./ReactPerf":135,"./setInnerHTML":188,"./setTextContent":189,"_process":46,"fbjs/lib/invariant":26}],73:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36202,7 +38289,7 @@ var DOMProperty = {
 
 module.exports = DOMProperty;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],67:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],74:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36430,7 +38517,7 @@ ReactPerf.measureMethods(DOMPropertyOperations, 'DOMPropertyOperations', {
 
 module.exports = DOMPropertyOperations;
 }).call(this,require('_process'))
-},{"./DOMProperty":66,"./ReactPerf":128,"./quoteAttributeValueForBrowser":179,"_process":45,"fbjs/lib/warning":36}],68:[function(require,module,exports){
+},{"./DOMProperty":73,"./ReactPerf":135,"./quoteAttributeValueForBrowser":186,"_process":46,"fbjs/lib/warning":37}],75:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36578,7 +38665,7 @@ var Danger = {
 
 module.exports = Danger;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/createNodesFromMarkup":16,"fbjs/lib/emptyFunction":17,"fbjs/lib/getMarkupWrap":21,"fbjs/lib/invariant":25}],69:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/createNodesFromMarkup":17,"fbjs/lib/emptyFunction":18,"fbjs/lib/getMarkupWrap":22,"fbjs/lib/invariant":26}],76:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36606,7 +38693,7 @@ var keyOf = require('fbjs/lib/keyOf');
 var DefaultEventPluginOrder = [keyOf({ ResponderEventPlugin: null }), keyOf({ SimpleEventPlugin: null }), keyOf({ TapEventPlugin: null }), keyOf({ EnterLeaveEventPlugin: null }), keyOf({ ChangeEventPlugin: null }), keyOf({ SelectEventPlugin: null }), keyOf({ BeforeInputEventPlugin: null })];
 
 module.exports = DefaultEventPluginOrder;
-},{"fbjs/lib/keyOf":29}],70:[function(require,module,exports){
+},{"fbjs/lib/keyOf":30}],77:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36731,7 +38818,7 @@ var EnterLeaveEventPlugin = {
 };
 
 module.exports = EnterLeaveEventPlugin;
-},{"./EventConstants":71,"./EventPropagators":75,"./ReactMount":122,"./SyntheticMouseEvent":153,"fbjs/lib/keyOf":29}],71:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPropagators":82,"./ReactMount":129,"./SyntheticMouseEvent":160,"fbjs/lib/keyOf":30}],78:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36824,7 +38911,7 @@ var EventConstants = {
 };
 
 module.exports = EventConstants;
-},{"fbjs/lib/keyMirror":28}],72:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":29}],79:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37106,7 +39193,7 @@ var EventPluginHub = {
 
 module.exports = EventPluginHub;
 }).call(this,require('_process'))
-},{"./EventPluginRegistry":73,"./EventPluginUtils":74,"./ReactErrorUtils":113,"./accumulateInto":159,"./forEachAccumulated":167,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],73:[function(require,module,exports){
+},{"./EventPluginRegistry":80,"./EventPluginUtils":81,"./ReactErrorUtils":120,"./accumulateInto":166,"./forEachAccumulated":174,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],80:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37329,7 +39416,7 @@ var EventPluginRegistry = {
 
 module.exports = EventPluginRegistry;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],74:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],81:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37534,7 +39621,7 @@ var EventPluginUtils = {
 
 module.exports = EventPluginUtils;
 }).call(this,require('_process'))
-},{"./EventConstants":71,"./ReactErrorUtils":113,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],75:[function(require,module,exports){
+},{"./EventConstants":78,"./ReactErrorUtils":120,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],82:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37672,7 +39759,7 @@ var EventPropagators = {
 
 module.exports = EventPropagators;
 }).call(this,require('_process'))
-},{"./EventConstants":71,"./EventPluginHub":72,"./accumulateInto":159,"./forEachAccumulated":167,"_process":45,"fbjs/lib/warning":36}],76:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPluginHub":79,"./accumulateInto":166,"./forEachAccumulated":174,"_process":46,"fbjs/lib/warning":37}],83:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37768,7 +39855,7 @@ assign(FallbackCompositionState.prototype, {
 PooledClass.addPoolingTo(FallbackCompositionState);
 
 module.exports = FallbackCompositionState;
-},{"./Object.assign":79,"./PooledClass":80,"./getTextContentAccessor":174}],77:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"./getTextContentAccessor":181}],84:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37999,7 +40086,7 @@ var HTMLDOMPropertyConfig = {
 };
 
 module.exports = HTMLDOMPropertyConfig;
-},{"./DOMProperty":66,"fbjs/lib/ExecutionEnvironment":11}],78:[function(require,module,exports){
+},{"./DOMProperty":73,"fbjs/lib/ExecutionEnvironment":12}],85:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38136,7 +40223,7 @@ var LinkedValueUtils = {
 
 module.exports = LinkedValueUtils;
 }).call(this,require('_process'))
-},{"./ReactPropTypeLocations":130,"./ReactPropTypes":131,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],79:[function(require,module,exports){
+},{"./ReactPropTypeLocations":137,"./ReactPropTypes":138,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],86:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -38184,7 +40271,7 @@ function assign(target, sources) {
 }
 
 module.exports = assign;
-},{}],80:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38306,7 +40393,7 @@ var PooledClass = {
 
 module.exports = PooledClass;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],81:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],88:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38347,7 +40434,7 @@ React.__SECRET_DOM_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOM;
 React.__SECRET_DOM_SERVER_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOMServer;
 
 module.exports = React;
-},{"./Object.assign":79,"./ReactDOM":92,"./ReactDOMServer":102,"./ReactIsomorphic":120,"./deprecated":163}],82:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactDOM":99,"./ReactDOMServer":109,"./ReactIsomorphic":127,"./deprecated":170}],89:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38386,7 +40473,7 @@ var ReactBrowserComponentMixin = {
 
 module.exports = ReactBrowserComponentMixin;
 }).call(this,require('_process'))
-},{"./ReactInstanceMap":119,"./findDOMNode":165,"_process":45,"fbjs/lib/warning":36}],83:[function(require,module,exports){
+},{"./ReactInstanceMap":126,"./findDOMNode":172,"_process":46,"fbjs/lib/warning":37}],90:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38711,7 +40798,7 @@ ReactPerf.measureMethods(ReactBrowserEventEmitter, 'ReactBrowserEventEmitter', {
 });
 
 module.exports = ReactBrowserEventEmitter;
-},{"./EventConstants":71,"./EventPluginHub":72,"./EventPluginRegistry":73,"./Object.assign":79,"./ReactEventEmitterMixin":114,"./ReactPerf":128,"./ViewportMetrics":158,"./isEventSupported":176}],84:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPluginHub":79,"./EventPluginRegistry":80,"./Object.assign":86,"./ReactEventEmitterMixin":121,"./ReactPerf":135,"./ViewportMetrics":165,"./isEventSupported":183}],91:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -38836,7 +40923,7 @@ var ReactChildReconciler = {
 
 module.exports = ReactChildReconciler;
 }).call(this,require('_process'))
-},{"./ReactReconciler":133,"./instantiateReactComponent":175,"./shouldUpdateReactComponent":183,"./traverseAllChildren":184,"_process":45,"fbjs/lib/warning":36}],85:[function(require,module,exports){
+},{"./ReactReconciler":140,"./instantiateReactComponent":182,"./shouldUpdateReactComponent":190,"./traverseAllChildren":191,"_process":46,"fbjs/lib/warning":37}],92:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39019,7 +41106,7 @@ var ReactChildren = {
 };
 
 module.exports = ReactChildren;
-},{"./PooledClass":80,"./ReactElement":109,"./traverseAllChildren":184,"fbjs/lib/emptyFunction":17}],86:[function(require,module,exports){
+},{"./PooledClass":87,"./ReactElement":116,"./traverseAllChildren":191,"fbjs/lib/emptyFunction":18}],93:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39793,7 +41880,7 @@ var ReactClass = {
 
 module.exports = ReactClass;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactComponent":87,"./ReactElement":109,"./ReactNoopUpdateQueue":126,"./ReactPropTypeLocationNames":129,"./ReactPropTypeLocations":130,"_process":45,"fbjs/lib/emptyObject":18,"fbjs/lib/invariant":25,"fbjs/lib/keyMirror":28,"fbjs/lib/keyOf":29,"fbjs/lib/warning":36}],87:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactComponent":94,"./ReactElement":116,"./ReactNoopUpdateQueue":133,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"_process":46,"fbjs/lib/emptyObject":19,"fbjs/lib/invariant":26,"fbjs/lib/keyMirror":29,"fbjs/lib/keyOf":30,"fbjs/lib/warning":37}],94:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39918,7 +42005,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactComponent;
 }).call(this,require('_process'))
-},{"./ReactNoopUpdateQueue":126,"./canDefineProperty":161,"_process":45,"fbjs/lib/emptyObject":18,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],88:[function(require,module,exports){
+},{"./ReactNoopUpdateQueue":133,"./canDefineProperty":168,"_process":46,"fbjs/lib/emptyObject":19,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],95:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39960,7 +42047,7 @@ var ReactComponentBrowserEnvironment = {
 };
 
 module.exports = ReactComponentBrowserEnvironment;
-},{"./ReactDOMIDOperations":97,"./ReactMount":122}],89:[function(require,module,exports){
+},{"./ReactDOMIDOperations":104,"./ReactMount":129}],96:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -40014,7 +42101,7 @@ var ReactComponentEnvironment = {
 
 module.exports = ReactComponentEnvironment;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],90:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],97:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40711,7 +42798,7 @@ var ReactCompositeComponent = {
 
 module.exports = ReactCompositeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactComponentEnvironment":89,"./ReactCurrentOwner":91,"./ReactElement":109,"./ReactInstanceMap":119,"./ReactPerf":128,"./ReactPropTypeLocationNames":129,"./ReactPropTypeLocations":130,"./ReactReconciler":133,"./ReactUpdateQueue":139,"./shouldUpdateReactComponent":183,"_process":45,"fbjs/lib/emptyObject":18,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],91:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactPerf":135,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./shouldUpdateReactComponent":190,"_process":46,"fbjs/lib/emptyObject":19,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],98:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40742,7 +42829,7 @@ var ReactCurrentOwner = {
 };
 
 module.exports = ReactCurrentOwner;
-},{}],92:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40837,7 +42924,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":91,"./ReactDOMTextComponent":103,"./ReactDefaultInjection":106,"./ReactInstanceHandles":118,"./ReactMount":122,"./ReactPerf":128,"./ReactReconciler":133,"./ReactUpdates":140,"./ReactVersion":141,"./findDOMNode":165,"./renderSubtreeIntoContainer":180,"_process":45,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/warning":36}],93:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactDOMTextComponent":110,"./ReactDefaultInjection":113,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdates":147,"./ReactVersion":148,"./findDOMNode":172,"./renderSubtreeIntoContainer":187,"_process":46,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/warning":37}],100:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40888,7 +42975,7 @@ var ReactDOMButton = {
 };
 
 module.exports = ReactDOMButton;
-},{}],94:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -41853,7 +43940,7 @@ assign(ReactDOMComponent.prototype, ReactDOMComponent.Mixin, ReactMultiChild.Mix
 
 module.exports = ReactDOMComponent;
 }).call(this,require('_process'))
-},{"./AutoFocusUtils":58,"./CSSPropertyOperations":61,"./DOMProperty":66,"./DOMPropertyOperations":67,"./EventConstants":71,"./Object.assign":79,"./ReactBrowserEventEmitter":83,"./ReactComponentBrowserEnvironment":88,"./ReactDOMButton":93,"./ReactDOMInput":98,"./ReactDOMOption":99,"./ReactDOMSelect":100,"./ReactDOMTextarea":104,"./ReactMount":122,"./ReactMultiChild":123,"./ReactPerf":128,"./ReactUpdateQueue":139,"./canDefineProperty":161,"./escapeTextContentForBrowser":164,"./isEventSupported":176,"./setInnerHTML":181,"./setTextContent":182,"./validateDOMNesting":185,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/keyOf":29,"fbjs/lib/shallowEqual":34,"fbjs/lib/warning":36}],95:[function(require,module,exports){
+},{"./AutoFocusUtils":65,"./CSSPropertyOperations":68,"./DOMProperty":73,"./DOMPropertyOperations":74,"./EventConstants":78,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactComponentBrowserEnvironment":95,"./ReactDOMButton":100,"./ReactDOMInput":105,"./ReactDOMOption":106,"./ReactDOMSelect":107,"./ReactDOMTextarea":111,"./ReactMount":129,"./ReactMultiChild":130,"./ReactPerf":135,"./ReactUpdateQueue":146,"./canDefineProperty":168,"./escapeTextContentForBrowser":171,"./isEventSupported":183,"./setInnerHTML":188,"./setTextContent":189,"./validateDOMNesting":192,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/keyOf":30,"fbjs/lib/shallowEqual":35,"fbjs/lib/warning":37}],102:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42033,7 +44120,7 @@ var ReactDOMFactories = mapObject({
 
 module.exports = ReactDOMFactories;
 }).call(this,require('_process'))
-},{"./ReactElement":109,"./ReactElementValidator":110,"_process":45,"fbjs/lib/mapObject":30}],96:[function(require,module,exports){
+},{"./ReactElement":116,"./ReactElementValidator":117,"_process":46,"fbjs/lib/mapObject":31}],103:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -42052,7 +44139,7 @@ var ReactDOMFeatureFlags = {
 };
 
 module.exports = ReactDOMFeatureFlags;
-},{}],97:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42149,7 +44236,7 @@ ReactPerf.measureMethods(ReactDOMIDOperations, 'ReactDOMIDOperations', {
 
 module.exports = ReactDOMIDOperations;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":65,"./DOMPropertyOperations":67,"./ReactMount":122,"./ReactPerf":128,"_process":45,"fbjs/lib/invariant":25}],98:[function(require,module,exports){
+},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./ReactMount":129,"./ReactPerf":135,"_process":46,"fbjs/lib/invariant":26}],105:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42305,7 +44392,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMInput;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":78,"./Object.assign":79,"./ReactDOMIDOperations":97,"./ReactMount":122,"./ReactUpdates":140,"_process":45,"fbjs/lib/invariant":25}],99:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactMount":129,"./ReactUpdates":147,"_process":46,"fbjs/lib/invariant":26}],106:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42394,7 +44481,7 @@ var ReactDOMOption = {
 
 module.exports = ReactDOMOption;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactChildren":85,"./ReactDOMSelect":100,"_process":45,"fbjs/lib/warning":36}],100:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactChildren":92,"./ReactDOMSelect":107,"_process":46,"fbjs/lib/warning":37}],107:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42585,7 +44672,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMSelect;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":78,"./Object.assign":79,"./ReactMount":122,"./ReactUpdates":140,"_process":45,"fbjs/lib/warning":36}],101:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactMount":129,"./ReactUpdates":147,"_process":46,"fbjs/lib/warning":37}],108:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -42798,7 +44885,7 @@ var ReactDOMSelection = {
 };
 
 module.exports = ReactDOMSelection;
-},{"./getNodeForCharacterOffset":173,"./getTextContentAccessor":174,"fbjs/lib/ExecutionEnvironment":11}],102:[function(require,module,exports){
+},{"./getNodeForCharacterOffset":180,"./getTextContentAccessor":181,"fbjs/lib/ExecutionEnvironment":12}],109:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -42825,7 +44912,7 @@ var ReactDOMServer = {
 };
 
 module.exports = ReactDOMServer;
-},{"./ReactDefaultInjection":106,"./ReactServerRendering":137,"./ReactVersion":141}],103:[function(require,module,exports){
+},{"./ReactDefaultInjection":113,"./ReactServerRendering":144,"./ReactVersion":148}],110:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42955,7 +45042,7 @@ assign(ReactDOMTextComponent.prototype, {
 
 module.exports = ReactDOMTextComponent;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":65,"./DOMPropertyOperations":67,"./Object.assign":79,"./ReactComponentBrowserEnvironment":88,"./ReactMount":122,"./escapeTextContentForBrowser":164,"./setTextContent":182,"./validateDOMNesting":185,"_process":45}],104:[function(require,module,exports){
+},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./Object.assign":86,"./ReactComponentBrowserEnvironment":95,"./ReactMount":129,"./escapeTextContentForBrowser":171,"./setTextContent":189,"./validateDOMNesting":192,"_process":46}],111:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43071,7 +45158,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMTextarea;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":78,"./Object.assign":79,"./ReactDOMIDOperations":97,"./ReactUpdates":140,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],105:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactUpdates":147,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],112:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -43139,7 +45226,7 @@ var ReactDefaultBatchingStrategy = {
 };
 
 module.exports = ReactDefaultBatchingStrategy;
-},{"./Object.assign":79,"./ReactUpdates":140,"./Transaction":157,"fbjs/lib/emptyFunction":17}],106:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactUpdates":147,"./Transaction":164,"fbjs/lib/emptyFunction":18}],113:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43239,7 +45326,7 @@ module.exports = {
   inject: inject
 };
 }).call(this,require('_process'))
-},{"./BeforeInputEventPlugin":59,"./ChangeEventPlugin":63,"./ClientReactRootIndex":64,"./DefaultEventPluginOrder":69,"./EnterLeaveEventPlugin":70,"./HTMLDOMPropertyConfig":77,"./ReactBrowserComponentMixin":82,"./ReactComponentBrowserEnvironment":88,"./ReactDOMComponent":94,"./ReactDOMTextComponent":103,"./ReactDefaultBatchingStrategy":105,"./ReactDefaultPerf":107,"./ReactEventListener":115,"./ReactInjection":116,"./ReactInstanceHandles":118,"./ReactMount":122,"./ReactReconcileTransaction":132,"./SVGDOMPropertyConfig":142,"./SelectEventPlugin":143,"./ServerReactRootIndex":144,"./SimpleEventPlugin":145,"_process":45,"fbjs/lib/ExecutionEnvironment":11}],107:[function(require,module,exports){
+},{"./BeforeInputEventPlugin":66,"./ChangeEventPlugin":70,"./ClientReactRootIndex":71,"./DefaultEventPluginOrder":76,"./EnterLeaveEventPlugin":77,"./HTMLDOMPropertyConfig":84,"./ReactBrowserComponentMixin":89,"./ReactComponentBrowserEnvironment":95,"./ReactDOMComponent":101,"./ReactDOMTextComponent":110,"./ReactDefaultBatchingStrategy":112,"./ReactDefaultPerf":114,"./ReactEventListener":122,"./ReactInjection":123,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactReconcileTransaction":139,"./SVGDOMPropertyConfig":149,"./SelectEventPlugin":150,"./ServerReactRootIndex":151,"./SimpleEventPlugin":152,"_process":46,"fbjs/lib/ExecutionEnvironment":12}],114:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -43477,7 +45564,7 @@ var ReactDefaultPerf = {
 };
 
 module.exports = ReactDefaultPerf;
-},{"./DOMProperty":66,"./ReactDefaultPerfAnalysis":108,"./ReactMount":122,"./ReactPerf":128,"fbjs/lib/performanceNow":33}],108:[function(require,module,exports){
+},{"./DOMProperty":73,"./ReactDefaultPerfAnalysis":115,"./ReactMount":129,"./ReactPerf":135,"fbjs/lib/performanceNow":34}],115:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -43679,7 +45766,7 @@ var ReactDefaultPerfAnalysis = {
 };
 
 module.exports = ReactDefaultPerfAnalysis;
-},{"./Object.assign":79}],109:[function(require,module,exports){
+},{"./Object.assign":86}],116:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -43929,7 +46016,7 @@ ReactElement.isValidElement = function (object) {
 
 module.exports = ReactElement;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactCurrentOwner":91,"./canDefineProperty":161,"_process":45}],110:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCurrentOwner":98,"./canDefineProperty":168,"_process":46}],117:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -44213,7 +46300,7 @@ var ReactElementValidator = {
 
 module.exports = ReactElementValidator;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":91,"./ReactElement":109,"./ReactPropTypeLocationNames":129,"./ReactPropTypeLocations":130,"./canDefineProperty":161,"./getIteratorFn":172,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],111:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./canDefineProperty":168,"./getIteratorFn":179,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],118:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -44265,7 +46352,7 @@ assign(ReactEmptyComponent.prototype, {
 ReactEmptyComponent.injection = ReactEmptyComponentInjection;
 
 module.exports = ReactEmptyComponent;
-},{"./Object.assign":79,"./ReactElement":109,"./ReactEmptyComponentRegistry":112,"./ReactReconciler":133}],112:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactElement":116,"./ReactEmptyComponentRegistry":119,"./ReactReconciler":140}],119:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -44314,7 +46401,7 @@ var ReactEmptyComponentRegistry = {
 };
 
 module.exports = ReactEmptyComponentRegistry;
-},{}],113:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -44394,7 +46481,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactErrorUtils;
 }).call(this,require('_process'))
-},{"_process":45}],114:[function(require,module,exports){
+},{"_process":46}],121:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44433,7 +46520,7 @@ var ReactEventEmitterMixin = {
 };
 
 module.exports = ReactEventEmitterMixin;
-},{"./EventPluginHub":72}],115:[function(require,module,exports){
+},{"./EventPluginHub":79}],122:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44645,7 +46732,7 @@ var ReactEventListener = {
 };
 
 module.exports = ReactEventListener;
-},{"./Object.assign":79,"./PooledClass":80,"./ReactInstanceHandles":118,"./ReactMount":122,"./ReactUpdates":140,"./getEventTarget":171,"fbjs/lib/EventListener":10,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/getUnboundedScrollPosition":22}],116:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactUpdates":147,"./getEventTarget":178,"fbjs/lib/EventListener":11,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/getUnboundedScrollPosition":23}],123:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44684,7 +46771,7 @@ var ReactInjection = {
 };
 
 module.exports = ReactInjection;
-},{"./DOMProperty":66,"./EventPluginHub":72,"./ReactBrowserEventEmitter":83,"./ReactClass":86,"./ReactComponentEnvironment":89,"./ReactEmptyComponent":111,"./ReactNativeComponent":125,"./ReactPerf":128,"./ReactRootIndex":135,"./ReactUpdates":140}],117:[function(require,module,exports){
+},{"./DOMProperty":73,"./EventPluginHub":79,"./ReactBrowserEventEmitter":90,"./ReactClass":93,"./ReactComponentEnvironment":96,"./ReactEmptyComponent":118,"./ReactNativeComponent":132,"./ReactPerf":135,"./ReactRootIndex":142,"./ReactUpdates":147}],124:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44809,7 +46896,7 @@ var ReactInputSelection = {
 };
 
 module.exports = ReactInputSelection;
-},{"./ReactDOMSelection":101,"fbjs/lib/containsNode":14,"fbjs/lib/focusNode":19,"fbjs/lib/getActiveElement":20}],118:[function(require,module,exports){
+},{"./ReactDOMSelection":108,"fbjs/lib/containsNode":15,"fbjs/lib/focusNode":20,"fbjs/lib/getActiveElement":21}],125:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -45114,7 +47201,7 @@ var ReactInstanceHandles = {
 
 module.exports = ReactInstanceHandles;
 }).call(this,require('_process'))
-},{"./ReactRootIndex":135,"_process":45,"fbjs/lib/invariant":25}],119:[function(require,module,exports){
+},{"./ReactRootIndex":142,"_process":46,"fbjs/lib/invariant":26}],126:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -45162,7 +47249,7 @@ var ReactInstanceMap = {
 };
 
 module.exports = ReactInstanceMap;
-},{}],120:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -45239,7 +47326,7 @@ var React = {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactChildren":85,"./ReactClass":86,"./ReactComponent":87,"./ReactDOMFactories":95,"./ReactElement":109,"./ReactElementValidator":110,"./ReactPropTypes":131,"./ReactVersion":141,"./onlyChild":178,"_process":45}],121:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactChildren":92,"./ReactClass":93,"./ReactComponent":94,"./ReactDOMFactories":102,"./ReactElement":116,"./ReactElementValidator":117,"./ReactPropTypes":138,"./ReactVersion":148,"./onlyChild":185,"_process":46}],128:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -45285,7 +47372,7 @@ var ReactMarkupChecksum = {
 };
 
 module.exports = ReactMarkupChecksum;
-},{"./adler32":160}],122:[function(require,module,exports){
+},{"./adler32":167}],129:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -46138,7 +48225,7 @@ ReactPerf.measureMethods(ReactMount, 'ReactMount', {
 
 module.exports = ReactMount;
 }).call(this,require('_process'))
-},{"./DOMProperty":66,"./Object.assign":79,"./ReactBrowserEventEmitter":83,"./ReactCurrentOwner":91,"./ReactDOMFeatureFlags":96,"./ReactElement":109,"./ReactEmptyComponentRegistry":112,"./ReactInstanceHandles":118,"./ReactInstanceMap":119,"./ReactMarkupChecksum":121,"./ReactPerf":128,"./ReactReconciler":133,"./ReactUpdateQueue":139,"./ReactUpdates":140,"./instantiateReactComponent":175,"./setInnerHTML":181,"./shouldUpdateReactComponent":183,"./validateDOMNesting":185,"_process":45,"fbjs/lib/containsNode":14,"fbjs/lib/emptyObject":18,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],123:[function(require,module,exports){
+},{"./DOMProperty":73,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactCurrentOwner":98,"./ReactDOMFeatureFlags":103,"./ReactElement":116,"./ReactEmptyComponentRegistry":119,"./ReactInstanceHandles":125,"./ReactInstanceMap":126,"./ReactMarkupChecksum":128,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./ReactUpdates":147,"./instantiateReactComponent":182,"./setInnerHTML":188,"./shouldUpdateReactComponent":190,"./validateDOMNesting":192,"_process":46,"fbjs/lib/containsNode":15,"fbjs/lib/emptyObject":19,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],130:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -46637,7 +48724,7 @@ var ReactMultiChild = {
 
 module.exports = ReactMultiChild;
 }).call(this,require('_process'))
-},{"./ReactChildReconciler":84,"./ReactComponentEnvironment":89,"./ReactCurrentOwner":91,"./ReactMultiChildUpdateTypes":124,"./ReactReconciler":133,"./flattenChildren":166,"_process":45}],124:[function(require,module,exports){
+},{"./ReactChildReconciler":91,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactMultiChildUpdateTypes":131,"./ReactReconciler":140,"./flattenChildren":173,"_process":46}],131:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -46670,7 +48757,7 @@ var ReactMultiChildUpdateTypes = keyMirror({
 });
 
 module.exports = ReactMultiChildUpdateTypes;
-},{"fbjs/lib/keyMirror":28}],125:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":29}],132:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -46767,7 +48854,7 @@ var ReactNativeComponent = {
 
 module.exports = ReactNativeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"_process":45,"fbjs/lib/invariant":25}],126:[function(require,module,exports){
+},{"./Object.assign":86,"_process":46,"fbjs/lib/invariant":26}],133:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -46888,7 +48975,7 @@ var ReactNoopUpdateQueue = {
 
 module.exports = ReactNoopUpdateQueue;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/warning":36}],127:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/warning":37}],134:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -46982,7 +49069,7 @@ var ReactOwner = {
 
 module.exports = ReactOwner;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],128:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],135:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -47081,7 +49168,7 @@ function _noMeasure(objName, fnName, func) {
 
 module.exports = ReactPerf;
 }).call(this,require('_process'))
-},{"_process":45}],129:[function(require,module,exports){
+},{"_process":46}],136:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -47108,7 +49195,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactPropTypeLocationNames;
 }).call(this,require('_process'))
-},{"_process":45}],130:[function(require,module,exports){
+},{"_process":46}],137:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47131,7 +49218,7 @@ var ReactPropTypeLocations = keyMirror({
 });
 
 module.exports = ReactPropTypeLocations;
-},{"fbjs/lib/keyMirror":28}],131:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":29}],138:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47488,7 +49575,7 @@ function getClassName(propValue) {
 }
 
 module.exports = ReactPropTypes;
-},{"./ReactElement":109,"./ReactPropTypeLocationNames":129,"./getIteratorFn":172,"fbjs/lib/emptyFunction":17}],132:[function(require,module,exports){
+},{"./ReactElement":116,"./ReactPropTypeLocationNames":136,"./getIteratorFn":179,"fbjs/lib/emptyFunction":18}],139:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47640,7 +49727,7 @@ assign(ReactReconcileTransaction.prototype, Transaction.Mixin, Mixin);
 PooledClass.addPoolingTo(ReactReconcileTransaction);
 
 module.exports = ReactReconcileTransaction;
-},{"./CallbackQueue":62,"./Object.assign":79,"./PooledClass":80,"./ReactBrowserEventEmitter":83,"./ReactDOMFeatureFlags":96,"./ReactInputSelection":117,"./Transaction":157}],133:[function(require,module,exports){
+},{"./CallbackQueue":69,"./Object.assign":86,"./PooledClass":87,"./ReactBrowserEventEmitter":90,"./ReactDOMFeatureFlags":103,"./ReactInputSelection":124,"./Transaction":164}],140:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47748,7 +49835,7 @@ var ReactReconciler = {
 };
 
 module.exports = ReactReconciler;
-},{"./ReactRef":134}],134:[function(require,module,exports){
+},{"./ReactRef":141}],141:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47827,7 +49914,7 @@ ReactRef.detachRefs = function (instance, element) {
 };
 
 module.exports = ReactRef;
-},{"./ReactOwner":127}],135:[function(require,module,exports){
+},{"./ReactOwner":134}],142:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47857,7 +49944,7 @@ var ReactRootIndex = {
 };
 
 module.exports = ReactRootIndex;
-},{}],136:[function(require,module,exports){
+},{}],143:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -47881,7 +49968,7 @@ var ReactServerBatchingStrategy = {
 };
 
 module.exports = ReactServerBatchingStrategy;
-},{}],137:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -47967,7 +50054,7 @@ module.exports = {
   renderToStaticMarkup: renderToStaticMarkup
 };
 }).call(this,require('_process'))
-},{"./ReactDefaultBatchingStrategy":105,"./ReactElement":109,"./ReactInstanceHandles":118,"./ReactMarkupChecksum":121,"./ReactServerBatchingStrategy":136,"./ReactServerRenderingTransaction":138,"./ReactUpdates":140,"./instantiateReactComponent":175,"_process":45,"fbjs/lib/emptyObject":18,"fbjs/lib/invariant":25}],138:[function(require,module,exports){
+},{"./ReactDefaultBatchingStrategy":112,"./ReactElement":116,"./ReactInstanceHandles":125,"./ReactMarkupChecksum":128,"./ReactServerBatchingStrategy":143,"./ReactServerRenderingTransaction":145,"./ReactUpdates":147,"./instantiateReactComponent":182,"_process":46,"fbjs/lib/emptyObject":19,"fbjs/lib/invariant":26}],145:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -48055,7 +50142,7 @@ assign(ReactServerRenderingTransaction.prototype, Transaction.Mixin, Mixin);
 PooledClass.addPoolingTo(ReactServerRenderingTransaction);
 
 module.exports = ReactServerRenderingTransaction;
-},{"./CallbackQueue":62,"./Object.assign":79,"./PooledClass":80,"./Transaction":157,"fbjs/lib/emptyFunction":17}],139:[function(require,module,exports){
+},{"./CallbackQueue":69,"./Object.assign":86,"./PooledClass":87,"./Transaction":164,"fbjs/lib/emptyFunction":18}],146:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -48315,7 +50402,7 @@ var ReactUpdateQueue = {
 
 module.exports = ReactUpdateQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactCurrentOwner":91,"./ReactElement":109,"./ReactInstanceMap":119,"./ReactUpdates":140,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],140:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactUpdates":147,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],147:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -48541,7 +50628,7 @@ var ReactUpdates = {
 
 module.exports = ReactUpdates;
 }).call(this,require('_process'))
-},{"./CallbackQueue":62,"./Object.assign":79,"./PooledClass":80,"./ReactPerf":128,"./ReactReconciler":133,"./Transaction":157,"_process":45,"fbjs/lib/invariant":25}],141:[function(require,module,exports){
+},{"./CallbackQueue":69,"./Object.assign":86,"./PooledClass":87,"./ReactPerf":135,"./ReactReconciler":140,"./Transaction":164,"_process":46,"fbjs/lib/invariant":26}],148:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -48556,7 +50643,7 @@ module.exports = ReactUpdates;
 'use strict';
 
 module.exports = '0.14.5';
-},{}],142:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -48684,7 +50771,7 @@ var SVGDOMPropertyConfig = {
 };
 
 module.exports = SVGDOMPropertyConfig;
-},{"./DOMProperty":66}],143:[function(require,module,exports){
+},{"./DOMProperty":73}],150:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -48886,7 +50973,7 @@ var SelectEventPlugin = {
 };
 
 module.exports = SelectEventPlugin;
-},{"./EventConstants":71,"./EventPropagators":75,"./ReactInputSelection":117,"./SyntheticEvent":149,"./isTextInputElement":177,"fbjs/lib/ExecutionEnvironment":11,"fbjs/lib/getActiveElement":20,"fbjs/lib/keyOf":29,"fbjs/lib/shallowEqual":34}],144:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPropagators":82,"./ReactInputSelection":124,"./SyntheticEvent":156,"./isTextInputElement":184,"fbjs/lib/ExecutionEnvironment":12,"fbjs/lib/getActiveElement":21,"fbjs/lib/keyOf":30,"fbjs/lib/shallowEqual":35}],151:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -48916,7 +51003,7 @@ var ServerReactRootIndex = {
 };
 
 module.exports = ServerReactRootIndex;
-},{}],145:[function(require,module,exports){
+},{}],152:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -49506,7 +51593,7 @@ var SimpleEventPlugin = {
 
 module.exports = SimpleEventPlugin;
 }).call(this,require('_process'))
-},{"./EventConstants":71,"./EventPropagators":75,"./ReactMount":122,"./SyntheticClipboardEvent":146,"./SyntheticDragEvent":148,"./SyntheticEvent":149,"./SyntheticFocusEvent":150,"./SyntheticKeyboardEvent":152,"./SyntheticMouseEvent":153,"./SyntheticTouchEvent":154,"./SyntheticUIEvent":155,"./SyntheticWheelEvent":156,"./getEventCharCode":168,"_process":45,"fbjs/lib/EventListener":10,"fbjs/lib/emptyFunction":17,"fbjs/lib/invariant":25,"fbjs/lib/keyOf":29}],146:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPropagators":82,"./ReactMount":129,"./SyntheticClipboardEvent":153,"./SyntheticDragEvent":155,"./SyntheticEvent":156,"./SyntheticFocusEvent":157,"./SyntheticKeyboardEvent":159,"./SyntheticMouseEvent":160,"./SyntheticTouchEvent":161,"./SyntheticUIEvent":162,"./SyntheticWheelEvent":163,"./getEventCharCode":175,"_process":46,"fbjs/lib/EventListener":11,"fbjs/lib/emptyFunction":18,"fbjs/lib/invariant":26,"fbjs/lib/keyOf":30}],153:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49546,7 +51633,7 @@ function SyntheticClipboardEvent(dispatchConfig, dispatchMarker, nativeEvent, na
 SyntheticEvent.augmentClass(SyntheticClipboardEvent, ClipboardEventInterface);
 
 module.exports = SyntheticClipboardEvent;
-},{"./SyntheticEvent":149}],147:[function(require,module,exports){
+},{"./SyntheticEvent":156}],154:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49584,7 +51671,7 @@ function SyntheticCompositionEvent(dispatchConfig, dispatchMarker, nativeEvent, 
 SyntheticEvent.augmentClass(SyntheticCompositionEvent, CompositionEventInterface);
 
 module.exports = SyntheticCompositionEvent;
-},{"./SyntheticEvent":149}],148:[function(require,module,exports){
+},{"./SyntheticEvent":156}],155:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49622,7 +51709,7 @@ function SyntheticDragEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeE
 SyntheticMouseEvent.augmentClass(SyntheticDragEvent, DragEventInterface);
 
 module.exports = SyntheticDragEvent;
-},{"./SyntheticMouseEvent":153}],149:[function(require,module,exports){
+},{"./SyntheticMouseEvent":160}],156:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -49802,7 +51889,7 @@ PooledClass.addPoolingTo(SyntheticEvent, PooledClass.fourArgumentPooler);
 
 module.exports = SyntheticEvent;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./PooledClass":80,"_process":45,"fbjs/lib/emptyFunction":17,"fbjs/lib/warning":36}],150:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"_process":46,"fbjs/lib/emptyFunction":18,"fbjs/lib/warning":37}],157:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49840,7 +51927,7 @@ function SyntheticFocusEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticFocusEvent, FocusEventInterface);
 
 module.exports = SyntheticFocusEvent;
-},{"./SyntheticUIEvent":155}],151:[function(require,module,exports){
+},{"./SyntheticUIEvent":162}],158:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49879,7 +51966,7 @@ function SyntheticInputEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticEvent.augmentClass(SyntheticInputEvent, InputEventInterface);
 
 module.exports = SyntheticInputEvent;
-},{"./SyntheticEvent":149}],152:[function(require,module,exports){
+},{"./SyntheticEvent":156}],159:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49965,7 +52052,7 @@ function SyntheticKeyboardEvent(dispatchConfig, dispatchMarker, nativeEvent, nat
 SyntheticUIEvent.augmentClass(SyntheticKeyboardEvent, KeyboardEventInterface);
 
 module.exports = SyntheticKeyboardEvent;
-},{"./SyntheticUIEvent":155,"./getEventCharCode":168,"./getEventKey":169,"./getEventModifierState":170}],153:[function(require,module,exports){
+},{"./SyntheticUIEvent":162,"./getEventCharCode":175,"./getEventKey":176,"./getEventModifierState":177}],160:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50039,7 +52126,7 @@ function SyntheticMouseEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticMouseEvent, MouseEventInterface);
 
 module.exports = SyntheticMouseEvent;
-},{"./SyntheticUIEvent":155,"./ViewportMetrics":158,"./getEventModifierState":170}],154:[function(require,module,exports){
+},{"./SyntheticUIEvent":162,"./ViewportMetrics":165,"./getEventModifierState":177}],161:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50086,7 +52173,7 @@ function SyntheticTouchEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticTouchEvent, TouchEventInterface);
 
 module.exports = SyntheticTouchEvent;
-},{"./SyntheticUIEvent":155,"./getEventModifierState":170}],155:[function(require,module,exports){
+},{"./SyntheticUIEvent":162,"./getEventModifierState":177}],162:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50147,7 +52234,7 @@ function SyntheticUIEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEve
 SyntheticEvent.augmentClass(SyntheticUIEvent, UIEventInterface);
 
 module.exports = SyntheticUIEvent;
-},{"./SyntheticEvent":149,"./getEventTarget":171}],156:[function(require,module,exports){
+},{"./SyntheticEvent":156,"./getEventTarget":178}],163:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50203,7 +52290,7 @@ function SyntheticWheelEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticMouseEvent.augmentClass(SyntheticWheelEvent, WheelEventInterface);
 
 module.exports = SyntheticWheelEvent;
-},{"./SyntheticMouseEvent":153}],157:[function(require,module,exports){
+},{"./SyntheticMouseEvent":160}],164:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50437,7 +52524,7 @@ var Transaction = {
 
 module.exports = Transaction;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],158:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],165:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50465,7 +52552,7 @@ var ViewportMetrics = {
 };
 
 module.exports = ViewportMetrics;
-},{}],159:[function(require,module,exports){
+},{}],166:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -50527,7 +52614,7 @@ function accumulateInto(current, next) {
 
 module.exports = accumulateInto;
 }).call(this,require('_process'))
-},{"_process":45,"fbjs/lib/invariant":25}],160:[function(require,module,exports){
+},{"_process":46,"fbjs/lib/invariant":26}],167:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50570,7 +52657,7 @@ function adler32(data) {
 }
 
 module.exports = adler32;
-},{}],161:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50597,7 +52684,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = canDefineProperty;
 }).call(this,require('_process'))
-},{"_process":45}],162:[function(require,module,exports){
+},{"_process":46}],169:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50653,7 +52740,7 @@ function dangerousStyleValue(name, value) {
 }
 
 module.exports = dangerousStyleValue;
-},{"./CSSProperty":60}],163:[function(require,module,exports){
+},{"./CSSProperty":67}],170:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50704,7 +52791,7 @@ function deprecated(fnName, newModule, newPackage, ctx, fn) {
 
 module.exports = deprecated;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"_process":45,"fbjs/lib/warning":36}],164:[function(require,module,exports){
+},{"./Object.assign":86,"_process":46,"fbjs/lib/warning":37}],171:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50743,7 +52830,7 @@ function escapeTextContentForBrowser(text) {
 }
 
 module.exports = escapeTextContentForBrowser;
-},{}],165:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50795,7 +52882,7 @@ function findDOMNode(componentOrElement) {
 
 module.exports = findDOMNode;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":91,"./ReactInstanceMap":119,"./ReactMount":122,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],166:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactInstanceMap":126,"./ReactMount":129,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],173:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50846,7 +52933,7 @@ function flattenChildren(children) {
 
 module.exports = flattenChildren;
 }).call(this,require('_process'))
-},{"./traverseAllChildren":184,"_process":45,"fbjs/lib/warning":36}],167:[function(require,module,exports){
+},{"./traverseAllChildren":191,"_process":46,"fbjs/lib/warning":37}],174:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50876,7 +52963,7 @@ var forEachAccumulated = function (arr, cb, scope) {
 };
 
 module.exports = forEachAccumulated;
-},{}],168:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50927,7 +53014,7 @@ function getEventCharCode(nativeEvent) {
 }
 
 module.exports = getEventCharCode;
-},{}],169:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51031,7 +53118,7 @@ function getEventKey(nativeEvent) {
 }
 
 module.exports = getEventKey;
-},{"./getEventCharCode":168}],170:[function(require,module,exports){
+},{"./getEventCharCode":175}],177:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51076,7 +53163,7 @@ function getEventModifierState(nativeEvent) {
 }
 
 module.exports = getEventModifierState;
-},{}],171:[function(require,module,exports){
+},{}],178:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51106,7 +53193,7 @@ function getEventTarget(nativeEvent) {
 }
 
 module.exports = getEventTarget;
-},{}],172:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51147,7 +53234,7 @@ function getIteratorFn(maybeIterable) {
 }
 
 module.exports = getIteratorFn;
-},{}],173:[function(require,module,exports){
+},{}],180:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51221,7 +53308,7 @@ function getNodeForCharacterOffset(root, offset) {
 }
 
 module.exports = getNodeForCharacterOffset;
-},{}],174:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51255,7 +53342,7 @@ function getTextContentAccessor() {
 }
 
 module.exports = getTextContentAccessor;
-},{"fbjs/lib/ExecutionEnvironment":11}],175:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":12}],182:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -51370,7 +53457,7 @@ function instantiateReactComponent(node) {
 
 module.exports = instantiateReactComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"./ReactCompositeComponent":90,"./ReactEmptyComponent":111,"./ReactNativeComponent":125,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],176:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCompositeComponent":97,"./ReactEmptyComponent":118,"./ReactNativeComponent":132,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],183:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51431,7 +53518,7 @@ function isEventSupported(eventNameSuffix, capture) {
 }
 
 module.exports = isEventSupported;
-},{"fbjs/lib/ExecutionEnvironment":11}],177:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":12}],184:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51472,7 +53559,7 @@ function isTextInputElement(elem) {
 }
 
 module.exports = isTextInputElement;
-},{}],178:[function(require,module,exports){
+},{}],185:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -51508,7 +53595,7 @@ function onlyChild(children) {
 
 module.exports = onlyChild;
 }).call(this,require('_process'))
-},{"./ReactElement":109,"_process":45,"fbjs/lib/invariant":25}],179:[function(require,module,exports){
+},{"./ReactElement":116,"_process":46,"fbjs/lib/invariant":26}],186:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51535,7 +53622,7 @@ function quoteAttributeValueForBrowser(value) {
 }
 
 module.exports = quoteAttributeValueForBrowser;
-},{"./escapeTextContentForBrowser":164}],180:[function(require,module,exports){
+},{"./escapeTextContentForBrowser":171}],187:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51552,7 +53639,7 @@ module.exports = quoteAttributeValueForBrowser;
 var ReactMount = require('./ReactMount');
 
 module.exports = ReactMount.renderSubtreeIntoContainer;
-},{"./ReactMount":122}],181:[function(require,module,exports){
+},{"./ReactMount":129}],188:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51643,7 +53730,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = setInnerHTML;
-},{"fbjs/lib/ExecutionEnvironment":11}],182:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":12}],189:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51684,7 +53771,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = setTextContent;
-},{"./escapeTextContentForBrowser":164,"./setInnerHTML":181,"fbjs/lib/ExecutionEnvironment":11}],183:[function(require,module,exports){
+},{"./escapeTextContentForBrowser":171,"./setInnerHTML":188,"fbjs/lib/ExecutionEnvironment":12}],190:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51728,7 +53815,7 @@ function shouldUpdateReactComponent(prevElement, nextElement) {
 }
 
 module.exports = shouldUpdateReactComponent;
-},{}],184:[function(require,module,exports){
+},{}],191:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -51920,7 +54007,7 @@ function traverseAllChildren(children, callback, traverseContext) {
 
 module.exports = traverseAllChildren;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":91,"./ReactElement":109,"./ReactInstanceHandles":118,"./getIteratorFn":172,"_process":45,"fbjs/lib/invariant":25,"fbjs/lib/warning":36}],185:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceHandles":125,"./getIteratorFn":179,"_process":46,"fbjs/lib/invariant":26,"fbjs/lib/warning":37}],192:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -52286,12 +54373,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = validateDOMNesting;
 }).call(this,require('_process'))
-},{"./Object.assign":79,"_process":45,"fbjs/lib/emptyFunction":17,"fbjs/lib/warning":36}],186:[function(require,module,exports){
+},{"./Object.assign":86,"_process":46,"fbjs/lib/emptyFunction":18,"fbjs/lib/warning":37}],193:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/React');
 
-},{"./lib/React":81}],187:[function(require,module,exports){
+},{"./lib/React":88}],194:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -52423,7 +54510,7 @@ Duplex.prototype._destroy = function (err, cb) {
 
   pna.nextTick(cb, err);
 };
-},{"./_stream_readable":189,"./_stream_writable":191,"core-util-is":7,"inherits":40,"process-nextick-args":44}],188:[function(require,module,exports){
+},{"./_stream_readable":196,"./_stream_writable":198,"core-util-is":7,"inherits":41,"process-nextick-args":45}],195:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -52471,7 +54558,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":190,"core-util-is":7,"inherits":40}],189:[function(require,module,exports){
+},{"./_stream_transform":197,"core-util-is":7,"inherits":41}],196:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -53493,7 +55580,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":187,"./internal/streams/BufferList":192,"./internal/streams/destroy":193,"./internal/streams/stream":194,"_process":45,"core-util-is":7,"events":9,"inherits":40,"isarray":42,"process-nextick-args":44,"safe-buffer":197,"string_decoder/":202,"util":4}],190:[function(require,module,exports){
+},{"./_stream_duplex":194,"./internal/streams/BufferList":199,"./internal/streams/destroy":200,"./internal/streams/stream":201,"_process":46,"core-util-is":7,"events":10,"inherits":41,"isarray":43,"process-nextick-args":45,"safe-buffer":204,"string_decoder/":209,"util":4}],197:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -53708,7 +55795,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":187,"core-util-is":7,"inherits":40}],191:[function(require,module,exports){
+},{"./_stream_duplex":194,"core-util-is":7,"inherits":41}],198:[function(require,module,exports){
 (function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -54398,7 +56485,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
-},{"./_stream_duplex":187,"./internal/streams/destroy":193,"./internal/streams/stream":194,"_process":45,"core-util-is":7,"inherits":40,"process-nextick-args":44,"safe-buffer":197,"timers":203,"util-deprecate":207}],192:[function(require,module,exports){
+},{"./_stream_duplex":194,"./internal/streams/destroy":200,"./internal/streams/stream":201,"_process":46,"core-util-is":7,"inherits":41,"process-nextick-args":45,"safe-buffer":204,"timers":210,"util-deprecate":214}],199:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -54478,7 +56565,7 @@ if (util && util.inspect && util.inspect.custom) {
     return this.constructor.name + ' ' + obj;
   };
 }
-},{"safe-buffer":197,"util":4}],193:[function(require,module,exports){
+},{"safe-buffer":204,"util":4}],200:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -54553,10 +56640,10 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":44}],194:[function(require,module,exports){
+},{"process-nextick-args":45}],201:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":9}],195:[function(require,module,exports){
+},{"events":10}],202:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -54565,7 +56652,7 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":187,"./lib/_stream_passthrough.js":188,"./lib/_stream_readable.js":189,"./lib/_stream_transform.js":190,"./lib/_stream_writable.js":191}],196:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":194,"./lib/_stream_passthrough.js":195,"./lib/_stream_readable.js":196,"./lib/_stream_transform.js":197,"./lib/_stream_writable.js":198}],203:[function(require,module,exports){
 var GOOD_LEAF_SIZE = 200
 
 // :: class<T> A rope sequence is a persistent sequence data structure
@@ -54646,7 +56733,7 @@ RopeSequence.from = function from (values) {
   return values && values.length ? new Leaf(values) : RopeSequence.empty
 };
 
-var Leaf = (function (RopeSequence) {
+var Leaf = /*@__PURE__*/(function (RopeSequence) {
   function Leaf(values) {
     RopeSequence.call(this)
     this.values = values
@@ -54656,7 +56743,7 @@ var Leaf = (function (RopeSequence) {
   Leaf.prototype = Object.create( RopeSequence && RopeSequence.prototype );
   Leaf.prototype.constructor = Leaf;
 
-  var prototypeAccessors = { length: {},depth: {} };
+  var prototypeAccessors = { length: { configurable: true },depth: { configurable: true } };
 
   Leaf.prototype.flatten = function flatten () {
     return this.values
@@ -54672,17 +56759,13 @@ var Leaf = (function (RopeSequence) {
   };
 
   Leaf.prototype.forEachInner = function forEachInner (f, from, to, start) {
-    var this$1 = this;
-
     for (var i = from; i < to; i++)
-      { if (f(this$1.values[i], start + i) === false) { return false } }
+      { if (f(this.values[i], start + i) === false) { return false } }
   };
 
   Leaf.prototype.forEachInvertedInner = function forEachInvertedInner (f, from, to, start) {
-    var this$1 = this;
-
     for (var i = from - 1; i >= to; i--)
-      { if (f(this$1.values[i], start + i) === false) { return false } }
+      { if (f(this.values[i], start + i) === false) { return false } }
   };
 
   Leaf.prototype.leafAppend = function leafAppend (other) {
@@ -54708,7 +56791,7 @@ var Leaf = (function (RopeSequence) {
 // The empty rope sequence.
 RopeSequence.empty = new Leaf([])
 
-var Append = (function (RopeSequence) {
+var Append = /*@__PURE__*/(function (RopeSequence) {
   function Append(left, right) {
     RopeSequence.call(this)
     this.left = left
@@ -54778,7 +56861,7 @@ var Append = (function (RopeSequence) {
 
 module.exports = RopeSequence
 
-},{}],197:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -54842,7 +56925,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":5}],198:[function(require,module,exports){
+},{"buffer":5}],205:[function(require,module,exports){
 (function (global){
 var ClientRequest = require('./lib/request')
 var response = require('./lib/response')
@@ -54930,7 +57013,7 @@ http.METHODS = [
 	'UNSUBSCRIBE'
 ]
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/request":200,"./lib/response":201,"builtin-status-codes":6,"url":205,"xtend":209}],199:[function(require,module,exports){
+},{"./lib/request":207,"./lib/response":208,"builtin-status-codes":6,"url":212,"xtend":216}],206:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
@@ -55007,7 +57090,7 @@ function isFunction (value) {
 xhr = null // Help gc
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],200:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -55338,7 +57421,7 @@ var unsafeHeaders = [
 ]
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./capability":199,"./response":201,"_process":45,"buffer":5,"inherits":40,"readable-stream":195,"to-arraybuffer":204}],201:[function(require,module,exports){
+},{"./capability":206,"./response":208,"_process":46,"buffer":5,"inherits":41,"readable-stream":202,"to-arraybuffer":211}],208:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -55566,7 +57649,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./capability":199,"_process":45,"buffer":5,"inherits":40,"readable-stream":195}],202:[function(require,module,exports){
+},{"./capability":206,"_process":46,"buffer":5,"inherits":41,"readable-stream":202}],209:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -55863,7 +57946,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":197}],203:[function(require,module,exports){
+},{"safe-buffer":204}],210:[function(require,module,exports){
 (function (setImmediate,clearImmediate){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -55942,7 +58025,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":45,"timers":203}],204:[function(require,module,exports){
+},{"process/browser.js":46,"timers":210}],211:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 
 module.exports = function (buf) {
@@ -55971,7 +58054,7 @@ module.exports = function (buf) {
 	}
 }
 
-},{"buffer":5}],205:[function(require,module,exports){
+},{"buffer":5}],212:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -56705,7 +58788,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":206,"punycode":54,"querystring":57}],206:[function(require,module,exports){
+},{"./util":213,"punycode":61,"querystring":64}],213:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -56723,7 +58806,7 @@ module.exports = {
   }
 };
 
-},{}],207:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 (function (global){
 
 /**
@@ -56794,7 +58877,7 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],208:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
 var base = {
   8: "Backspace",
   9: "Tab",
@@ -56850,6 +58933,8 @@ var base = {
   222: "'",
   229: "q"
 }
+exports.base = base
+
 var shift = {
   48: ")",
   49: "!",
@@ -56877,11 +58962,13 @@ var shift = {
   222: "\"",
   229: "Q"
 }
+exports.shift = shift
 
 var chrome = typeof navigator != "undefined" && /Chrome\/(\d+)/.exec(navigator.userAgent)
 var safari = typeof navigator != "undefined" && /Apple Computer/.test(navigator.vendor)
 var gecko = typeof navigator != "undefined" && /Gecko\/\d+/.test(navigator.userAgent)
 var mac = typeof navigator != "undefined" && /Mac/.test(navigator.platform)
+var ie = typeof navigator != "undefined" && /MSIE \d|Trident\/(?:[7-9]|\d{2,})\..*rv:(\d+)/.exec(navigator.userAgent)
 var brokenModifierNames = chrome && (mac || +chrome[1] < 57) || gecko && mac
 
 // Fill in the digit keys
@@ -56899,11 +58986,11 @@ for (var i = 65; i <= 90; i++) {
 // For each code that doesn't have a shift-equivalent, copy the base name
 for (var code in base) if (!shift.hasOwnProperty(code)) shift[code] = base[code]
 
-function keyName(event) {
+exports.keyName = function(event) {
   // Don't trust event.key in Chrome when there are modifiers until
   // they fix https://bugs.chromium.org/p/chromium/issues/detail?id=633838
   var ignoreKey = brokenModifierNames && (event.ctrlKey || event.altKey || event.metaKey) ||
-    safari && event.shiftKey && event.key && event.key.length == 1
+    (safari || ie) && event.shiftKey && event.key && event.key.length == 1
   var name = (!ignoreKey && event.key) ||
     (event.shiftKey ? shift : base)[event.keyCode] ||
     event.key || "Unidentified"
@@ -56918,11 +59005,7 @@ function keyName(event) {
   return name
 }
 
-module.exports = keyName
-keyName.base = base
-keyName.shift = shift
-
-},{}],209:[function(require,module,exports){
+},{}],216:[function(require,module,exports){
 module.exports = extend
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;

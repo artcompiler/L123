@@ -38,6 +38,7 @@ const transform = (function() {
     "STYLE" : styleV1,
     "CONCAT" : concat,
     "ARG" : arg,
+    "EDITOR" : editor,
     "IN" : inData,
     "LAMBDA" : lambda,
     "PAREN" : paren,
@@ -136,6 +137,10 @@ const transform = (function() {
     } else {
       resume([], []);
     }
+  }
+  function editor(node, options, resume) {
+    let data = options.data ? options.data : [];
+    resume([], data);
   }
   function inData(node, options, resume) {
     let data = options.data ? options.data : [];
@@ -433,7 +438,6 @@ let render = (function() {
 export let compiler = (function () {
   exports.version = "v1.0.0";
   exports.compile = function compile(code, data, resume) {
-    console.log("compile() data=" + JSON.stringify(data));
     // Compiler takes an AST in the form of a node pool and transforms it into
     // an object to be rendered on the client by the viewer for this language.
     try {
@@ -445,6 +449,7 @@ export let compiler = (function () {
           resume(err, val);
         } else {
           render(val, options, function (err, val) {
+            console.log("compile() val=" + JSON.stringify(val, null, 2));
             resume(err, val);
           });
         }
