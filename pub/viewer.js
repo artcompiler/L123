@@ -324,15 +324,16 @@ window.gcexports.viewer = function () {
 
     view: undefined,
     componentDidMount: function componentDidMount() {
-      var state = _prosemirrorState.EditorState.create({ schema: _prosemirrorSchemaBasic.schema });
+      var state = _prosemirrorState.EditorState.create({
+        schema: _prosemirrorSchemaBasic.schema,
+        plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+      });
       var view = this.view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
         state: state,
         dispatchTransaction: function dispatchTransaction(transaction) {
-          // console.log("Document size went from", transaction.before.content.size,
-          //             "to", transaction.doc.content.size)
+          console.log("Document size went from", transaction.before.content.size, "to", transaction.doc.content.size);
           var newState = view.state.apply(transaction);
           view.updateState(newState);
-          //          update(newState);
         }
       });
     },

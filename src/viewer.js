@@ -45,15 +45,21 @@ window.gcexports.viewer = (function () {
   let Viewer = React.createClass({
     view: undefined,
     componentDidMount() {
-      let state = EditorState.create({schema})
+      let state = EditorState.create({
+        schema,
+        plugins: [
+          history(),
+          keymap({"Mod-z": undo, "Mod-y": redo}),
+          keymap(baseKeymap),
+        ]
+      });
       let view = this.view = new EditorView(document.querySelector("#editor"), {
         state,
         dispatchTransaction(transaction) {
-          // console.log("Document size went from", transaction.before.content.size,
-          //             "to", transaction.doc.content.size)
+          console.log("Document size went from", transaction.before.content.size,
+                      "to", transaction.doc.content.size)
           let newState = view.state.apply(transaction)
           view.updateState(newState)
-//          update(newState);
         }
       });
     },
