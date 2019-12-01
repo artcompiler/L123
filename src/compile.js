@@ -139,8 +139,10 @@ const transform = (function() {
     }
   }
   function editor(node, options, resume) {
-    let data = options.data ? options.data : [];
-    resume([], data);
+    let state = options.data && options.data.proseMirrorState;
+    resume([], {
+      state: state,
+    });
   }
   function inData(node, options, resume) {
     let data = options.data ? options.data : [];

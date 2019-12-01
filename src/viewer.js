@@ -42,24 +42,40 @@ window.gcexports.viewer = (function () {
     };
     window.gcexports.dispatcher.dispatch(state);
   }
+  let view;
   let Viewer = React.createClass({
-    view: undefined,
     componentDidMount() {
-      let state = EditorState.create({
-        schema,
-        plugins: [
-          history(),
-          keymap({"Mod-z": undo, "Mod-y": redo}),
-          keymap(baseKeymap),
-        ]
-      });
-      let view = this.view = new EditorView(document.querySelector("#editor"), {
+      let props = this.props;
+      let doc = props.obj && props.obj.state && props.obj.state.doc;
+      let state;
+      if (props.obj && props.obj.state) {
+        state = EditorState.fromJSON({
+          schema,
+          plugins: [
+            history(),
+            keymap({"Mod-z": undo, "Mod-y": redo}),
+            keymap(baseKeymap),
+          ]
+        }, props.obj.state);
+      } else {
+        state =
+          EditorState.create({
+            schema,
+            plugins: [
+              history(),
+              keymap({"Mod-z": undo, "Mod-y": redo}),
+              keymap(baseKeymap),
+            ]
+          });
+      }
+      view = new EditorView(document.querySelector("#editor"), {
         state,
         dispatchTransaction(transaction) {
           console.log("Document size went from", transaction.before.content.size,
                       "to", transaction.doc.content.size)
           let newState = view.state.apply(transaction)
-          view.updateState(newState)
+          view.updateState(newState);
+          update(newState.toJSON());
         }
       });
     },

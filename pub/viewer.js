@@ -319,21 +319,31 @@ window.gcexports.viewer = function () {
     };
     window.gcexports.dispatcher.dispatch(state);
   }
+  var view = void 0;
   var Viewer = _react2.default.createClass({
     displayName: "Viewer",
-
-    view: undefined,
     componentDidMount: function componentDidMount() {
-      var state = _prosemirrorState.EditorState.create({
-        schema: _prosemirrorSchemaBasic.schema,
-        plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
-      });
-      var view = this.view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
+      var props = this.props;
+      var doc = props.obj && props.obj.state && props.obj.state.doc;
+      var state = void 0;
+      if (props.obj && props.obj.state) {
+        state = _prosemirrorState.EditorState.fromJSON({
+          schema: _prosemirrorSchemaBasic.schema,
+          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+        }, props.obj.state);
+      } else {
+        state = _prosemirrorState.EditorState.create({
+          schema: _prosemirrorSchemaBasic.schema,
+          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+        });
+      }
+      view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
         state: state,
         dispatchTransaction: function dispatchTransaction(transaction) {
           console.log("Document size went from", transaction.before.content.size, "to", transaction.doc.content.size);
           var newState = view.state.apply(transaction);
           view.updateState(newState);
+          update(newState.toJSON());
         }
       });
     },
