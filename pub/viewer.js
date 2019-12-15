@@ -265,6 +265,11 @@ exports.validate = validate;
 },{"buffer":5,"hashids":38,"https":39}],2:[function(require,module,exports){
 "use strict";
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /* Copyright (c) 2017, Art Compiler LLC */
+
+//import * as React from "react";
+
+
 var _share = require("./share.js");
 
 var _d = require("d3");
@@ -297,14 +302,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-/* Copyright (c) 2017, Art Compiler LLC */
-var mySchema = new _prosemirrorModel.Schema({
-  nodes: (0, _prosemirrorSchemaList.addListNodes)(_prosemirrorSchemaBasic.schema.spec.nodes, "paragraph block*", "block"),
-  marks: _prosemirrorSchemaBasic.schema.spec.marks
-});
-//import * as React from "react";
-
-
 window.gcexports.viewer = function () {
   function capture(el) {
     return null;
@@ -315,26 +312,77 @@ window.gcexports.viewer = function () {
       data: {
         proseMirrorState: proseMirrorState
       },
-      recompileCode: recompileCode
+      recompileCode: recompileCode,
+      dontUpdateComponent: true
     };
     window.gcexports.dispatcher.dispatch(state);
   }
-  var view = void 0;
+  function schemaPrep(schema) {
+    if ((typeof schema === "undefined" ? "undefined" : _typeof(schema)) !== "object" || schema === null) {
+      return schema;
+    }
+    var newSchema = Object.assign({}, schema);
+    Object.keys(schema).forEach(function (key) {
+      if (key === "toDOM") {
+        newSchema[key] = function (node) {
+          return schema[key];
+        };
+      } else if (key === "parseDOM") {
+        newSchema[key] = schema[key];
+      } else {
+        newSchema[key] = schemaPrep(schema[key]);
+      }
+    });
+    return newSchema;
+  }
+  var view = void 0,
+      schema = void 0;
+  var noteSchema = new _prosemirrorModel.Schema({
+    nodes: {
+      text: {},
+      note: {
+        content: "text*",
+        toDOM: function toDOM() {
+          return ["note", 0];
+        },
+
+        parseDOM: [{ tag: "note" }]
+      },
+      notegroup: {
+        content: "note+",
+        toDOM: function toDOM() {
+          return ["notegroup", 0];
+        },
+
+        parseDOM: [{ tag: "notegroup" }]
+      },
+      doc: {
+        content: "(note | notegroup)+"
+      }
+    }
+  });
   var Viewer = _react2.default.createClass({
     displayName: "Viewer",
     componentDidMount: function componentDidMount() {
       var props = this.props;
+      schema = props.obj && props.obj.schema && new _prosemirrorModel.Schema(schemaPrep(props.obj.schema)) || _prosemirrorSchemaBasic.schema;
       var doc = props.obj && props.obj.state && props.obj.state.doc;
       var state = void 0;
       if (props.obj && props.obj.state) {
         state = _prosemirrorState.EditorState.fromJSON({
-          schema: _prosemirrorSchemaBasic.schema,
-          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+          schema: schema,
+          plugins: [
+          //              history(),
+          //              keymap({"Mod-z": undo, "Mod-y": redo}),
+          (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
         }, props.obj.state);
       } else {
         state = _prosemirrorState.EditorState.create({
-          schema: _prosemirrorSchemaBasic.schema,
-          plugins: [(0, _prosemirrorHistory.history)(), (0, _prosemirrorKeymap.keymap)({ "Mod-z": _prosemirrorHistory.undo, "Mod-y": _prosemirrorHistory.redo }), (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
+          schema: schema,
+          plugins: [
+          //              history(),
+          //              keymap({"Mod-z": undo, "Mod-y": redo}),
+          (0, _prosemirrorKeymap.keymap)(_prosemirrorCommands.baseKeymap)]
         });
       }
       view = new _prosemirrorView.EditorView(document.querySelector("#editor"), {
@@ -343,7 +391,7 @@ window.gcexports.viewer = function () {
           console.log("Document size went from", transaction.before.content.size, "to", transaction.doc.content.size);
           var newState = view.state.apply(transaction);
           view.updateState(newState);
-          update(newState.toJSON());
+          update(newState.toJSON(), true);
         }
       });
     },

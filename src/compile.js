@@ -38,6 +38,7 @@ const transform = (function() {
     "STYLE" : styleV1,
     "CONCAT" : concat,
     "ARG" : arg,
+    "SCHEMA" : schema,
     "EDITOR" : editor,
     "IN" : inData,
     "LAMBDA" : lambda,
@@ -137,6 +138,14 @@ const transform = (function() {
     } else {
       resume([], []);
     }
+  }
+  function schema(node, options, resume) {
+    visit(node.elts[0], options, function (err0, val0) {
+      visit(node.elts[1], options, function (err1, val1) {
+        val1.schema = val0;
+        resume([].concat(err1), val1);
+      });
+    });
   }
   function editor(node, options, resume) {
     let state = options.data && options.data.proseMirrorState;
@@ -394,7 +403,6 @@ const transform = (function() {
         if (isNaN(val2)) {
           err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
         }
-        console.log("pow() val1=" + val1 + " val2=" + val2);
         resume([].concat(err1).concat(err2), Math.pow(val1,val2));
       });
     });
@@ -451,7 +459,6 @@ export let compiler = (function () {
           resume(err, val);
         } else {
           render(val, options, function (err, val) {
-            console.log("compile() val=" + JSON.stringify(val, null, 2));
             resume(err, val);
           });
         }
